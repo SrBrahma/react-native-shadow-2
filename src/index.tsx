@@ -85,6 +85,7 @@ export const Shadow: React.FC<ShadowI> = ({
   distance,
   children,
 }) => {
+
   if (finalColor === 'transparent')
     finalColor = '#0000';
   if (startColor === 'transparent')

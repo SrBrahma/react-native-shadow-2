@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "1.0.1",
+  "version": "1.0.6",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "files": [
@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -d",
+    "build": "rm -rf lib && tsc",
     "deploy": "npm run build && npm publish",
     "major": "npm --no-git-tag-version version major",
     "majorD": "npm run build && npm run major && npm publish",
@@ -51,12 +51,16 @@
     "@typescript-eslint/parser": "^4.15.0",
     "eslint": "^7.20.0",
     "eslint-plugin-react": "^7.22.0",
-    "react": "^16.13.1",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-react-native": "^3.10.0",
+    "react": "16.13.1",
     "react-native": "^0.63.4",
     "react-native-svg": "^12.1.0",
     "typescript": "^4.1.5"
   },
   "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
     "react-native-svg": "^12.1.0"
   }
 }
