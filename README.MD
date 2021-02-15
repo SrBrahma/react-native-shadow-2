@@ -1,0 +1,1 @@
+Will be properly released soon. Already works better than original react-native-shadow package! :) Stay tuned!
