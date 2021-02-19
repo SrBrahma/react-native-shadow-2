@@ -269,7 +269,7 @@ export const Shadow: React.FC<ShadowI> = ({
   }, [sizeProp, childLayout, startColor, finalColor, radius, distance, sidesProp, cornersProp]);
 
   return (
-    <View style={containerViewStyle} onLayout={(e) => console.log(e.nativeEvent.layout)}>
+    <View style={containerViewStyle}>
       {/* Shadow before the content, so any shadow inner irregularities will be kept below it. */}
       {shadow}
       <View
