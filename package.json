@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "files": [
@@ -10,11 +10,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf lib && tsc",
     "deploy": "npm run build && npm publish",
-    "major": "npm --no-git-tag-version version major",
+    "major": "npm version major",
     "majorD": "npm run build && npm run major && npm publish",
-    "minor": "npm --no-git-tag-version version minor",
+    "minor": "npm version minor",
     "minorD": "npm run build && npm run minor && npm publish",
-    "patch": "npm --no-git-tag-version version patch",
+    "patch": "npm version patch",
     "patchD": "npm run build && npm run patch && npm publish"
   },
   "repository": {
