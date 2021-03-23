@@ -262,13 +262,13 @@ export const Shadow: React.FC<ShadowI> = ({
         {offset && <Use id='offsetContentBack' href='#content' x={distance} y={distance} width={contentWidth} height={contentHeight} fill={startColor}/>}
         {/* TODO Change Rects to paths? ([*1]) */}
         {activeSides.left &&
-          <Rect x={0} y={sidesSize.top && topLeftShadow} width={distance} height={sidesSize.left} fill='url(#left)'/>}
+          <Rect x={0} y={topLeftShadow} width={distance} height={sidesSize.left} fill='url(#left)'/>}
         {activeSides.right &&
-          <Rect x={totalWidth - distance} y={sidesSize.top && topRightShadow} width={distance} height={sidesSize.right} fill='url(#right)'/>}
+          <Rect x={totalWidth - distance} y={topRightShadow} width={distance} height={sidesSize.right} fill='url(#right)'/>}
         {activeSides.top &&
-          <Rect x={sidesSize.left && topLeftShadow} y={0} width={sidesSize.top} height={distance} fill='url(#top)'/>}
+          <Rect x={topLeftShadow} y={0} width={sidesSize.top} height={distance} fill='url(#top)'/>}
         {activeSides.bottom &&
-          <Rect x={sidesSize.left && bottomLeftShadow} y={totalHeight - distance} width={sidesSize.bottom} height={distance} fill='url(#bottom)'/>}
+          <Rect x={bottomLeftShadow} y={totalHeight - distance} width={sidesSize.bottom} height={distance} fill='url(#bottom)'/>}
 
         {/* https://www.w3.org/TR/SVG/images/paths/arcs02.svg */}
         {/* Tried clipPath before but it would overlap by a tiny bit with the side shadows. */}
