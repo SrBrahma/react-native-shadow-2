@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "files": [
