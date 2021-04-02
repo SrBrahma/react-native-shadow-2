@@ -44,7 +44,7 @@ import { Shadow } from 'react-native-shadow-2';
 * `offset` ([x: number, y: number], default: `[0, 0]`)
 * `size` ([width: number, height: number]) - It isn't required, as it is with react-native-shadow. If you do not pass the size, it will automatically get your component size with onLayout and on the next render apply the shadow properly. So, if not declaring the size, it won't have a shadow on the first render. Looks like I found a way to apply it on the first render automatically, but requires further research. You may open an issue about it so I may feel more motivated to do it hehe
 
-There are other optional properties available that will be added here in this README latter. Intellisense will be your guide for now.
+There are other optional properties available that will be added here in this README later. Intellisense will be your guide for now.
 
 ## Roadmap
 
