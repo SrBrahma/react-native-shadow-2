@@ -38,8 +38,8 @@ import { Shadow } from 'react-native-shadow-2';
 ### Properties
 
 * `startColor` (string, default: `'#00000010'`)
-* `finalColor` (string, default: `'transparent'`)
-* `distance` (number, default: `10`)
+* `finalColor` (string, default: `'#00000000' (= 'transparent')`)
+* `distance` (number, default: `10`) - How far the shadow will go from the borders
 * `radius` (number, default: `0`) - The border radius of your component. You may specify each corner value.
 * `offset` ([x: number, y: number], default: `[0, 0]`)
 * `size` ([width: number, height: number]) - It isn't required, as it is with react-native-shadow. If you do not pass the size, it will automatically get your component size with onLayout and on the next render apply the shadow properly. So, if not declaring the size, it won't have a shadow on the first render. Looks like I found a way to apply it on the first render automatically, but requires further research. You may open an issue about it so I may feel more motivated to do it hehe
