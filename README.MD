@@ -16,6 +16,9 @@ It solves the problem of React Native not having the same shadow appearence for 
 
 The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think about the solution to this shadow issue.
 
+**2021/05/01**: You should also check the [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) package before deciding to use this one. You may prefer using it, looks really great! It doesn't support expo though, as my package does.
+
+
 ## Installation
 
 You will need to install [react-native-svg](https://github.com/react-native-svg/react-native-svg). For RN > 0.60, it's just `npm i react-native-svg` / `yarn add react-native-svg`.
