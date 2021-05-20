@@ -82,6 +82,10 @@ interface ShadowI {
    *
    * */
   offset?: [x: number, y: number];
+  /** Set the opacity of the whole shadow
+   * 
+   */
+  opacity?: Number;
 }
 export const Shadow: React.FC<ShadowI> = ({
   size: sizeProp,
@@ -93,6 +97,7 @@ export const Shadow: React.FC<ShadowI> = ({
   startColor: startColorProp = '#00000010',
   finalColor: finalColorProp = '#0000',
   distance: distanceProp = 10,
+  opacity: opacityProp = 1,
   children,
   offset,
 }) => {
@@ -259,31 +264,31 @@ export const Shadow: React.FC<ShadowI> = ({
 
 
 
-        {offset && <Use id='offsetContentBack' href='#content' x={distance} y={distance} width={contentWidth} height={contentHeight} fill={startColor}/>}
+        {offset && <Use id='offsetContentBack' href='#content' x={distance} y={distance} width={contentWidth} height={contentHeight} fill={startColor} fillOpacity={opacityProp}/>}
         {/* TODO Change Rects to paths? ([*1]) */}
         {activeSides.left &&
-          <Rect x={0} y={topLeftShadow} width={distance} height={sidesSize.left} fill='url(#left)'/>}
+          <Rect x={0} y={topLeftShadow} width={distance} height={sidesSize.left} fill='url(#left)' fillOpacity={opacityProp}/>}
         {activeSides.right &&
-          <Rect x={totalWidth - distance} y={topRightShadow} width={distance} height={sidesSize.right} fill='url(#right)'/>}
+          <Rect x={totalWidth - distance} y={topRightShadow} width={distance} height={sidesSize.right} fill='url(#right)' fillOpacity={opacityProp}/>}
         {activeSides.top &&
-          <Rect x={topLeftShadow} y={0} width={sidesSize.top} height={distance} fill='url(#top)'/>}
+          <Rect x={topLeftShadow} y={0} width={sidesSize.top} height={distance} fill='url(#top)' fillOpacity={opacityProp}/>}
         {activeSides.bottom &&
-          <Rect x={bottomLeftShadow} y={totalHeight - distance} width={sidesSize.bottom} height={distance} fill='url(#bottom)'/>}
+          <Rect x={bottomLeftShadow} y={totalHeight - distance} width={sidesSize.bottom} height={distance} fill='url(#bottom)' fillOpacity={opacityProp}/>}
 
         {/* https://www.w3.org/TR/SVG/images/paths/arcs02.svg */}
         {/* Tried clipPath before but it would overlap by a tiny bit with the side shadows. */}
         {/* using path instead of rect wont help in the 'just side shadow not taking all side length */}
         {/* {activeSides.left && <Path fill='url(#left)' d={`M 0 0, h ${distance}, V ${sidesSize.left}, h ${-distance}, V ${sidesSize.left}, Z`}/>} */}
-        {activeCorners.topLeft && <Path fill='url(#top-left)' d={`M 0 ${topLeftShadow}, a ${topLeftShadow} ${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow}, v ${distance}, a ${topLeft} ${topLeft} 0 0 0 ${-topLeft} ${topLeft}, h ${distance}, z`}/> }
-        {activeCorners.topRight && <Path fill='url(#top-right)' d={`M ${totalWidth - topRightShadow} 0, a ${topRightShadow} ${topRightShadow} 0 0 1 ${topRightShadow} ${topRightShadow}, h ${-distance}, a ${topRight} ${topRight} 0 0 0 ${-topRight} ${-topRight}, v ${-distance}, z`}/> }
-        {activeCorners.bottomLeft && <Path fill='url(#bottom-left)' d={`M ${bottomLeftShadow} ${totalHeight}, a ${bottomLeftShadow} ${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow} ${-bottomLeftShadow}, h ${distance}, a ${bottomLeft} ${bottomLeft} 0 0 0 ${bottomLeft} ${bottomLeft}, v ${distance}, z`}/> }
-        {activeCorners.bottomRight && <Path fill='url(#bottom-right)' d={`M ${totalWidth} ${totalHeight - bottomRightShadow}, a ${bottomRightShadow} ${bottomRightShadow} 0 0 1 ${-bottomRightShadow} ${bottomRightShadow}, v ${-distance}, a ${bottomRight} ${bottomRight} 0 0 0 ${bottomRight} ${-bottomRight}, h ${distance}, z`}/> }
+        {activeCorners.topLeft && <Path fill='url(#top-left)' fillOpacity={opacityProp} d={`M 0 ${topLeftShadow}, a ${topLeftShadow} ${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow}, v ${distance}, a ${topLeft} ${topLeft} 0 0 0 ${-topLeft} ${topLeft}, h ${distance}, z`}/> }
+        {activeCorners.topRight && <Path fill='url(#top-right)' fillOpacity={opacityProp} d={`M ${totalWidth - topRightShadow} 0, a ${topRightShadow} ${topRightShadow} 0 0 1 ${topRightShadow} ${topRightShadow}, h ${-distance}, a ${topRight} ${topRight} 0 0 0 ${-topRight} ${-topRight}, v ${-distance}, z`}/> }
+        {activeCorners.bottomLeft && <Path fill='url(#bottom-left)' fillOpacity={opacityProp} d={`M ${bottomLeftShadow} ${totalHeight}, a ${bottomLeftShadow} ${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow} ${-bottomLeftShadow}, h ${distance}, a ${bottomLeft} ${bottomLeft} 0 0 0 ${bottomLeft} ${bottomLeft}, v ${distance}, z`}/> }
+        {activeCorners.bottomRight && <Path fill='url(#bottom-right)' fillOpacity={opacityProp} d={`M ${totalWidth} ${totalHeight - bottomRightShadow}, a ${bottomRightShadow} ${bottomRightShadow} 0 0 1 ${-bottomRightShadow} ${bottomRightShadow}, v ${-distance}, a ${bottomRight} ${bottomRight} 0 0 0 ${bottomRight} ${-bottomRight}, h ${distance}, z`}/> }
 
         {/* TODO: remove shadow below content when using offset. */}
         {/* <Use href='#content' x={distance-offsetX} y={distance-offsetY} width={contentWidth} height={contentHeight} mask='url(#mask)'/> */}
       </Svg>
     );
-  }, [sizeProp, childLayout, startColorProp, finalColorProp, radius, distanceProp, sidesProp, cornersProp, offset]);
+  }, [sizeProp, childLayout, startColorProp, finalColorProp, radius, distanceProp, sidesProp, cornersProp, offset, opacityProp]);
 
   return (
     <View style={containerViewStyle}>
