@@ -1,104 +1,97 @@
-// First I tried to use react-native-linear & radial-gradient (that uses react-native-svg),
-// but they would, depending on device and view dimensions and positions, have a pixel between their views.
-// So I decided to try using the svg directly.
+// This code has a nice history! Check the previous versions to see how much it has changed!
+// It got SMARTER!
 
-import React, { useMemo, useState } from 'react';
-import { Dimensions, LayoutRectangle, StyleProp, View, ViewStyle } from 'react-native';
+import React, { useMemo } from 'react';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import Svg, {
   Defs,
   LinearGradient,
   Rect,
   Stop,
-  RadialGradient,
   Path,
-  Symbol,
-  Use,
+  RadialGradient,
+  Mask,
 } from 'react-native-svg';
-import { parseToRgb } from 'polished'; // To extract alpha
+import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
 
 
 
-type Size = [width: number, height: number];
-
 // Exclude<x, never>: https://github.com/microsoft/TypeScript/issues/42322#issuecomment-759786099
-type Sides = Exclude<'left' | 'right' | 'top' | 'bottom', never>;
-type Corners = Exclude<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', never>;
+type Side = Exclude<'left' | 'right' | 'top' | 'bottom', never>;
+type Corner = Exclude<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', never>;
+type CornerRadius = Record<Corner, number>
+// Add Shadow to the corner names
+type CornerRadiusShadow = {[K in keyof CornerRadius as `${K}Shadow`]: number}
 
 
-
-// "Pixel perfect" solution:
-// RN seems to use .round. Inputting 30 height on a view, onLayout would output ~29.81h. 29.7 would also output that same value.
-function R(value: number) {
-  const scale = Dimensions.get('screen').scale; // always getting as scale may change on the run?
-  return Math.round(value * scale) / scale;
-}
-
-
-interface ShadowI {
-  /** The width and height of your content, not including the shadow.
-   *
-   * If not defining it, the shadow will take 1 render to get the content size then render the shadow.
-   *
-   * ^ In the future there will be a callback that will be called when it's done. It takes milliseconds,
-   * but may be perceptible.
-   */
-  size?: Size;
+export interface ShadowI {
   /** The color of the shadow when it's right next to the given content, leaving it.
    * Accepts alpha channel.
-   * @default '#00000010'
-  */
+   *
+   * @default '#00000020' */
   startColor?: string;
   /** The color of the shadow at the maximum distance from the content.
-   * @default '#0000', transparent.
-   */
+   * @default '#0000', transparent. */
   finalColor?: string;
-  /** How far will the shadow go.
+  /** How far the shadow will go.
    * @default 10 */
   distance?: number;
-  /** The style of the view that contains the shadow and the view containing the given children. */
+  /** The style of the view that contains the shadow and the children.
+   * @default undefined */
   containerViewStyle?: StyleProp<ViewStyle>;
-  /** The style of the view that contains the given children. */
-  contentViewStyle?: StyleProp<ViewStyle>;
-  /** The radius of each corner. Passing a number will apply it to all corners.
+  /** The radius of each corner of your child component. Passing a number will apply it to all corners.
    *
-   * If passing an object, undefined corners will have the radius of the `default` property if it's defined, else 0.
+   * If passing an object, undefined corners will have the radius of the `default` property if it's defined, else, 0.
    *
-   * @default 0 */
+   * If undefined, as it's by default, and if getChildRadius, it will attempt to get the child radius style. Else, 0.
+   * @default undefined */
   radius?: number | {default?: number, topLeft?: number, topRight?: number, bottomLeft?: number, bottomRight?: number};
-  /** The sides of your content (not including corners) that will have shadows rendered.
+  /**
+   * If it should try to get the radius from the child if `radius` prop is undefined. It will get the values for each
+   * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
+   * If `borderRadius` isn't defined or < 0, 0 will be used.
+   * @default true
+   */
+  getChildRadius?: boolean;
+  /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
-   * Useful to not render a not visible shadow, improving the performance by a little bit.
    * @default ['left', 'right', 'top', 'bottom'] */
-  sides?: Sides[];
-  /** The corners of your content that will have shadows rendered.
+  sides?: Side[];
+  /** The corners that will have the shadows drawn.
    *
-   * The sizings of the radius property will still be used on the side shadows sizes calculations.
-   *
-   * Useful to not render a not visible shadow, improving the performance by a little bit.
    * @default ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] */
-  corners?: Corners[];
+  corners?: Corner[];
   /** Moves the shadow. Negative x moves it to the left, negative y moves it up.
    *
-   * */
-  offset?: [x: number, y: number];
+   * Accepts 'x%' values, in relation to the child's size.
+   *
+   * Read paintInside property description for related configuration.
+   * @default [0, 0] */
+  offset?: [x: number | string, y: number | string];
+  /** If the shadow should be applied inside the external shadows, below the child.
+   *
+   * You may want this as true when using offset or if your child have some transparency.
+   * @default false */
+  paintInside?: boolean;
 }
+
 export const Shadow: React.FC<ShadowI> = ({
-  size: sizeProp,
-  radius = 0,
+  radius: radiusProp,
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
   containerViewStyle,
-  contentViewStyle,
-  startColor: startColorProp = '#00000010',
+  startColor: startColorProp = '#00000030',
   finalColor: finalColorProp = '#0000',
   distance: distanceProp = 10,
   children,
-  offset,
+  offset = [0, 0],
+  getChildRadius: getChildRadiusProp = true,
+  paintInside = false,
 }) => {
 
-  /** The calculated child layout. Only using width and height for now, looks x and y will be 0 unless maybe the contentViewStyle is changed. */
-  const [childLayout, setChildLayout] = useState<LayoutRectangle | null>(null);
+  const [offsetX, offsetY] = offset;
+  const distance = Math.max(distanceProp, 0); // Min val as 0
 
 
   // Does useMemo improve performance here?
@@ -107,48 +100,57 @@ export const Shadow: React.FC<ShadowI> = ({
     const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
     const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
 
-    // Fixes the tiny blank space between the content and the shadow.
-    const distance = R(distanceProp);
-    const [offsetX, offsetY] = offset ?? [0, 0];
+    const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & {alpha?: number};
+    const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & {alpha?: number};
 
-    if (!sizeProp && !childLayout)
-      return null;
+    // [*1] Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
+    // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
+    // it isn't applied twice.
+    const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined });
+    const finalColorWoOpacity = rgbToColorString({ ...finalColorRgb, alpha: undefined });
 
-    // as Size as if not childLayout, sizeProp is truthy.
-    const [contentWidth, contentHeight] = childLayout ? [childLayout.width, childLayout.height] : sizeProp as Size;
-    const startColorOpacity = (parseToRgb(startColor) as RgbaColor).alpha ?? 1;
-    const finalColorOpacity = (parseToRgb(finalColor) as RgbaColor).alpha ?? 1;
+    const startColorOpacity = startColorRgb.alpha ?? 1;
+    const finalColorOpacity = finalColorRgb.alpha ?? 1;
 
 
-    const cornerRadius: Record<Corners, number> =
-      typeof radius === 'number' ? {
-        topLeft: radius,
-        topRight: radius,
-        bottomLeft: radius,
-        bottomRight: radius
+    const doGetChildRadius = getChildRadiusProp && radiusProp === undefined;
+
+    if (doGetChildRadius && React.Children.count(children) > 1)
+      throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
+
+    const childStyle = doGetChildRadius
+      ? (React.Children.only(children) as any | undefined)?.props?.style as ViewStyle | undefined
+      : undefined;
+
+    const cornerRadius: CornerRadius = doGetChildRadius
+      ? {
+        topLeft: Math.max(childStyle?.borderTopLeftRadius ?? childStyle?.borderRadius ?? 0, 0),
+        topRight: Math.max(childStyle?.borderTopRightRadius ?? childStyle?.borderRadius ?? 0, 0),
+        bottomLeft: Math.max(childStyle?.borderBottomLeftRadius ?? childStyle?.borderRadius ?? 0, 0),
+        bottomRight: Math.max(childStyle?.borderBottomRightRadius ?? childStyle?.borderRadius ?? 0, 0),
+      } : (typeof radiusProp === 'number' ? {
+        topLeft: Math.max(radiusProp, 0),
+        topRight: Math.max(radiusProp, 0),
+        bottomLeft: Math.max(radiusProp, 0), // Min val 0 to avoid undesired behaviours.
+        bottomRight: Math.max(radiusProp, 0),
       } : {
-        topLeft: Math.max(radius.topLeft ?? radius.default ?? 0, 0), // Min val 0 to avoid undesired behaviours.
-        topRight: Math.max(radius.topRight ?? radius.default ?? 0, 0),
-        bottomLeft: Math.max(radius.bottomLeft ?? radius.default ?? 0, 0),
-        bottomRight: Math.max(radius.bottomRight ?? radius.default ?? 0, 0)
-      };
-    const { topLeft, topRight, bottomLeft, bottomRight } = cornerRadius;
+        topLeft: Math.max(radiusProp?.topLeft ?? radiusProp?.default ?? 0, 0),
+        topRight: Math.max(radiusProp?.topRight ?? radiusProp?.default ?? 0, 0),
+        bottomLeft: Math.max(radiusProp?.bottomLeft ?? radiusProp?.default ?? 0, 0),
+        bottomRight: Math.max(radiusProp?.bottomRight ?? radiusProp?.default ?? 0, 0),
+      });
+    const { topLeft, topRight, bottomLeft, bottomRight } = cornerRadius; // So we can print cornerRadius for debug.
 
-    const cornerShadowRadius: {
-      topLeftShadow: number;
-      topRightShadow: number;
-      bottomLeftShadow: number;
-      bottomRightShadow: number;
-    } = {
+    const cornerShadowRadius: CornerRadiusShadow = {
       topLeftShadow: topLeft + distance,
       topRightShadow: topRight + distance,
       bottomLeftShadow: bottomLeft + distance,
-      bottomRightShadow: bottomRight + distance
+      bottomRightShadow: bottomRight + distance,
     };
     const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
 
     /** Which sides will have shadow. */
-    const activeSides: Record<Sides, boolean> = {
+    const activeSides: Record<Side, boolean> = {
       left: sidesProp.includes('left'),
       right: sidesProp.includes('right'),
       top: sidesProp.includes('top'),
@@ -156,157 +158,170 @@ export const Shadow: React.FC<ShadowI> = ({
     };
 
     /** Which corners will have shadow. */
-    const activeCorners: Record<Corners, boolean> = {
+    const activeCorners: Record<Corner, boolean> = {
       topLeft: cornersProp.includes('topLeft'),
       topRight: cornersProp.includes('topRight'),
       bottomLeft: cornersProp.includes('bottomLeft'),
       bottomRight: cornersProp.includes('bottomRight'),
     };
 
-    /** The length of each side, without the respective corners sizes. 0 if won't render. */
-    const sidesSize: Record<Sides, number> = {
-      left: activeSides.left ? Math.max(contentHeight - topLeft - bottomLeft, 0) : 0,
-      right: activeSides.right ? Math.max(contentHeight - topRight - bottomRight, 0) : 0,
-      top: activeSides.top ? Math.max(contentWidth - topLeft - topRight, 0) : 0,
-      bottom: activeSides.bottom ? Math.max(contentWidth - bottomLeft - bottomRight, 0) : 0,
-    };
-
-
-    // +!! https://stackoverflow.com/a/59694631/10247962
-    // was using conditional size, depending on the sides with shadow, but removed it
-    const totalWidth = contentWidth + distance * 2;
-    const totalHeight = contentHeight + distance * 2;
-
     // Fragment wasn't working for some reason, so, using array.
     const linearGradient = [
-      // react-native-svg requires the alpha to be set in opacity prop to work.
-      <Stop offset={1} stopColor={startColor} stopOpacity={startColorOpacity} key='1'/>,
-      <Stop offset={0} stopColor={finalColor} stopOpacity={finalColorOpacity} key='2'/>
+      // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
+      // In web, lesser offsets needs to come before.
+      <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
+      <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
     ];
 
-    function radialGradient(id: string, top: boolean, left: boolean, radius: number) {
-      const shadowRadius = radius + distance;
+    function radialGradient(id: string, top: boolean, left: boolean, radius: number, shadowRadius: number) {
       return (<RadialGradient
         id={id}
-        cx={left ? shadowRadius : totalWidth - shadowRadius} // fx and fy seems to be optional
-        cy={top ? shadowRadius : totalHeight - shadowRadius}
+        cx={left ? '100%' : 0} // fx and fy seems to be optional
+        cy={top ? '100%' : 0}
         r={shadowRadius}
         gradientUnits='userSpaceOnUse' // won't show if this isn't set
       >
-        <Stop offset={radius / shadowRadius} stopColor={startColor} stopOpacity={startColorOpacity}/>
-        <Stop offset={1} stopColor={finalColor} stopOpacity={finalColorOpacity} />
+        {/* <Stop offset={radius / shadowRadius} stopOpacity={0}/> // Bad. There would be a tiny gap between the child and the corner shadow. */}
+        <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
+        <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} />
       </RadialGradient>);
     }
 
-    // console.log('totalW/H: ', totalWidth, totalHeight);
-    // console.log('childLayout: ', childLayout);
-    // console.log('sidesSize: ', sidesSize);
-    // console.log('corners: ', cornerRadius);
-    // console.log('cornersShadows: ', cornerShadowRadius);
-    // console.log('\n');
+    return (<>
+      {/* Sides */}
 
-    // viewBox saved me. Without it, paths wouldn't properly connect (sometimes there would be a gap between them),
-    // clippings would happen, gap between the shadow and the content...
-    // TODO [*1] for each corner get x1~3 and y1~3 for the connecting path points,
-    // so there won't be mismatching values due to floating point calcs errors leading to tiny gaps.
-    // The viewBox in svg fixed the previous gap, but I think it's still possible to happen due to this,
-    // specially in paths that have calculations and relative positionings that will sum the errors.
-    // If not ceiling, the shadow could/would get clipped. This don't change the expected result.
-    // ^ looks like that using viewBox there is no longer the need of the Math.ceil.
-    // ^ wrong. had a case of when using just a shadow size, it wouldn't take all side length. Ceil fixed it.
-    // ^ but, it would cause full shadow having gaps between content and the shadow itself.
-    // ^ working without viewbox. what was the problem case? = R(distance).
-
-    // const bottomRightLeftX = totalWidth - bottomRightShadow;
-
-    return (
-      <Svg
-        // onLayout={(e) => console.log('svgLayout: ', e.nativeEvent.layout)}
-        width={totalWidth}
-        height={totalHeight}
-        // viewBox={`0 0 ${totalWidth} ${totalHeight}`} // doesn't seem fix anything more
-
-        style={{
-          position: 'absolute',
-          left: - distance + offsetX,
-          top: - distance + offsetY,
-        }}>
+      {/* We do another awesome hack here with the side position and masking the total length of the corners. Else,
+        we would need to apply the other part of the mask with a specific position, but we don't know it. 🤯 */}
+      {activeSides.left && <Svg style={{ position: 'absolute', right: '100%', bottom: bottomLeft }} width={distance} height={'100%'}>
         <Defs>
-          <LinearGradient id='left' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient>
-          <LinearGradient id='right' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient>
-          <LinearGradient id='top' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient>
-          <LinearGradient id='bottom' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient>
-          {radialGradient('top-left', true, true, topLeft)}
-          {radialGradient('top-right', true, false, topRight)}
-          {radialGradient('bottom-left', false, true, bottomLeft)}
-          {radialGradient('bottom-right', false, false, bottomRight)}
-
-          {/* Content shape, to use with offset */}
-          {offset && <Symbol id='content' viewBox={`0 0 ${contentWidth} ${contentHeight}`}>
-            <Path d={`M ${topLeft} 0, h ${sidesSize.top}, a ${topRight} ${topRight} 0 0 1 ${topRight} ${topRight}, v ${sidesSize.right}, a ${bottomRight} ${bottomRight} 0 0 1 ${-bottomRight} ${bottomRight}, h ${-sidesSize.bottom}, a ${bottomLeft} ${bottomLeft} 0 0 1 ${-bottomLeft} ${-bottomLeft}, v ${-sidesSize.left}, a ${topLeft} ${topLeft} 0 0 1 ${topLeft} ${-topLeft}, Z`}/>
-          </Symbol>}
-
-          {/* <Mask // trying to do mask content bg offset
-            id='mask'
-            width={contentWidth}
-            height={contentHeight}
-
-            x={0} y={0}
-          >
-            <Use href='#content' x={distance} y={distance} width={contentWidth} height={contentHeight} fill={'url(#left)'}/>
-          </Mask> */}
+          <Mask id='leftMask'>
+            <Rect height={'100%'} width='100%' fill={'#fff'}/>
+            {/* v Single mask rect for both ends! v */}
+            <Rect height={topLeft + bottomLeft} width='100%' fill={'#000'}/>
+          </Mask>
+          <LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
+        <Rect width={'100%'} height={'100%'} fill='url(#left)' mask='url(#leftMask)'/>
+      </Svg>}
+
+      {activeSides.right && <Svg style={{ position: 'absolute', left: '100%', bottom: bottomRight }} width={distance} height={'100%'}>
+        <Defs>
+          <Mask id='rightMask'>
+            <Rect height={'100%'} width='100%' fill={'#fff'}/>
+            <Rect height={topRight + bottomRight} width='100%' fill={'#000'}/>
+          </Mask>
+          <LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient>
+        </Defs>
+        <Rect width={'100%'} height={'100%'} fill='url(#right)' mask='url(#rightMask)'/>
+      </Svg>}
+
+      {activeSides.bottom && <Svg style={{ position: 'absolute', top: '100%', right: bottomRight }} width={'100%'} height={distance}>
+        <Defs>
+          <Mask id='bottomMask'>
+            <Rect height={'100%'} width='100%' fill={'#fff'}/>
+            <Rect height='100%' width={bottomLeft + bottomRight} fill={'#000'}/>
+          </Mask>
+          <LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient>
+        </Defs>
+        <Rect width={'100%'} height={'100%'} fill='url(#bottom)' mask='url(#bottomMask)'/>
+      </Svg>}
+
+      {activeSides.top && <Svg style={{ position: 'absolute', bottom: '100%', right: topRight }} width={'100%'} height={distance}>
+        <Defs>
+          <Mask id='topMask'>
+            <Rect height={'100%'} width='100%' fill={'#fff'}/>
+            <Rect height='100%' width={topLeft + topRight} fill={'#000'}/>
+          </Mask>
+          <LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient>
+        </Defs>
+        <Rect width={'100%'} height={'100%'} fill='url(#top)' mask='url(#topMask)'/>
+      </Svg>}
 
 
+      {/* Corners */}
 
-        {offset && <Use id='offsetContentBack' href='#content' x={distance} y={distance} width={contentWidth} height={contentHeight} fill={startColor}/>}
-        {/* TODO Change Rects to paths? ([*1]) */}
-        {activeSides.left &&
-          <Rect x={0} y={topLeftShadow} width={distance} height={sidesSize.left} fill='url(#left)'/>}
-        {activeSides.right &&
-          <Rect x={totalWidth - distance} y={topRightShadow} width={distance} height={sidesSize.right} fill='url(#right)'/>}
-        {activeSides.top &&
-          <Rect x={topLeftShadow} y={0} width={sidesSize.top} height={distance} fill='url(#top)'/>}
-        {activeSides.bottom &&
-          <Rect x={bottomLeftShadow} y={totalHeight - distance} width={sidesSize.bottom} height={distance} fill='url(#bottom)'/>}
+      {/* The anchor for the svgs is the top left point in the corner square.
+        The starting point is the clockwise external arc init point. */}
 
-        {/* https://www.w3.org/TR/SVG/images/paths/arcs02.svg */}
-        {/* Tried clipPath before but it would overlap by a tiny bit with the side shadows. */}
-        {/* using path instead of rect wont help in the 'just side shadow not taking all side length */}
-        {/* {activeSides.left && <Path fill='url(#left)' d={`M 0 0, h ${distance}, V ${sidesSize.left}, h ${-distance}, V ${sidesSize.left}, Z`}/>} */}
-        {activeCorners.topLeft && <Path fill='url(#top-left)' d={`M 0 ${topLeftShadow}, a ${topLeftShadow} ${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow}, v ${distance}, a ${topLeft} ${topLeft} 0 0 0 ${-topLeft} ${topLeft}, h ${distance}, z`}/> }
-        {activeCorners.topRight && <Path fill='url(#top-right)' d={`M ${totalWidth - topRightShadow} 0, a ${topRightShadow} ${topRightShadow} 0 0 1 ${topRightShadow} ${topRightShadow}, h ${-distance}, a ${topRight} ${topRight} 0 0 0 ${-topRight} ${-topRight}, v ${-distance}, z`}/> }
-        {activeCorners.bottomLeft && <Path fill='url(#bottom-left)' d={`M ${bottomLeftShadow} ${totalHeight}, a ${bottomLeftShadow} ${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow} ${-bottomLeftShadow}, h ${distance}, a ${bottomLeft} ${bottomLeft} 0 0 0 ${bottomLeft} ${bottomLeft}, v ${distance}, z`}/> }
-        {activeCorners.bottomRight && <Path fill='url(#bottom-right)' d={`M ${totalWidth} ${totalHeight - bottomRightShadow}, a ${bottomRightShadow} ${bottomRightShadow} 0 0 1 ${-bottomRightShadow} ${bottomRightShadow}, v ${-distance}, a ${bottomRight} ${bottomRight} 0 0 0 ${bottomRight} ${-bottomRight}, h ${distance}, z`}/> }
+      {activeCorners.topLeft && <Svg width={topLeftShadow} height={topLeftShadow}
+        style={{ position: 'absolute', top:-distance, left: -distance }}
+      >
+        <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
+        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
+          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
+        } h${-distance} Z`}/>
+      </Svg>}
 
-        {/* TODO: remove shadow below content when using offset. */}
-        {/* <Use href='#content' x={distance-offsetX} y={distance-offsetY} width={contentWidth} height={contentHeight} mask='url(#mask)'/> */}
-      </Svg>
-    );
-  }, [sizeProp, childLayout, startColorProp, finalColorProp, radius, distanceProp, sidesProp, cornersProp, offset]);
+      {activeCorners.topRight && <Svg width={topRightShadow} height={topRightShadow}
+        style={{ position: 'absolute', top: -distance, right: -distance }}
+      >
+        <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
+        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
+          ? `h${-topRight} v${-topLeft}`
+          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
+        } v${-distance} Z`}/>
+      </Svg>}
+
+      {activeCorners.bottomLeft && <Svg width={bottomLeftShadow} height={bottomLeftShadow}
+        style={{ position: 'absolute', bottom: -distance, left: -distance }}
+      >
+        <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
+        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
+          ? `h${bottomLeft} v${bottomLeft}`
+          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
+        } v${distance} Z`}/>
+      </Svg>}
+
+      {activeCorners.bottomRight && <Svg width={bottomRightShadow} height={bottomRightShadow}
+        style={{ position: 'absolute', bottom: -distance, right: -distance }}
+      >
+        <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
+        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
+          ? `v${-bottomRight} h${bottomRight}`
+          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
+        } h${distance} Z`}/>
+      </Svg>}
+
+
+      {/* Paint the inner area, so we can offset it.
+        [*2] I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
+        and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
+        paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
+      {paintInside && <Svg width='100%' height='100%'
+        style={{ position: 'absolute' }}
+      >
+        <Defs>
+          <Mask id='maskPaintBelow'>
+            {/* Paint all white, then black on border external areas to erase them */}
+            <Rect width='100%' height='100%' fill='#fff'/>
+            {/* Remove the corners squares */}
+            <Rect width={topLeft} height={topLeft} fill='#000'/>
+            <Rect width={topRight} height={topRight} x='100%' transform={`translate(${-topRight}, 0)`} fill='#000'/>
+            <Rect width={bottomLeft} height={bottomLeft} y='100%' transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
+            <Rect width={bottomRight} height={bottomRight} x='100%' y='100%' transform={`translate(${-bottomRight}, ${-bottomRight})`}fill='#000'/>
+          </Mask>
+        </Defs>
+        <Rect width='100%' height='100%' mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+      </Svg>}
+
+    </>);
+  }, [startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp, cornersProp, paintInside]);
 
   return (
+
     <View style={containerViewStyle}>
-      {/* Shadow before the content, so any shadow inner irregularities will be kept below it. */}
-      {shadow}
-      {/* <View style={{ backgroundColor: 'pink', height: 29.81818199157715, width: 30 }}/> */}
-      <View
-        style={contentViewStyle}
-        /** Only get child size if sizeProp wasn't given */
-        {...(!sizeProp) && { onLayout: (e) => setChildLayout(e.nativeEvent.layout) } }
-      >
+      {/* // Without this alignSelf that I found by somewhat randomly trying, the shadow could have wrong size
+       if it had siblings. eg: https://imgur.com/a/SjdLCJz the text in here was outside the Shadow component,
+       and the shadow by some reason would have corresponding sizing. I show there without and with the alignSelf.
+      */}
+      <View style={[{ alignSelf: 'center' }]}>
+        {/* Shadow below the children */}
+        <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
+          {shadow}
+        </View>
         {children}
       </View>
-
-      {/* Experimental: This below allows overflowing the children size.
-        However, can't find a way to set the viewBox with this approach, so the gaps would probably happen.
-        Would it sucessfuly use the style width and height as viewBox without gap?
-        Maybe could use this on first render, then use the childLayout to set the viewBox sizing. The gaps would
-        only happen on first render, but being it barely noticeable wouldn't be an issue. Better than no shadow on 1st render.
-      */}
-      {/* <Svg style={{ position: 'absolute', width: '110%', height: '100%', left: -10 }}>
-        <Rect height={10} width={'100%'} fill={'#0f0'} y={'50%'}/>
-      </Svg> */}
     </View>
   );
 };

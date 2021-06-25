@@ -1,0 +1,8 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    /** By gev below */
+    "noUncheckedIndexedAccess": true    /* Include 'undefined' in index signature results */
+  }
+}

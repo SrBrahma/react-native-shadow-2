@@ -1,0 +1,1 @@
+/home/hb/Dev/react-native-shadow-2/src/index.tsx
