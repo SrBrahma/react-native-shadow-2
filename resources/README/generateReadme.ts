@@ -1,7 +1,6 @@
 import { readFile, writeFile } from 'fs-extra';
 import Handlebars from 'handlebars';
 import path from 'path';
-import execa from 'execa';
 import { convertMdToMdTable } from './mdToTable';
 
 
@@ -10,30 +9,22 @@ const packagePath = path.join(__dirname, '..', '..');
 const docsPath = path.join(packagePath, 'docs');
 
 
-async function generateDocsFun({stdio}: {stdio: "inherit" | "pipe" | "ignore"}) {
-  await execa('npx', ['typedoc'], { cwd: packagePath, stdio });
-}
 
+// Have your typedoc on watch, and have a ts-node-dev including the docs and README.hbs to run this.
+async function run() {
 
-async function run({generateDocs}: {generateDocs: boolean}) {
-
-  if (generateDocs) {
-    console.log('Executing TypeDoc...');
-    await generateDocsFun({stdio: 'inherit'});
-  }
-
-  console.log('Compiling Handlebars with the docs data...');
+  // console.log('Compiling Handlebars with the docs data...');
   const readmeHbsContent = (await readFile(path.join(__dirname, 'README.hbs'))).toString();
 
   const template = Handlebars.compile(readmeHbsContent, {noEscape: true});
 
-  // const expressions = ( Promise.all([
-  // ]))
-
-  const result = template({
+  let result = template({
     // TODO make them parallel. only one expression now so no problems.
     shadowProperties: await convertMdToMdTable(path.join(docsPath, 'interfaces', 'shadowi.md'))
   });
+
+  // Later found out if this is typedoc or typedoc-plugin-md fault.
+  result = result.replace('StyleProp<ViewStyle\\>', 'StyleProp<ViewStyle>')
 
   await writeFile(path.join(packagePath, 'README.md'), result);
 
@@ -41,4 +32,4 @@ async function run({generateDocs}: {generateDocs: boolean}) {
 }
 
 
-run({generateDocs: true});
+run();

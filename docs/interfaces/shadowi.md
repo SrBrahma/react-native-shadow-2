@@ -35,7 +35,7 @@ ___
 
 ### containerViewStyle
 
-• `Optional` **containerViewStyle**: `StyleProp`<ViewStyle\>
+• `Optional` **containerViewStyle**: `StyleProp`<`ViewStyle`\>
 
 The style of the view that contains the shadow and the children.
 
@@ -49,9 +49,11 @@ ___
 
 The radius of each corner of your child component. Passing a number will apply it to all corners.
 
-If passing an object, undefined corners will have the radius of the `default` property if it's defined, else, 0.
+If passing an object, undefined corners will have the radius of the `default` property if it's defined.
 
-If undefined, as it's by default, and if getChildRadius, it will attempt to get the child radius style. Else, 0.
+If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
+
+Fallbacks to 0.
 
 **`default`** undefined
 

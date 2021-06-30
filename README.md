@@ -29,15 +29,16 @@ The [ethercreative/react-native-shadow-generator](https://ethercreative.github.i
 Compatible with Android, iOS and Web. And Expo!
 
 
-# New version 3.0.0! (2021-06-25)
+## 🥳 New version 3.0.0! (2021-06-25) 🥳
 
-## The long waited and most wanted feature is out!
+### The long waited and most wanted feature is out!
+
 Before this new version, it was required to manually enter your component size or leave it as undefined and the integrated onLayout would get its size and apply it on the next render.
 
 Now, this package is way smarter. **The property `size` no longer exists and the shadow is applied on the same render**. A big game changer! You may be interested in taking a look into the source code to see how much changed and the new hacks I discovered that made this possible.
 
 
-# Installation
+## 💿 Installation
 
 You first need [react-native-svg](https://github.com/react-native-svg/react-native-svg).
 
@@ -60,8 +61,6 @@ cd ios && pod install
 react-native link react-native-svg
 ```
 
-
-
 Then, install this package:
 
 ```C
@@ -71,22 +70,23 @@ yarn add react-native-shadow-2
 ```
 
 
-# Usage
+## 📖 Usage
 
 
 ```ts
-import { View, Text } from 'react-native'
 import { Shadow } from 'react-native-shadow-2';
 
 <Shadow>
-  {/* Your component */}
-   <View style={{ borderRadius: 20, borderBottomLefpadding: 40}\}>
-
-   </View>
+  <View>
+    <Text style={\{ margin: 20, fontSize: 20 \}}>{'🙂'}</Text>
+  </View>
 </Shadow>
 ```
 
+![Example 1](./resources/README/react-native-shadow-2-ex-1.png)
+
 ```ts
+import { View, Text } from 'react-native'
 import { Shadow } from 'react-native-shadow-2';
 
 <Shadow startColor={'#0004'} finalColor>
@@ -95,15 +95,15 @@ import { Shadow } from 'react-native-shadow-2';
 </Shadow>
 ```
 
-# Properties
+## Properties
 
 | Property | Type | Default | Description
   | --- | --- | --- | ---
 | **startColor** | `string` | `'#00000020'` | The color of the shadow when it's right next to the given content, leaving it.<br/>Accepts alpha channel.
 | **finalColor** | `string` | `'#0000', transparent.` | The color of the shadow at the maximum distance from the content.
 | **distance** | `number` | `10` | How far the shadow will go.
-| **containerViewStyle** | `StyleProp<ViewStyle\>` | `undefined` | The style of the view that contains the shadow and the children.
-| **radius** | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined` | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, undefined corners will have the radius of the `default` property if it's defined, else, 0.<br/><br/>If undefined, as it's by default, and if getChildRadius, it will attempt to get the child radius style. Else, 0.
+| **containerViewStyle** | `StyleProp<ViewStyle>` | `undefined` | The style of the view that contains the shadow and the children.
+| **radius** | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined` | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, undefined corners will have the radius of the `default` property if it's defined.<br/><br/>If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.<br/><br/>Fallbacks to 0.
 | **getChildRadius** | `boolean` | `true` | If it should try to get the radius from the child if `radius` prop is undefined. It will get the values for each<br/>corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.<br/>If `borderRadius` isn't defined or < 0, 0 will be used.
 | **sides** | `Side[]` | `['left', 'right', 'top', 'bottom']` | The sides of your content that will have the shadows drawn. Doesn't include corners.
 | **corners** | `Corner[]` | `['topLeft', 'topRight', 'bottomLeft', 'bottomRight']` | The corners that will have the shadows drawn.
@@ -112,12 +112,12 @@ import { Shadow } from 'react-native-shadow-2';
 
 
 
-# Known Issues
+## 🐛 Known Issues
 
 * Percentage values for child's borderRadius won't work with `getChildRadius` property.
-* Setting (or obtaining from child) a `radius` too high (> size/2) will mess the shadow.
+* Setting (or obtaining from child) a `radius` too high (`> size/2`) will mess the shadow.
 
-# [Changelog](./CHANGELOG.md)
+## 📰 [Changelog](./CHANGELOG.md)
 
-# Alternatives
+## 🦉 Alternatives
 * [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. It doesn't support Expo though, as `react-native-shadow-2` does.

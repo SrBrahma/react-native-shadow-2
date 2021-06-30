@@ -8,4 +8,4 @@
 
 ### Shadow
 
-• `Const` **Shadow**: `React.FC`<[ShadowI](interfaces/shadowi.md)\>
+• `Const` **Shadow**: `React.FC`<[`ShadowI`](interfaces/shadowi.md)\>

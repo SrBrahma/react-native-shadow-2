@@ -1,4 +1,4 @@
-// This code has a nice history! Check the previous versions to see how much it has changed!
+// This code has a nice history! Check the previous commits to see how much it has changed!
 // It got SMARTER!
 
 import React, { useMemo } from 'react';
@@ -42,17 +42,17 @@ export interface ShadowI {
   containerViewStyle?: StyleProp<ViewStyle>;
   /** The radius of each corner of your child component. Passing a number will apply it to all corners.
    *
-   * If passing an object, undefined corners will have the radius of the `default` property if it's defined, else, 0.
+   * If passing an object, undefined corners will have the radius of the `default` property if it's defined.
    *
-   * If undefined, as it's by default, and if getChildRadius, it will attempt to get the child radius style. Else, 0.
+   * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
+   *
+   * Fallbacks to 0.
    * @default undefined */
   radius?: number | {default?: number, topLeft?: number, topRight?: number, bottomLeft?: number, bottomRight?: number};
-  /**
-   * If it should try to get the radius from the child if `radius` prop is undefined. It will get the values for each
+  /** If it should try to get the radius from the child if `radius` prop is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    * If `borderRadius` isn't defined or < 0, 0 will be used.
-   * @default true
-   */
+   * @default true */
   getChildRadius?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
@@ -195,46 +195,47 @@ export const Shadow: React.FC<ShadowI> = ({
       {activeSides.left && <Svg style={{ position: 'absolute', right: '100%', bottom: bottomLeft }} width={distance} height={'100%'}>
         <Defs>
           <Mask id='leftMask'>
-            <Rect height={'100%'} width='100%' fill={'#fff'}/>
+            <Rect height='100%' width='100%' fill='#fff'/>
             {/* v Single mask rect for both ends! v */}
-            <Rect height={topLeft + bottomLeft} width='100%' fill={'#000'}/>
+            <Rect height={topLeft + bottomLeft} width='100%' fill='#000'/>
           </Mask>
           <LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
-        <Rect width={'100%'} height={'100%'} fill='url(#left)' mask='url(#leftMask)'/>
+        <Rect width='100%' height='100%' fill='url(#left)' mask='url(#leftMask)'/>
       </Svg>}
 
       {activeSides.right && <Svg style={{ position: 'absolute', left: '100%', bottom: bottomRight }} width={distance} height={'100%'}>
         <Defs>
           <Mask id='rightMask'>
-            <Rect height={'100%'} width='100%' fill={'#fff'}/>
+            <Rect height='100%' width='100%' fill='#fff'/>
             <Rect height={topRight + bottomRight} width='100%' fill={'#000'}/>
           </Mask>
           <LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
-        <Rect width={'100%'} height={'100%'} fill='url(#right)' mask='url(#rightMask)'/>
+        <Rect width='100%' height='100%' fill='url(#right)' mask='url(#rightMask)'/>
       </Svg>}
 
       {activeSides.bottom && <Svg style={{ position: 'absolute', top: '100%', right: bottomRight }} width={'100%'} height={distance}>
         <Defs>
           <Mask id='bottomMask'>
-            <Rect height={'100%'} width='100%' fill={'#fff'}/>
-            <Rect height='100%' width={bottomLeft + bottomRight} fill={'#000'}/>
+            <Rect height='100%' width='100%' fill='#fff'/>
+            <Rect height='100%' width={bottomLeft + bottomRight} fill='#000'/>
           </Mask>
           <LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient>
         </Defs>
-        <Rect width={'100%'} height={'100%'} fill='url(#bottom)' mask='url(#bottomMask)'/>
+        <Rect width='100%' height='100%' fill='url(#bottom)' mask='url(#bottomMask)'/>
       </Svg>}
 
-      {activeSides.top && <Svg style={{ position: 'absolute', bottom: '100%', right: topRight }} width={'100%'} height={distance}>
+      {activeSides.top && <Svg style={{ position: 'absolute', bottom: '100%' }} width={'100%'} height={distance}>
         <Defs>
           <Mask id='topMask'>
-            <Rect height={'100%'} width='100%' fill={'#fff'}/>
-            <Rect height='100%' width={topLeft + topRight} fill={'#000'}/>
+            <Rect height='100%' width='100%' fill='#fff'/>
+            <Rect height='100%' width={topLeft} fill='#000'/>
+            <Rect height='100%' width={topRight} x='100%' transform={`translate(${-topRight}, 0)`} fill='#000'/>
           </Mask>
           <LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
-        <Rect width={'100%'} height={'100%'} fill='url(#top)' mask='url(#topMask)'/>
+        <Rect width='100%' height='100%' fill='url(#top)' mask='url(#topMask)'/>
       </Svg>}
 
 

@@ -14,9 +14,13 @@
     "majorD": "npm run build && npm run major && npm publish",
     "minorD": "npm run build && npm run minor && npm publish",
     "patchD": "npm run build && npm run patch && npm publish",
-    "docs": "typedoc --plugin typedoc-plugin-markdown",
-    "readme": "ts-node ./resources/README/generateReadme.ts",
-    "readmeWatch": "ts-node-dev --respawn --watch src,resources/README/README.hbs ./resources/README/generateReadme.ts"
+    "docs": "typedoc",
+    "onlyReadme": "ts-node ./resources/README/generateReadme.ts",
+    "readme": "npm-run-all --sequential docs onlyReadme",
+    "docsWatch": "typedoc --watch",
+    "onlyReadmeWatch": "ts-node-dev --respawn --watch docs,resources/README/README.hbs ./resources/README/generateReadme.ts",
+    "readmeWatch": "npm-run-all --print-label docs --parallel docsWatch onlyReadmeWatch",
+    "sandbox": "npm run --prefix ./sandbox web"
   },
   "repository": {
     "type": "git",
@@ -49,19 +53,20 @@
   "devDependencies": {
     "@types/execa": "2.0.0",
     "@types/react-native": "^0.64.10",
-    "@typescript-eslint/eslint-plugin": "^4.27.0",
-    "@typescript-eslint/parser": "^4.27.0",
-    "eslint": "^7.28.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-react-native": "^3.11.0",
+    "npm-run-all": "4.1.5",
     "react": "17.0.1",
     "react-native": "0.64.2",
     "react-native-svg": "12.1.1",
     "rimraf": "3.0.2",
-    "typedoc": "0.21.0",
-    "typedoc-plugin-markdown": "3.10.0",
-    "typescript": "^4.3.2"
+    "typedoc": "0.21.1",
+    "typedoc-plugin-markdown": "3.10.2",
+    "typescript": "^4.3.4"
   },
   "peerDependencies": {
     "react": "*",
