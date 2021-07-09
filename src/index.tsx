@@ -1,9 +1,10 @@
 // This code has a nice history! Check the previous commits to see how much it has changed!
 // It got SMARTER!
 
-import React, { useMemo } from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
-import Svg, {
+import React, { useCallback, useMemo } from 'react';
+import { Platform, StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native';
+import {
+  Svg,
   Defs,
   LinearGradient,
   Rect,
@@ -16,10 +17,11 @@ import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
 
 
+const OS = Platform.OS;
 
-// Exclude<x, never>: https://github.com/microsoft/TypeScript/issues/42322#issuecomment-759786099
-type Side = Exclude<'left' | 'right' | 'top' | 'bottom', never>;
-type Corner = Exclude<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', never>;
+
+type Side = 'left' | 'right' | 'top' | 'bottom'
+type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
 type CornerRadius = Record<Corner, number>
 // Add Shadow to the corner names
 type CornerRadiusShadow = {[K in keyof CornerRadius as `${K}Shadow`]: number}
@@ -54,14 +56,15 @@ export interface ShadowI {
    * If `borderRadius` isn't defined or < 0, 0 will be used.
    * @default true */
   getChildRadius?: boolean;
+  // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users.
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
-  sides?: Side[];
+  sides?: ('left' | 'right' | 'top' | 'bottom')[];
   /** The corners that will have the shadows drawn.
    *
    * @default ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] */
-  corners?: Corner[];
+  corners?: ('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[];
   /** Moves the shadow. Negative x moves it to the left, negative y moves it up.
    *
    * Accepts 'x%' values, in relation to the child's size.
@@ -93,6 +96,16 @@ export const Shadow: React.FC<ShadowI> = ({
   const [offsetX, offsetY] = offset;
   const distance = Math.max(distanceProp, 0); // Min val as 0
 
+  const scale = useWindowDimensions().scale;
+
+  // "Pixel perfect" solution:
+  // RN seems to use .round. Inputting 30 height on a view, onLayout would output ~29.81h. 29.7 would also output that same value.
+  // It isn't required nor won't work in web, as its scale is 1. And in web, `shape-rendering="crispEdges"` does the job for gaps.
+  const R = useCallback((value: number) => {
+    if (OS === 'web')
+      return value;
+    return Math.round(value * scale) / scale;
+  }, [scale]);
 
   // Does useMemo improve performance here?
   const shadow = useMemo(() => {
@@ -106,7 +119,7 @@ export const Shadow: React.FC<ShadowI> = ({
     // [*1] Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
     // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
     // it isn't applied twice.
-    const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined });
+    const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined }); // overwrite alpha
     const finalColorWoOpacity = rgbToColorString({ ...finalColorRgb, alpha: undefined });
 
     const startColorOpacity = startColorRgb.alpha ?? 1;
@@ -191,47 +204,55 @@ export const Shadow: React.FC<ShadowI> = ({
       {/* Sides */}
 
       {/* We do another awesome hack here with the side position and masking the total length of the corners. Else,
-        we would need to apply the other part of the mask with a specific position, but we don't know it. 🤯 */}
-      {activeSides.left && <Svg style={{ position: 'absolute', right: '100%', bottom: bottomLeft }} width={distance} height={'100%'}>
+        we would need to apply the other part of the mask with a specific position, but we don't know it. 🤯
+        Edit: I tried the translate() solution like it's done in paintInside, but we would have an overlaping pixel.
+       */}
+      {/* shape-rendering fixes some gaps on web. Not available on Android/iOS, but no problem to be also used
+          We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
+          It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
+          We do the {...{shape[...]}} else TS would complain that this prop isn't accepted.
+      */}
+      {/* This R() solution from my previous version was a life saver for Android, to fix gaps/overlaps. */}
+      {activeSides.left && <Svg style={{ position: 'absolute', right: '100%', bottom: bottomLeft }} width={distance} height='100%' {...{ shapeRendering: 'crispEdges' }} >
         <Defs>
           <Mask id='leftMask'>
             <Rect height='100%' width='100%' fill='#fff'/>
             {/* v Single mask rect for both ends! v */}
-            <Rect height={topLeft + bottomLeft} width='100%' fill='#000'/>
+            <Rect height={R(topLeft+bottomLeft)} width='100%' fill='#000'/>
           </Mask>
           <LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
         <Rect width='100%' height='100%' fill='url(#left)' mask='url(#leftMask)'/>
       </Svg>}
 
-      {activeSides.right && <Svg style={{ position: 'absolute', left: '100%', bottom: bottomRight }} width={distance} height={'100%'}>
+      {activeSides.right && <Svg style={{ position: 'absolute', left: '100%', bottom: bottomRight }} width={distance} height='100%' {...{ shapeRendering: 'crispEdges' }}>
         <Defs>
           <Mask id='rightMask'>
             <Rect height='100%' width='100%' fill='#fff'/>
-            <Rect height={topRight + bottomRight} width='100%' fill={'#000'}/>
+            <Rect height={R(topRight + bottomRight)} width='100%' fill={'#000'}/>
           </Mask>
           <LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
         <Rect width='100%' height='100%' fill='url(#right)' mask='url(#rightMask)'/>
       </Svg>}
 
-      {activeSides.bottom && <Svg style={{ position: 'absolute', top: '100%', right: bottomRight }} width={'100%'} height={distance}>
+      {activeSides.bottom && <Svg style={{ position: 'absolute', top: '100%', right: bottomRight }} width='100%' height={distance} {...{ shapeRendering: 'crispEdges' }}>
         <Defs>
           <Mask id='bottomMask'>
             <Rect height='100%' width='100%' fill='#fff'/>
-            <Rect height='100%' width={bottomLeft + bottomRight} fill='#000'/>
+            <Rect height='100%' width={R(bottomLeft + bottomRight)} fill='#000'/>
           </Mask>
           <LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient>
         </Defs>
         <Rect width='100%' height='100%' fill='url(#bottom)' mask='url(#bottomMask)'/>
       </Svg>}
 
-      {activeSides.top && <Svg style={{ position: 'absolute', bottom: '100%' }} width={'100%'} height={distance}>
+
+      {activeSides.top && <Svg style={{ position: 'absolute', bottom: '100%', right: topRight }} width='100%' height={distance} {...{ shapeRendering: 'crispEdges' }}>
         <Defs>
           <Mask id='topMask'>
             <Rect height='100%' width='100%' fill='#fff'/>
-            <Rect height='100%' width={topLeft} fill='#000'/>
-            <Rect height='100%' width={topRight} x='100%' transform={`translate(${-topRight}, 0)`} fill='#000'/>
+            <Rect height='100%' width={R(topLeft+topRight)} fill='#000'/>
           </Mask>
           <LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient>
         </Defs>
@@ -289,34 +310,32 @@ export const Shadow: React.FC<ShadowI> = ({
         [*2] I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
         and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
         paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg width='100%' height='100%'
-        style={{ position: 'absolute' }}
-      >
+      {paintInside && <Svg style={{ position: 'absolute' }} width='100%' height='100%' {...{ shapeRendering: 'crispEdges' }}>
         <Defs>
           <Mask id='maskPaintBelow'>
             {/* Paint all white, then black on border external areas to erase them */}
             <Rect width='100%' height='100%' fill='#fff'/>
             {/* Remove the corners squares */}
             <Rect width={topLeft} height={topLeft} fill='#000'/>
-            <Rect width={topRight} height={topRight} x='100%' transform={`translate(${-topRight}, 0)`} fill='#000'/>
-            <Rect width={bottomLeft} height={bottomLeft} y='100%' transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
-            <Rect width={bottomRight} height={bottomRight} x='100%' y='100%' transform={`translate(${-bottomRight}, ${-bottomRight})`}fill='#000'/>
+            <Rect width={topRight} height={topRight} x='100%' transform={`translate(${R(-topRight)}, 0)`} fill='#000'/>
+            <Rect width={bottomLeft} height={bottomLeft} y='100%' transform={`translate(0, ${R(-bottomLeft)})`} fill='#000'/>
+            <Rect width={bottomRight} height={bottomRight} x='100%' y='100%' transform={`translate(${R(-bottomRight)}, ${R(-bottomRight)})`}fill='#000'/>
           </Mask>
         </Defs>
         <Rect width='100%' height='100%' mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
       </Svg>}
 
     </>);
-  }, [startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp, cornersProp, paintInside]);
+  }, [startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp, cornersProp, R, paintInside]);
 
   return (
 
     <View style={containerViewStyle}>
-      {/* // Without this alignSelf that I found by somewhat randomly trying, the shadow could have wrong size
-       if it had siblings. eg: https://imgur.com/a/SjdLCJz the text in here was outside the Shadow component,
-       and the shadow by some reason would have corresponding sizing. I show there without and with the alignSelf.
-      */}
-      <View style={[{ alignSelf: 'center' }]}>
+      {/* // // Without this alignSelf that I found by somewhat randomly trying, the shadow could have wrong size
+  //  if it had siblings. eg: https://imgur.com/a/SjdLCJz the text in here was outside the Shadow component,
+  //  and the shadow by some reason would have corresponding sizing. I show there without and with the alignSelf.
+  // FIXME removed alignSelf as it was buggin android*/}
+      <View style={[{ }]}>
         {/* Shadow below the children */}
         <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
           {shadow}

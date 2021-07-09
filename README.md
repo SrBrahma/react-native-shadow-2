@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![TypeScript](https://badgen.net/npm/types/env-var)](http://www.typescriptlang.org/)
 [![npm](https://img.shields.io/npm/v/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
-[![npm](https://img.shields.io/npm/dt/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
+[![npm](https://img.shields.io/npm/dw/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
 
 </div>
 
@@ -22,7 +22,7 @@
 
 [react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch.
 
-It solves the problem of React Native not having the same shadow appearence for Android and iOS. It also works on old Android versions, where `elevation` wasn't available.
+It solves the problem of React Native not having the same shadow appearence for Android, iOS and Web. It also works on old Android versions, where `elevation` wasn't available.
 
 The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think about the solution to this shadow issue.
 
@@ -40,28 +40,9 @@ Now, this package is way smarter. **The property `size` no longer exists and the
 
 ## 💿 Installation
 
-You first need [react-native-svg](https://github.com/react-native-svg/react-native-svg).
+### 1. You first need [react-native-svg](https://github.com/react-native-svg/react-native-svg).
 
-* Expo:
-
-```C
-expo install react-native-svg
-```
-
-* React Native:
-
-```C
-npm i react-native-svg
-# or
-yarn add react-native-svg
-# and after installing,
-# for RN 0.60+
-cd ios && pod install
-# a
-react-native link react-native-svg
-```
-
-Then, install this package:
+### 2. Then, install react-native-shadow-2:
 
 ```C
 npm i react-native-shadow-2
@@ -78,7 +59,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 <Shadow>
   <View>
-    <Text style={\{ margin: 20, fontSize: 20 \}}>{'🙂'}</Text>
+    <Text style={\{ margin: 20, fontSize: 20 \}}>🙂</Text>
   </View>
 </Shadow>
 ```

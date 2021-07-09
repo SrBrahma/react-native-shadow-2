@@ -1,11 +1,11 @@
 // Quick code to manually test the package.
 
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Switch, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Switch, TextInput, Pressable } from 'react-native';
 import { Shadow } from './index';
 import Slider from '@react-native-community/slider';
-import { TextInput } from 'react-native';
 import tinycolor from 'tinycolor2';
+import { PageScrollView } from 'pagescrollview';
 
 
 export const App3: React.FC = () => {
@@ -30,12 +30,12 @@ export const App3: React.FC = () => {
 //   );
 // };
 
-export const App2: React.FC = () => {
+export const App4: React.FC = () => {
   return (
     // gap with width=209.733 and/or height 100.733. https://github.com/react-native-svg/react-native-svg/issues/1613
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
 
-      <Shadow distance={15} startColor={'#ac4718a0'} finalColor={'#f0f2'} offset={[3, 5]} paintInside>
+      <Shadow distance={15} startColor={'#ac4718a0'} finalColor={'#f0f2'} offset={[3, 5]} >
         <View style={{ borderTopLeftRadius: 24, borderBottomRightRadius: 0, borderRadius: 1, backgroundColor: 'white' }}>
           <Text style={{ margin: 20, fontSize: 20 }}>{'😮'}</Text>
         </View>
@@ -50,17 +50,47 @@ const NameValue: React.FC<{
   name: string, value: string | number | boolean, valueMonospace?: boolean
 }> = ({ name, value, valueMonospace = false }) => {
   return (
-    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
-      <Text style={{}}>{name}</Text>
-      <Text style={{
-        fontWeight: '600', color: '#222', fontFamily: valueMonospace ? 'monospace' : undefined,
-      }}>{String(value)}</Text>
+    <View style={{
+      alignSelf: 'stretch',
+      flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2,
+    }}>
+      <Text style={{ fontSize: 16 }}>{name}</Text>
+      <Text style={{ fontSize: 16, fontWeight: 'bold', fontFamily: valueMonospace ? 'monospace' : undefined }}>{String(value)}</Text>
     </View>);
 };
 
+
+const SliderWithIncDec: React.FC<{
+  name: string;
+  step?: number;
+  minimumValue: number;
+  maximumValue: number;
+  value: number
+  onValueChange: (value: number) => void
+}> = ({ name, step = 1, minimumValue, maximumValue, value, onValueChange }) => {
+  return (
+    <View style={{ marginBottom: 18 }}>
+      <NameValue {...{ name, value }} />
+      <View style={{ flexDirection: 'row' }}>
+        <Pressable onPress={() => onValueChange(value - 1)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
+          <Text selectable={false} style={{ fontSize: 16, fontWeight: 'bold' }}>{'-'}</Text>
+        </Pressable>
+        <Slider style={{ width: 140, marginHorizontal: 20 }}
+          {...{ step, minimumValue, maximumValue, value, onValueChange }}
+        />
+        <Pressable onPress={() => onValueChange(value + 1)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
+        <Text selectable={false} style={{ fontSize: 16, fontWeight: 'bold' }}>{'+'}</Text>
+      </Pressable>
+      </View>
+    </View>
+  );
+};
+
+
+
 const defaults = {
   startColor: tinycolor('#00000020').toHex8String(),
-  finalColor: tinycolor('#0000').toHex8String(),
+  finalColor: tinycolor('#000f').toHex8String(),
   childColor: tinycolor('#fff').toHex8String(),
 };
 
@@ -77,33 +107,38 @@ export const App: React.FC = () => {
   const [childColor, setChildColor] = useState(defaults.childColor);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <PageScrollView viewStyle={styles.container}>
 
       <Text style={styles.title}>{`react-native-shadow-2 sandbox`}</Text>
       <Text style={styles.subtitle}>{`By SrBrahma @ https://github.com/SrBrahma/react-native-shadow-2`}</Text>
 
       <View style={styles.sandbox}>
         <View style={styles.settings}>
-          <NameValue name='Distance' value={distance}/>
-          <Slider style={styles.slider} step={1}
+
+          <SliderWithIncDec
+            name='Distance'
             minimumValue={-10} maximumValue={100} // min -10 to show < 0 won't do anything
-            value={distance}  onValueChange={setDistance}
+            value={distance} onValueChange={setDistance}
           />
-          <NameValue name='Border Radius' value={borderRadius}/>
-          <Slider style={styles.slider} step={1}
+
+          <SliderWithIncDec
+            name='Border Radius'
             minimumValue={-10} maximumValue={100} // min -10 to show < 0 won't do anything
             value={borderRadius} onValueChange={setBorderRadius}
           />
-          <NameValue name='Offset X' value={offsetX}/>
-          <Slider style={styles.slider} step={1}
-            minimumValue={-20} maximumValue={20} // min -10 to show < 0 won't do anything
+
+          <SliderWithIncDec
+            name='Offset X'
+            minimumValue={-20} maximumValue={20}
             value={offsetX} onValueChange={setOffsetX}
           />
-          <NameValue name='Offset Y' value={offsetY}/>
-          <Slider style={styles.slider} step={1}
-            minimumValue={-20} maximumValue={20} // min -10 to show < 0 won't do anything
+
+          <SliderWithIncDec
+            name='Offset Y'
+            minimumValue={-20} maximumValue={20}
             value={offsetY} onValueChange={setOffsetY}
           />
+
 
           {/* <Text style={{ marginBottom: 3 }}>{`getChildRadius: ${getChildRadius}`}</Text>
           <Text style={{}}>{'False will also set radius={borderRadius}.'}</Text>
@@ -111,21 +146,21 @@ export const App: React.FC = () => {
           <Switch value={getChildRadius} onValueChange={setGetChildRadius} style={styles.switch}/> */}
 
           <NameValue name='Start Color' value={startColor} valueMonospace/>
-          <TextInput style={styles.textInput} defaultValue={startColor} onChangeText={(text) => {
+          <TextInput style={styles.textInput} defaultValue={defaults.startColor} autoCorrect={false} onChangeText={(text) => {
             const color = tinycolor(text);
             if (color.isValid()) // Only change if valid input
               setStartColor(color.toHex8String());
           }}/>
 
           <NameValue name='Final Color' value={finalColor} valueMonospace/>
-          <TextInput style={styles.textInput} defaultValue={finalColor} onChangeText={(text) => {
+          <TextInput style={styles.textInput} defaultValue={defaults.finalColor} autoCorrect={false} onChangeText={(text) => {
             const color = tinycolor(text);
             if (color.isValid())
               setFinalColor(color.toHex8String());
           }}/>
 
           <NameValue name='Child Color' value={childColor} valueMonospace/>
-          <TextInput style={styles.textInput} defaultValue={childColor} onChangeText={(text) => {
+          <TextInput style={styles.textInput} defaultValue={defaults.childColor} autoCorrect={false} onChangeText={(text) => {
             const color = tinycolor(text);
             if (color.isValid()) {
               console.log('new color: ', color.toHex8String());
@@ -158,28 +193,29 @@ export const App: React.FC = () => {
         </Shadow>
       </View>
 
-    </ScrollView>
+    </PageScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    flex: 1,
+    paddingVertical: 60,
     backgroundColor: '#ececec',
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    fontSize: 36,
+    textAlign: 'center',
     fontWeight: 'bold',
+    fontSize: 30,
     marginBottom: 20,
   },
   subtitle: {
-    color: '#444',
-    fontSize: 14,
+    textAlign: 'center',
     fontWeight: 'bold',
+    fontSize: 14,
+    color: '#444',
   },
   sandbox: {
     marginTop: 40,
@@ -192,8 +228,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slider: {
-    width: 160,
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderRadius: 4,
     marginBottom: 18,
   },
   switch: {
@@ -201,16 +240,21 @@ const styles = StyleSheet.create({
   },
   textInput: {
     backgroundColor: '#fff',
-    borderColor: '#333',
+    borderColor: '#222',
     borderRadius: 3,
     paddingVertical: 3,
     textAlign: 'center',
     textAlignVertical: 'center',
-    paddingHorizontal: 4,
-    width: '60%',
+    paddingHorizontal: 8,
     fontSize: 14,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     marginBottom: 12,
     fontFamily: 'monospace',
+  },
+  decIncButton: {
+    backgroundColor: '#fff',
+    padding: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
   },
 });

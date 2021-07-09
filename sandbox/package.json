@@ -5,12 +5,14 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "eject": "expo eject"
+    "eject": "expo eject",
+    "setSymlink": "npx symlink-dir .. ./node_modules/react-native-shadow-2 && npx metro-with-symlinks"
   },
   "dependencies": {
     "@react-native-community/slider": "4.0.0-rc.3",
     "expo": "~41.0.1",
     "expo-status-bar": "~1.0.4",
+    "pagescrollview": "1.0.2",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-41.0.0.tar.gz",
@@ -19,18 +21,19 @@
     "tinycolor2": "1.4.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
+    "@babel/core": "^7.14.6",
     "@types/react": "~16.9.35",
     "@types/react-native": "~0.63.2",
-    "@types/tinycolor2": "1.4.2",
-    "@typescript-eslint/eslint-plugin": "4.27.0",
-    "@typescript-eslint/parser": "4.27.0",
-    "eslint": "7.28.0",
-    "eslint-config-gev": "2.1.1",
+    "@types/tinycolor2": "1.4.3",
+    "@typescript-eslint/eslint-plugin": "4.28.2",
+    "@typescript-eslint/parser": "4.28.2",
+    "eslint": "7.30.0",
+    "eslint-config-gev": "2.2.0",
     "eslint-plugin-react": "7.24.0",
     "eslint-plugin-react-hooks": "4.2.0",
     "eslint-plugin-react-native": "3.11.0",
-    "typescript": "4.3.2"
+    "metro-with-symlinks": "1.4.0",
+    "typescript": "4.3.5"
   },
   "private": true
 }
