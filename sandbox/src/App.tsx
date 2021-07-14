@@ -1,5 +1,5 @@
-// Quick code to manually test the package.
-
+// Sandbox to test the library. I tried using the symlink npx workaround but it's somewhat bugged.
+// Using a copy of the lib code here.
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Switch, TextInput, Pressable } from 'react-native';
 import { Shadow } from './index';
@@ -7,6 +7,9 @@ import Slider from '@react-native-community/slider';
 import tinycolor from 'tinycolor2';
 import { PageScrollView } from 'pagescrollview';
 
+
+
+// ScreenOrientation.unlockAsync();
 
 export const App3: React.FC = () => {
   return (
@@ -72,15 +75,15 @@ const SliderWithIncDec: React.FC<{
     <View style={{ marginBottom: 18 }}>
       <NameValue {...{ name, value }} />
       <View style={{ flexDirection: 'row' }}>
-        <Pressable onPress={() => onValueChange(value - 1)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
+        <Pressable onPress={() => onValueChange(value - step)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
           <Text selectable={false} style={{ fontSize: 16, fontWeight: 'bold' }}>{'-'}</Text>
         </Pressable>
         <Slider style={{ width: 140, marginHorizontal: 20 }}
           {...{ step, minimumValue, maximumValue, value, onValueChange }}
         />
-        <Pressable onPress={() => onValueChange(value + 1)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
-        <Text selectable={false} style={{ fontSize: 16, fontWeight: 'bold' }}>{'+'}</Text>
-      </Pressable>
+        <Pressable onPress={() => onValueChange(value + step)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
+          <Text selectable={false} style={{ fontSize: 16, fontWeight: 'bold' }}>{'+'}</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -102,6 +105,9 @@ export const App: React.FC = () => {
   const [paintInside, setPaintInside] = useState(false);
   const [getChildRadius, setGetChildRadius] = useState(true);
 
+  const [childWidth, setChildWidth] = useState(200);
+  const [childHeight, setChildHeight] = useState(200);
+
   const [startColor, setStartColor] = useState(defaults.startColor);
   const [finalColor, setFinalColor] = useState(defaults.finalColor);
   const [childColor, setChildColor] = useState(defaults.childColor);
@@ -114,6 +120,20 @@ export const App: React.FC = () => {
 
       <View style={styles.sandbox}>
         <View style={styles.settings}>
+
+          <SliderWithIncDec
+            name='Child Width'
+            step={0.1}
+            minimumValue={0} maximumValue={200}
+            value={childWidth} onValueChange={setChildWidth}
+          />
+
+          <SliderWithIncDec
+            name='Child Height'
+            step={0.1}
+            minimumValue={0} maximumValue={200}
+            value={childHeight} onValueChange={setChildHeight}
+          />
 
           <SliderWithIncDec
             name='Distance'
@@ -179,12 +199,12 @@ export const App: React.FC = () => {
           finalColor={finalColor}
           offset={[offsetX, offsetY]}
           paintInside={paintInside}
-          // sides={['bottom']} corners={['bottomLeft']}
           getChildRadius={getChildRadius}
           radius={getChildRadius ? undefined : borderRadius}
           containerViewStyle={{ margin: 100 }}
         >
-          <View style={{ width: 200, height: 200, backgroundColor: childColor,
+          {/* FIXME With size 200.4 there is a gap in web and overlap in mobile. */}
+          <View style={{ width: childWidth, height: childHeight, backgroundColor: childColor,
             // If borderRadius change from a positive value to a negative one, it won't change the current radius.
             // This is here just to avoid the slider causing it to happen, for fast movements. You can disable this line
             // to see what I mean. Nothing to worry about in prod envs.

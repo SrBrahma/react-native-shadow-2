@@ -6,12 +6,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "setSymlink": "npx symlink-dir .. ./node_modules/react-native-shadow-2 && npx metro-with-symlinks"
+    "setSymlink": "[not working right now] npx symlink-dir .. ./node_modules/react-native-shadow-2 && npx metro-with-symlinks"
   },
   "dependencies": {
     "@react-native-community/slider": "4.0.0-rc.3",
     "expo": "~41.0.1",
-    "expo-status-bar": "~1.0.4",
     "pagescrollview": "1.0.2",
     "react": "16.13.1",
     "react-dom": "16.13.1",

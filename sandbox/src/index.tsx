@@ -1,27 +1,54 @@
 // This code has a nice history! Check the previous commits to see how much it has changed!
 // It got SMARTER!
 
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Platform, StyleProp, useWindowDimensions, View, ViewStyle, PixelRatio, StyleSheet } from 'react-native';
+// https://reactnative.dev/docs/direct-manipulation
+
+import React, { MutableRefObject, useMemo, useRef, useState } from 'react';
+import { Platform, StyleProp, View, ViewStyle, PixelRatio, StyleSheet } from 'react-native';
 import { Svg, Defs, LinearGradient, Rect, Stop, Path, RadialGradient, Mask } from 'react-native-svg';
-import { borderRadius, parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
+import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
 
-
+function A(): boolean | undefined { return; }
+const B = A();
 const OS = Platform.OS;
-
 
 type Side = 'left' | 'right' | 'top' | 'bottom'
 type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
 type CornerRadius = Record<Corner, number>
 // Add Shadow to the corner names
-type CornerRadiusShadow = {[K in keyof CornerRadius as `${K}Shadow`]: number}
+type CornerRadiusShadow = Record<`${Corner}Shadow`, number>
 
-// function T (v: number) {
-//   return PixelRatio.getPixelSizeForLayoutSize(v);
-// }
+
+
+const scale = PixelRatio.get();
+
+
+function R(value: number) {
+  if (OS === 'web') // In web, 1dp=1px. Also
+    return value;
+  return PixelRatio.roundToNearestPixel(value);
+}
+
+function sumDps(a: number, b: number) {
+  return R((P(a) + P(b)) / scale);
+}
+/** Converts dp to pixels */
+function P(value: number) {
+  if (OS === 'web') // In web, 1dp=1px
+    return value;
+  return PixelRatio.getPixelSizeForLayoutSize(value);
+}
+
+
+/** [Android/ios?] Sometimes we add a size to it, so the svg won't get clipped for some mysterious reason. */
+const additional = 1;
+/** [Android/ios?] Same as above, but used when adding 2 sizes together, so the margin will allow each size error margin. */
+const additional2 = additional * 2;
+
 
 export interface ShadowI {
+  viewStyle?: ViewStyle;
   /** The color of the shadow when it's right next to the given content, leaving it.
    * Accepts alpha channel.
    *
@@ -73,6 +100,8 @@ export interface ShadowI {
   paintInside?: boolean;
 }
 
+// https://reactnative.dev/docs/direct-manipulation
+
 export const Shadow: React.FC<ShadowI> = ({
   radius: radiusProp,
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
@@ -85,39 +114,31 @@ export const Shadow: React.FC<ShadowI> = ({
   offset = [0, 0],
   getChildRadius: getChildRadiusProp = true,
   paintInside = false,
+  viewStyle,
 }) => {
 
-  const scale = useWindowDimensions().scale;
-
-  /** Rounds value to valid dp */
-  const R = useCallback((value: number) => {
-    if (OS === 'web') // In web, 1dp=1px
-      return value;
-    return PixelRatio.roundToNearestPixel(value);
-    // return Math.round(value * scale) / scale;
-  }, [scale]);
-
-  /** Converts dp to pixels */
-  const P = useCallback((value: number) => {
-    if (OS === 'web') // In web, 1dp=1px
-      return value;
-
-    // console.log('scale', scale);
-    return PixelRatio.getPixelSizeForLayoutSize(value);
-    // return value * scale;
-  }, []);
-
+  const childRef = useRef<View>(null);
+  const [childWidth, setChildWidth] = useState<number | undefined>();
+  const [childHeight, setChildHeight] = useState<number | undefined>();
   const [offsetX, offsetY] = offset;
-  const distance = Math.max(R(distanceProp), 0); // Min val as 0
+  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
+  const totalWidth = childWidth ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
+  const totalHeight = childHeight ?? '100%';
+  /** Will (+ additional), but only if its value isn't '100%'. */
+  const totalWidthWithAdditional = typeof totalWidth === 'string' ? totalWidth : totalWidth + 1;
+  /** Will (+ additional), but only if its value isn't '100%'. */
+  const totalHeightWithAdditional = typeof totalHeight === 'string' ? totalHeight : totalHeight + 1;
 
 
-  // "Pixel perfect" solution:
-  // RN seems to use .round. Inputting 30 height on a view, onLayout would output ~29.81h. 29.7 would also output that same value.
-  // It isn't required nor won't work in web, as its scale is 1. And in web, `shape-rendering="crispEdges"` does the job for gaps.
 
-  // Does useMemo improve performance here?
+
   const shadow = useMemo(() => {
 
+    /** [Android/ios?] We are adding random() because for some reason the Svg wasn't updating when changing
+     * the child size. Looks like it uses onMemo. We give the random to bypass this wrong onMemo. We would already + additional,
+     * we are taking advantage that we already had to use it. */
+    const additionalRandom = additional + Math.random();
+    // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
     const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
     const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
 
@@ -168,16 +189,14 @@ export const Shadow: React.FC<ShadowI> = ({
     }; // So we can print cornerRadius for debug.
 
     const cornerShadowRadius: CornerRadiusShadow = {
-      topLeftShadow: R((P(topLeft) + P(distance)) / scale),
-      topRightShadow: topRight + distance,
-      bottomLeftShadow: bottomLeft + distance,
-      bottomRightShadow: bottomRight + distance,
+      topLeftShadow: sumDps(topLeft, distance),
+      topRightShadow: sumDps(topRight, distance),
+      bottomLeftShadow: sumDps(bottomLeft, distance),
+      bottomRightShadow: sumDps(bottomRight, distance),
     };
 
 
     const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
-
-    console.log('Pixels:', 'distance', P(distance), 'topLeft', P(topLeft));
 
     /** Which sides will have shadow. */
     const activeSides: Record<Side, boolean> = {
@@ -221,38 +240,52 @@ export const Shadow: React.FC<ShadowI> = ({
     return (<>
       {/* Sides */}
 
-      {/* We do another awesome hack here with the side position and masking the total length of the corners. Else,
-        we would need to apply the other part of the mask with a specific position, but we don't know it. 🤯
-        Edit: I tried the translate() solution like it's done in paintInside, but we would have an overlaping pixel.
+      {/* We do another hack here with the side position and masking the total length of the corners. Else,
+        we would need to apply the other part of the mask with a specific position, but we don't know it. We could
+        translateX 100%, but that would sometimes cause overlaps/gaps. This is the working way.
        */}
       {/* shape-rendering fixes some gaps on web. Not available on Android/iOS, but no problem to be also used
           We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
           We do the {...{shape[...]}} else TS would complain that this prop isn't accepted.
       */}
-      {/* This R() solution from my previous version was a life saver for Android, to fix gaps/overlaps. */}
+      {/* At some widths/heights we have a +1. This fixes some gaps in mobile for some mysterious reason. Maybe
+        svg lib fault not handling the sizes properly. This won't change the intended result. */}
+      {/* Sometimes we use translateX/Y in the style, even when it could apparently sometimes use the left/top/etc
+        directly. No. This fixes gaps in mobile. */}
       {activeSides.left &&
-        <Svg style={{ position: 'absolute', left: 0, bottom: bottomLeft, transform: [{ translateX: -distance }] }}
-          width={distance + 1} height='100%' {...{ shapeRendering: 'crispEdges' }} >
+        <Svg
+          width={distance + additionalRandom} height={totalHeight} {...{ shapeRendering: 'crispEdges' }}
+          style={{ position: 'absolute', left: -distance, top: topLeft }}
+        >
           <Defs>
             <Mask id='leftMask'>
-              <Rect height='100%' width='100%' fill='#fff'/>
-              {/* v Single mask rect for both ends! v */}
-              <Rect height={topLeft + bottomLeft} width='100%' fill='#000'/>
+              <Rect width='100%' height={totalHeight} fill='#fff'/>
+              <Rect // Single mask rect for both ends.
+                width='100%' height='100%'
+                y={totalHeight} transform={`translate(0, ${-sumDps(topLeft, bottomLeft)})`} fill='#000'
+              />
             </Mask>
             <LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient>
           </Defs>
-          <Rect width={distance} height='100%' fill='url(#left)' mask='url(#leftMask)'/>
+          <Rect width={distance} height={totalHeight} fill='url(#left)' mask='url(#leftMask)'/>
         </Svg> // End of left
       }
 
 
       {activeSides.right &&
-        <Svg style={{ position: 'absolute', left: '100%', bottom: bottomRight }} width={distance + 1} height='100%' {...{ shapeRendering: 'crispEdges' }}>
+        <Svg
+          width={distance + additionalRandom} height={totalHeight} {...{ shapeRendering: 'crispEdges' }}
+          style={{ position: 'absolute', left: totalWidth,
+            top: topRight }}
+        >
           <Defs>
             <Mask id='rightMask'>
-              <Rect height='100%' width='100%' fill='#fff'/>
-              <Rect height={topRight + bottomRight} width='100%' fill={'#000'}/>
+              <Rect width='100%' height='100%' fill='#fff'/>
+              <Rect
+                width='100%' height='100%'
+                y={totalHeight} transform={`translate(0, ${-sumDps(topRight, bottomRight)})`} fill='#000'
+              />
             </Mask>
             <LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient>
           </Defs>
@@ -261,11 +294,18 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
       {activeSides.bottom &&
-        <Svg style={{ position: 'absolute', top: '100%', right: bottomRight }} width='100%' height={distance + 1} {...{ shapeRendering: 'crispEdges' }}>
+        <Svg
+          width={totalWidth} height={distance + additionalRandom} {...{ shapeRendering: 'crispEdges' }}
+          style={{ position: 'absolute', top: totalHeight, left: bottomLeft }}
+        >
           <Defs>
             <Mask id='bottomMask'>
-              <Rect height='100%' width='100%' fill='#fff'/>
-              <Rect height='100%' width={bottomLeft + bottomRight} fill='#000'/>
+              <Rect width='100%' height='100%' fill='#fff'/>
+              <Rect
+                width='100%' height='100%'
+                x={totalWidth} transform={`translate(${-sumDps(bottomLeft, bottomRight)}, 0)`} fill='#000'
+              />
+
             </Mask>
             <LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient>
           </Defs>
@@ -275,18 +315,23 @@ export const Shadow: React.FC<ShadowI> = ({
 
       {activeSides.top &&
         <Svg
-          width='100%' height={distance + 1} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', top: 0, left: topLeft, transform: [{ translateY: -distance }] }}
+          width={totalWidthWithAdditional} height={distance + additionalRandom} {...{ shapeRendering: 'crispEdges' }}
+          style={{ position: 'absolute', top: -distance, left: topLeft }}
         >
           <Defs>
-            <Mask id='topMask'>
-              <Rect height='100%' width='100%' fill='#fff'/>
-              <Rect height='100%' width='100%' x='100%' transform={`translate(${-topRight - topLeft}, 0)`} fill='#000'/>
-            </Mask>
+            {/* <Mask id='topMask'>
+              <Rect width='100%' height='100%' fill='#fff'/>
+              <Rect
+                width='100%' height='100%'
+                x={totalWidth}  fill='#000'
+              />
+            </Mask> */}
             <LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient>
           </Defs>
-          <Rect width='100%' height={distance} fill='url(#top)' mask='url(#topMask)'/>
-        </Svg> // End of top
+          {/*  */}
+          <Rect width={totalWidth} height={distance} fill='url(#top)' transform={`translate(${-sumDps(topLeft, topRight)}, 0)`}/>
+        </Svg>
+        // </View> // End of top
       }
 
 
@@ -296,8 +341,9 @@ export const Shadow: React.FC<ShadowI> = ({
         The starting point is the clockwise external arc init point. */}
 
       {activeCorners.topLeft &&
-        <Svg width={topLeftShadow + 1} height={topLeftShadow + 1}
+        <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
           style={{ position: 'absolute', top: -distance, left: -distance }}
+
           // ref={topLeftRef as any}
           // onLayout={e => topLeftRef.current?.measure((x, y, w, h, pX, pY) => console.log('topLeft pX', R(pX), T(R(pX)), ', w', R(w), T(w) ))}
         >
@@ -310,8 +356,9 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
       {activeCorners.topRight &&
-        <Svg width={topRightShadow + 1} height={topRightShadow + 1}
-          style={{ position: 'absolute', top: -distance, left: '100%', transform: [{ translateX: -topRight }]  }}
+        <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+          style={{ position: 'absolute', top: -distance, left: totalWidth,
+            transform: [{ translateX: -topRight }]  }}
         >
           <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
           <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
@@ -323,8 +370,8 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
       {activeCorners.bottomLeft &&
-        <Svg width={bottomLeftShadow + 1} height={bottomLeftShadow + 1}
-          style={{ position: 'absolute', top: '100%', left: -distance,
+        <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+          style={{ position: 'absolute', top: totalHeight, left: -distance,
             transform: [{ translateY: -bottomLeft }]  }}
         >
           <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
@@ -336,9 +383,9 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
       {activeCorners.bottomRight &&
-        <Svg width={bottomRightShadow + 1} height={bottomRightShadow + 1}
-          style={{ position: 'absolute', top: '100%', left: '100%',
-            transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }]  }}
+        <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+          style={{ position: 'absolute', top: totalHeight, left: totalWidth,
+            transform: [{ translateX: -bottomRight || 0.001 }, { translateY: -bottomRight }]  }}
         >
           <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
           <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
@@ -353,16 +400,19 @@ export const Shadow: React.FC<ShadowI> = ({
         [*2] I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
         and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
         paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg style={{ position: 'absolute' }} width='100%' height='100%' {...{ shapeRendering: 'crispEdges' }}>
+      {paintInside && <Svg style={{ position: 'absolute', minWidth: additionalRandom }}
+        width='100%' height='100%' {...{ shapeRendering: 'crispEdges' }}
+        // originX={Math.random()}
+      >
         <Defs>
           <Mask id='maskPaintBelow'>
             {/* Paint all white, then black on border external areas to erase them */}
             <Rect width='100%' height='100%' fill='#fff'/>
             {/* Remove the corners squares */}
             <Rect width={topLeft} height={topLeft} fill='#000'/>
-            <Rect width={topRight} height={topRight} x='100%' transform={`translate(${R(-topRight)}, 0)`} fill='#000'/>
-            <Rect width={bottomLeft} height={bottomLeft} y='100%' transform={`translate(0, ${R(-bottomLeft)})`} fill='#000'/>
-            <Rect width={bottomRight} height={bottomRight} x='100%' y='100%' transform={`translate(${R(-bottomRight)}, ${R(-bottomRight)})`}fill='#000'/>
+            <Rect width={topRight} height={topRight} x='100%' transform={`translate(${-topRight}, 0)`} fill='#000'/>
+            <Rect width={bottomLeft} height={bottomLeft} y='100%' transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
+            <Rect width={bottomRight} height={bottomRight} x='100%' y='100%' transform={`translate(${-bottomRight}, ${-bottomRight})`}fill='#000'/>
           </Mask>
         </Defs>
         <Rect width='100%' height='100%' mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
@@ -370,10 +420,9 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
     </>);
-  }, [startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, R, P, distance, scale, sidesProp, cornersProp, paintInside]);
+  }, [startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp, cornersProp, totalHeight, totalWidth, totalWidthWithAdditional, paintInside]);
 
   return (
-
     <View style={containerViewStyle}>
       {/* // // Without this alignSelf that I found by somewhat randomly trying, the shadow could have wrong size
   //  if it had siblings. eg: https://imgur.com/a/SjdLCJz the text in here was outside the Shadow component,
@@ -382,10 +431,20 @@ export const Shadow: React.FC<ShadowI> = ({
       <View style={[{ }]}>
         {/* Shadow below the children */}
         <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
-
           {shadow}
         </View>
-        {children}
+        <View
+          ref={childRef}
+          style={[viewStyle]}
+          onLayout={(e) => {
+            const layout = e.nativeEvent.layout;
+            console.log(layout);
+            console.log(P(layout.width));
+            setChildWidth(layout.width);
+            setChildHeight(layout.height);
+          }}>
+          {children}
+        </View>
       </View>
     </View>
   );
