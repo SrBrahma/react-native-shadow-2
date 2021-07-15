@@ -182,10 +182,8 @@ export const App: React.FC = () => {
           <NameValue name='Child Color' value={childColor} valueMonospace/>
           <TextInput style={styles.textInput} defaultValue={defaults.childColor} autoCorrect={false} onChangeText={(text) => {
             const color = tinycolor(text);
-            if (color.isValid()) {
-              console.log('new color: ', color.toHex8String());
+            if (color.isValid())
               setChildColor(color.toHex8String());
-            }
           }}/>
 
           <NameValue name='Paint Inside' value={paintInside}/>
@@ -211,6 +209,7 @@ export const App: React.FC = () => {
             borderRadius: Math.max(borderRadius, 0),
           }}/>
         </Shadow>
+        <Text>{'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}</Text>
       </View>
 
     </PageScrollView>
