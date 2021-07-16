@@ -30,6 +30,7 @@ Compatible with Android, iOS and Web. And Expo!
 
 Implementation: [./src/index.tsx](./src/index.tsx)
 
+
 ## 🥳 New version 3.0.0! (2021-06-25) 🥳
 
 ### The long waited and most wanted feature is out!
@@ -94,6 +95,12 @@ If you don't want to this to happen at all, you can use rounded sizings in your 
 You can either fix it by using paintInside prop to hide the possible imperfections, or using  if passing specific decimal sizings. This R() also makes the shadow pixel perfect from the first render.
 
 You can either fix it by using paintInside prop to hide the possible imperfections, or using the `R()` function, describe on the issue above.
+
+* Setting (or obtaining from child) a too high `radius` (`> size/2`) will mess the shadow.
+* [Mobile] The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now use relative positions and sizings.
+There may be a pixel wide gap on that first render on the right and bottom SVG parts junctions, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically on the following render, as this lib will get the exact pixel size of the child component. This gap won't always happen and it's hardly noticeable, even for stronger shadow colors. It's really too fast and it's a really thin line. No need to bother with it.
+However, if you don't want to this to happen at all because you may be have a special case, you can use rounded sizings in your child, using
+* In web, if your child have a decimal size, there may be a pixel wide gap between the child and the right/bottom shadow, as browsers usually allow decimal sizings and will blur the last pixel line/row. You can either fix it by using paintInside prop to hide the possible imperfections, or using  if passing specific decimal sizings. This R() also makes the shadow pixel perfect from the first render.
 
 ## 📰 [Changelog](./CHANGELOG.md)
 
