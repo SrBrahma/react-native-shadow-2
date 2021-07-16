@@ -1,50 +1,50 @@
-// This code has a nice history! Check the previous commits to see how much it has changed!
-// It got SMARTER!
-
-// https://reactnative.dev/docs/direct-manipulation
-
-import React, { MutableRefObject, useMemo, useRef, useState } from 'react';
-import { Platform, StyleProp, View, ViewStyle, PixelRatio, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Platform, StyleProp, View, ViewStyle, PixelRatio } from 'react-native';
 import { Svg, Defs, LinearGradient, Rect, Stop, Path, RadialGradient, Mask } from 'react-native-svg';
 import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
 
-function A(): boolean | undefined { return; }
-const B = A();
+
+type Side = 'left' | 'right' | 'top' | 'bottom';
+type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+type CornerRadius = Record<Corner, number>;
+// Add Shadow to the corner names
+type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
+
+
 const OS = Platform.OS;
 
-type Side = 'left' | 'right' | 'top' | 'bottom'
-type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
-type CornerRadius = Record<Corner, number>
-// Add Shadow to the corner names
-type CornerRadiusShadow = Record<`${Corner}Shadow`, number>
+/** Rounds  */
+export function R(value: number): number {
+  // In Web, 1dp=1px. But it accepts decimal sizes, and it's somewhat problematic.
+  // The size rounding is browser-dependent, so we do the decimal rounding for web by ourselves to have a
+  // consistent behavior. We floor it, because it's better for the child to overlap by a pixel the right/bottom shadow part
+  // than to have a pixel wide gap between them.
+  // **Only if we receive a decimal value here!!!**. Read [*3]!! Else, the gap may still happen as we don't have control over it.
+  if (OS === 'web')
+    return Math.floor(value);
 
-
-
-const scale = PixelRatio.get();
-
-
-function R(value: number) {
-  if (OS === 'web') // In web, 1dp=1px. Also
-    return value;
   return PixelRatio.roundToNearestPixel(value);
 }
+/** Converts dp to pixels. */
+function P(value: number) {
+  return PixelRatio.getPixelSizeForLayoutSize(value);
+}
+/** How many pixels for each dp. scale = pixels/dp */
+const scale = PixelRatio.get();
 
+/** Converts two sizes to pixel for perfect math, sum them and converts the result back to dp. */
 function sumDps(a: number, b: number) {
   return R((P(a) + P(b)) / scale);
 }
-/** Converts dp to pixels */
-function P(value: number) {
-  if (OS === 'web') // In web, 1dp=1px
-    return value;
-  return PixelRatio.getPixelSizeForLayoutSize(value);
-}
 
-
-/** [Android/ios?] Sometimes we add a size to it, so the svg won't get clipped for some mysterious reason. */
+/** [Android/ios?] [*4] A small safe margin for the svg sizes.
+ *
+ * It fixes some gaps that we had, as even that the svg size and the svg rect for example size were the same, this rect
+ * would still strangely be cropped/clipped. We give this additional size to the svg so our rect/etc won't be unintendedly clipped.
+ *
+ * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
 const additional = 1;
-/** [Android/ios?] Same as above, but used when adding 2 sizes together, so the margin will allow each size error margin. */
-const additional2 = additional * 2;
 
 
 export interface ShadowI {
@@ -72,15 +72,25 @@ export interface ShadowI {
    * Fallbacks to 0.
    * @default undefined */
   radius?: number | {default?: number, topLeft?: number, topRight?: number, bottomLeft?: number, bottomRight?: number};
-  /** If it should try to get the radius from the child if `radius` prop is undefined. It will get the values for each
+  /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    * If `borderRadius` isn't defined or < 0, 0 will be used.
    * @default true */
-  getChildRadius?: boolean;
-  // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users.
+  getChildRadiusStyle?: boolean;
+
+  // Both below not yet implemented. Will do it on the next release, else I will never release this one hehe
+  /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
+   *
+   * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
+   * @default true */
+  // getChildSizeStyle?: boolean;
+  /** Not necessary or even good enough right now, in >3.0.0. */
+  // size?: [width: number, height: number];
+
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
+  // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users, won't be just `Side`.
   sides?: ('left' | 'right' | 'top' | 'bottom')[];
   /** The corners that will have the shadows drawn.
    *
@@ -107,21 +117,23 @@ export const Shadow: React.FC<ShadowI> = ({
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
   containerViewStyle,
-  startColor: startColorProp = '#00000030',
+  startColor: startColorProp = '#00000020',
   finalColor: finalColorProp = '#0000',
   distance: distanceProp = 10,
   children,
   offset = [0, 0],
-  getChildRadius: getChildRadiusProp = true,
+  getChildRadiusStyle: getChildRadiusProp = true,
   paintInside = false,
   viewStyle,
 }) => {
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
+
   const [offsetX, offsetY] = offset;
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
+  /** Read {@link additional}, [*4] */
   const distanceWithAdditional = distance + additional;
-  const width = Platform.OS === 'web' ? '100%' : (childWidth ?? '100%'); // '100%' sometimes will lead to gaps. child size don't lie.
+  const width = childWidth ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
   const height = childHeight ?? '100%';
   /** Will (+ additional), only if its value isn't '100%'. */
   const widthWithAdditional = typeof width === 'string' ? width : width + 1;
@@ -130,9 +142,6 @@ export const Shadow: React.FC<ShadowI> = ({
 
   const shadow = useMemo(() => {
 
-    /** [Android/ios?] We are adding random() because for some reason the Svg wasn't updating when changing
-     * the child size. Looks like it uses onMemo. We give the random to bypass this wrong onMemo. We would already + additional,
-     * we are taking advantage that we already had to use it. */
     // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
     const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
     const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
@@ -140,7 +149,7 @@ export const Shadow: React.FC<ShadowI> = ({
     const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & {alpha?: number};
     const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & {alpha?: number};
 
-    // [*1] Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
+    // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
     // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
     // it isn't applied twice.
     const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined }); // overwrite alpha
@@ -213,7 +222,7 @@ export const Shadow: React.FC<ShadowI> = ({
     // Fragment wasn't working for some reason, so, using array.
     const linearGradient = [
       // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
-      // In web, lesser offsets needs to come before.
+      // In web, smaller offsets needs to come before, so offset={0} definition comes first.
       <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
       <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
     ];
@@ -221,7 +230,7 @@ export const Shadow: React.FC<ShadowI> = ({
     function radialGradient(id: string, top: boolean, left: boolean, radius: number, shadowRadius: number) {
       return (<RadialGradient
         id={id}
-        cx={left ? shadowRadius : 0} // fx and fy seems to be optional
+        cx={left ? shadowRadius : 0}
         cy={top ? shadowRadius : 0}
         r={shadowRadius}
         gradientUnits='userSpaceOnUse' // won't show if this isn't set
@@ -239,10 +248,7 @@ export const Shadow: React.FC<ShadowI> = ({
       {/* shape-rendering fixes some gaps on web. Not available on Android/iOS, but won't affect them.
           We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
-          We do the {...{shape[...]}} else TS would complain that this prop isn't accepted.
-      */}
-      {/* At some widths/heights we have a +1. This fixes some gaps in mobile for some mysterious reason. Maybe
-        svg lib fault not handling the sizes properly. This won't change the intended result. */}
+          We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
       {activeSides.left &&
         <Svg
           width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
@@ -299,7 +305,6 @@ export const Shadow: React.FC<ShadowI> = ({
           } h${-distance} Z`}/>
         </Svg>
       }
-
       {activeCorners.topRight &&
         <Svg width={topRightShadow + additional} height={topRightShadow + additional}
           style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }]  }}
@@ -312,7 +317,6 @@ export const Shadow: React.FC<ShadowI> = ({
           {/*  */}
         </Svg>
       }
-
       {activeCorners.bottomLeft &&
         <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
           style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }]  }}
@@ -324,7 +328,6 @@ export const Shadow: React.FC<ShadowI> = ({
           } v${distance} Z`}/>
         </Svg>
       }
-
       {activeCorners.bottomRight &&
         <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
           style={{ position: 'absolute', top: height, left: width,
@@ -340,18 +343,17 @@ export const Shadow: React.FC<ShadowI> = ({
 
 
       {/* Paint the inner area, so we can offset it.
-        [*2] I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
+        [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
         and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
         paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
       {paintInside && <Svg style={{ position: 'absolute' }}
         width={widthWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        // originX={Math.random()}
       >
         <Defs>
           <Mask id='maskPaintBelow'>
             {/* Paint all white, then black on border external areas to erase them */}
             <Rect width={width} height={height} fill='#fff'/>
-            {/* Remove the corners, as squares */}
+            {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
             <Rect width={topLeft} height={topLeft} fill='#000'/>
             <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
             <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
@@ -363,28 +365,30 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
     </>);
-  }, [startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp, cornersProp, distanceWithAdditional, heightWithAdditional, height, width, widthWithAdditional, paintInside]);
+  }, [
+    startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp,
+    cornersProp, distanceWithAdditional, heightWithAdditional, height, width, widthWithAdditional, paintInside,
+  ]);
 
   return (
     <View style={containerViewStyle}>
-      {/* // // Without this alignSelf that I found by somewhat randomly trying, the shadow could have wrong size
-  //  if it had siblings. eg: https://imgur.com/a/SjdLCJz the text in here was outside the Shadow component,
-  //  and the shadow by some reason would have corresponding sizing. I show there without and with the alignSelf.
-  // FIXME removed alignSelf as it was buggin android*/}
-      <View style={[{ }]}>
-        {/* Shadow below the children. Any benefit of using totalX instead of '100%'? */}
-        <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
-          {shadow}
-        </View>
-        <View
-          style={[viewStyle]}
-          onLayout={(e) => {
-            const layout = e.nativeEvent.layout;
-            setChildWidth(layout.width);
-            setChildHeight(layout.height);
-          }}>
-          {children}
-        </View>
+      {/* Shadow below the children. Any benefit of using totalX instead of '100%'? */}
+      <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
+        {shadow}
+      </View>
+      <View
+      // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
+      // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
+        style={[viewStyle]}
+        onLayout={(e) => {
+          // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
+          // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
+          // the pixel gap between the child and the shadow.
+          const layout = e.nativeEvent.layout;
+          setChildWidth(layout.width);
+          setChildHeight(layout.height);
+        }}>
+        {children}
       </View>
     </View>
   );

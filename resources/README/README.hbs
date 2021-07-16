@@ -22,20 +22,21 @@
 
 [react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch.
 
-It solves the problem of React Native not having the same shadow appearence for Android, iOS and Web. It also works on old Android versions, where `elevation` wasn't available.
+It solves the old React Native issue of not having the same shadow appearence and implementation for Android, iOS and Web.
 
 The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think about the solution to this shadow issue.
 
 Compatible with Android, iOS and Web. And Expo!
 
+Implementation: [./src/index.tsx](./src/index.tsx)
 
 ## 🥳 New version 3.0.0! (2021-06-25) 🥳
 
 ### The long waited and most wanted feature is out!
 
-Before this new version, it was required to manually enter your component size or leave it as undefined and the integrated onLayout would get its size and apply it on the next render.
+Before this new version, it was required to manually enter your component size or leave it as undefined and the integrated onLayout would get its size and apply the shadow on the next render.
 
-Now, this package is way smarter. **The property `size` no longer exists and the shadow is applied on the same render**. A big game changer! You may be interested in taking a look into the source code to see how much changed and the new hacks I discovered that made this possible.
+Now, **the shadow is applied on the same render!**.
 
 
 ## 💿 Installation
@@ -44,38 +45,11 @@ Now, this package is way smarter. **The property `size` no longer exists and the
 
 ### 2. Then install react-native-shadow-2:
 
-```C
+```bash
 npm i react-native-shadow-2
 # or
 yarn add react-native-shadow-2
 ```
-
-{{!-- * Expo:
-
-```C
-expo install react-native-svg
-```
-
-* React Native:
-
-```C
-npm i react-native-svg
-# or
-yarn add react-native-svg
-# and after installing,
-# for RN 0.60+
-cd ios && pod install
-# a
-react-native link react-native-svg
-```
-
-Then, install this package:
-
-```C
-npm i react-native-shadow-2
-# or
-yarn add react-native-shadow-2
-``` --}}
 
 
 ## 📖 Usage
@@ -107,11 +81,19 @@ import { Shadow } from 'react-native-shadow-2';
 
 {{shadowProperties}}
 
+## 🐛 Notes / Known Issues
 
-## 🐛 Known Issues
+// Read texts below and fix them
+* Setting (or obtaining from child) a too high `radius` (`> size/2`) will mess the shadow.
+* [Mobile] The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positions and sizings.
+There may be a pixel wide gap on that first render on the right and bottom SVG parts junctions, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
+on the following render, as this lib will get the exact pixel size of the child component using onLayout.
+This gap won't always happen and it's hardly noticeable, even for stronger shadow colors. When it happens, it's too small and too short.
+If you don't want to this to happen at all, you can use rounded sizings in your child, using
+* In web, if your child have a decimal size, there may be a pixel wide gap between the child and the right/bottom shadow, as browsers usually allow decimal sizings and will blur the last pixel line/row.
+You can either fix it by using paintInside prop to hide the possible imperfections, or using  if passing specific decimal sizings. This R() also makes the shadow pixel perfect from the first render.
 
-* Percentage values for child's borderRadius won't work with `getChildRadius` property.
-* Setting (or obtaining from child) a `radius` too high (`> size/2`) will mess the shadow.
+You can either fix it by using paintInside prop to hide the possible imperfections, or using the `R()` function, describe on the issue above.
 
 ## 📰 [Changelog](./CHANGELOG.md)
 

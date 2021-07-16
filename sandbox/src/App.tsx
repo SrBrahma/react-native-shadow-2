@@ -191,25 +191,28 @@ export const App: React.FC = () => {
 
         </View>
 
-        <Shadow
-          distance={distance}
-          startColor={startColor}
-          finalColor={finalColor}
-          offset={[offsetX, offsetY]}
-          paintInside={paintInside}
-          getChildRadius={getChildRadius}
-          radius={getChildRadius ? undefined : borderRadius}
-          containerViewStyle={{ margin: 100 }}
-        >
-          {/* FIXME With size 200.4 there is a gap in web and overlap in mobile. */}
-          <View style={{ width: childWidth, height: childHeight, backgroundColor: childColor,
+        <View style={{ flexDirection: 'column' }}>
+          <Shadow
+            distance={distance}
+            startColor={startColor}
+            finalColor={finalColor}
+            offset={[offsetX, offsetY]}
+            paintInside={paintInside}
+            getChildRadiusStyle={getChildRadius}
+            radius={getChildRadius ? undefined : borderRadius}
+            containerViewStyle={{ margin: 100 }}
+          >
+            {/* FIXME With size 200.4 there is a gap in web and overlap in mobile. */}
+            <View style={{ width: childWidth, height: childHeight, backgroundColor: childColor,
             // If borderRadius change from a positive value to a negative one, it won't change the current radius.
             // This is here just to avoid the slider causing it to happen, for fast movements. You can disable this line
             // to see what I mean. Nothing to worry about in prod envs.
-            borderRadius: Math.max(borderRadius, 0),
-          }}/>
-        </Shadow>
-        <Text>{'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}</Text>
+              borderRadius: Math.max(borderRadius, 0),
+            }}/>
+          </Shadow>
+          <Text>{'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}</Text>
+        </View>
+
       </View>
 
     </PageScrollView>

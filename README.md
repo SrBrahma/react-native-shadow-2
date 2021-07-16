@@ -50,7 +50,6 @@ npm i react-native-shadow-2
 yarn add react-native-shadow-2
 ```
 
-
 ## 📖 Usage
 
 
@@ -97,6 +96,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 * Percentage values for child's borderRadius won't work with `getChildRadius` property.
 * Setting (or obtaining from child) a `radius` too high (`> size/2`) will mess the shadow.
+* In web, if your child have a decimal size, there may be a pixel wide gap between the child and the right/bottom shadow, as browsers usually allow decimal sizings and will blur the last pixel line/row. You can either fix it by using paintInside prop to hide the possible imperfections, or using PixelRatio.
 
 ## 📰 [Changelog](./CHANGELOG.md)
 
