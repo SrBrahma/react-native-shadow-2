@@ -31,7 +31,7 @@ Compatible with Android, iOS and Web. And Expo!
 Implementation: [./src/index.tsx](./src/index.tsx)
 
 
-## 🥳 New version 3.0.0! (2021-07-15) 🥳
+## 🥳 New version 3.0.0! (2021-07-17) 🥳
 
 ### The long waited and most wanted feature is out!
 
