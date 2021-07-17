@@ -7,7 +7,7 @@ module.exports = {
   },
   "extends": [
     "plugin:@typescript-eslint/recommended-requiring-type-checking", // *1
-    "eslint-config-gev/react-native", // https://github.com/SrBrahma/eslint-config-gev
+    "eslint-config-gev/react-native" // https://github.com/SrBrahma/eslint-config-gev
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
