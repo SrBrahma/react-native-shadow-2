@@ -14,7 +14,7 @@ type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 
 const OS = Platform.OS;
 
-/** Rounds  */
+/** Rounds the given size to a pixel perfect size. */
 export function R(value: number): number {
   // In Web, 1dp=1px. But it accepts decimal sizes, and it's somewhat problematic.
   // The size rounding is browser-dependent, so we do the decimal rounding for web by ourselves to have a
@@ -48,45 +48,29 @@ const additional = 1;
 
 
 export interface ShadowI {
-  viewStyle?: ViewStyle;
   /** The color of the shadow when it's right next to the given content, leaving it.
    * Accepts alpha channel.
    *
    * @default '#00000020' */
   startColor?: string;
-  /** The color of the shadow at the maximum distance from the content.
+  /** The color of the shadow at the maximum distance from the content. Accepts alpha channel.
    * @default '#0000', transparent. */
   finalColor?: string;
   /** How far the shadow will go.
    * @default 10 */
   distance?: number;
-  /** The style of the view that contains the shadow and the children.
-   * @default undefined */
-  containerViewStyle?: StyleProp<ViewStyle>;
   /** The radius of each corner of your child component. Passing a number will apply it to all corners.
    *
    * If passing an object, undefined corners will have the radius of the `default` property if it's defined.
    *
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
-   * Fallbacks to 0.
-   * @default undefined */
+   * Fallbacks to 0. */
   radius?: number | {default?: number, topLeft?: number, topRight?: number, bottomLeft?: number, bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
-   * If `borderRadius` isn't defined or < 0, 0 will be used.
    * @default true */
   getChildRadiusStyle?: boolean;
-
-  // Both below not yet implemented. Will do it on the next release, else I will never release this one hehe
-  /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
-   *
-   * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
-   * @default true */
-  // getChildSizeStyle?: boolean;
-  /** Not necessary or even good enough right now, in >3.0.0. */
-  // size?: [width: number, height: number];
-
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
@@ -98,19 +82,41 @@ export interface ShadowI {
   corners?: ('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[];
   /** Moves the shadow. Negative x moves it to the left, negative y moves it up.
    *
-   * Accepts 'x%' values, in relation to the child's size.
+   * Accepts `'x%'` values, in relation to the child's size.
    *
-   * Read paintInside property description for related configuration.
+   * Read `paintInside` property description for related configuration.
    * @default [0, 0] */
   offset?: [x: number | string, y: number | string];
-  /** If the shadow should be applied inside the external shadows, below the child.
+  /** If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.
    *
    * You may want this as true when using offset or if your child have some transparency.
    * @default false */
   paintInside?: boolean;
+  /** The style of the view that wraps your child component.
+   *
+   * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
+   * radiuses from the `radius` property or from the child, if `getChildRadiusStyle`. You may overwrite those defaults
+   * by undefine'ing the changed styles in this property. */
+  viewStyle?: ViewStyle;
+  /** The style of the view that contains the shadow and your child component. */
+  containerViewStyle?: StyleProp<ViewStyle>;
+  /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
+   *
+   * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
+   * @default true */
+  // getChildSizeStyle?: boolean;
+  /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
+   * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
+   *
+   * It will apply the corresponding `width` and `height` styles to the `viewStyle` property.
+   *
+   * You may want to set `backgroundColor` in the `viewStyle` property for your child background color.
+   *
+   * It's also good if you want an animated view.
+   *
+   * The values will be properly rounded using our R() function. */
+  size?: [width: number, height: number];
 }
-
-// https://reactnative.dev/docs/direct-manipulation
 
 export const Shadow: React.FC<ShadowI> = ({
   radius: radiusProp,
@@ -121,11 +127,13 @@ export const Shadow: React.FC<ShadowI> = ({
   finalColor: finalColorProp = '#0000',
   distance: distanceProp = 10,
   children,
+  size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
   offset = [0, 0],
   getChildRadiusStyle: getChildRadiusProp = true,
   paintInside = false,
   viewStyle,
 }) => {
+  const [widthProp, heightProp] = sizeProp ? [R(sizeProp[0]), R(sizeProp[1])] : [];
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
 
@@ -133,12 +141,58 @@ export const Shadow: React.FC<ShadowI> = ({
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
   /** Read {@link additional}, [*4] */
   const distanceWithAdditional = distance + additional;
-  const width = childWidth ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
-  const height = childHeight ?? '100%';
+  const width = widthProp ?? childWidth ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
+  const height = heightProp ?? childHeight ?? '100%';
   /** Will (+ additional), only if its value isn't '100%'. */
   const widthWithAdditional = typeof width === 'string' ? width : width + 1;
   /** Will (+ additional), only if its value isn't '100%'. */
   const heightWithAdditional = typeof height === 'string' ? height : height + 1;
+
+  const doGetChildRadius = getChildRadiusProp && (radiusProp === undefined);
+
+  const childStyle: ViewStyle | undefined = useMemo(() => {
+    if (doGetChildRadius && React.Children.count(children) > 1)
+      throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
+    const childStyleTemp = doGetChildRadius
+      ? (React.Children.only(children) as any | undefined)?.props?.style as ViewStyle | undefined
+      : undefined;
+      // Convert array style to a single obj style.
+    return (Array.isArray(childStyleTemp)
+      ? childStyleTemp.reduce((obj, v) => {
+        if (v && typeof v === 'object')
+          return { ...obj, ...v };
+      }, {})
+      : childStyleTemp);
+
+  }, [children, doGetChildRadius]);
+
+  const radiuses = useMemo(() => {
+    /** Not yet treated. May be negative / undefined */
+    const cornerRadiusPartial: Partial<CornerRadius> = doGetChildRadius
+      ? {
+        topLeft: childStyle?.borderTopLeftRadius ?? childStyle?.borderRadius,
+        topRight: childStyle?.borderTopRightRadius ?? childStyle?.borderRadius,
+        bottomLeft: childStyle?.borderBottomLeftRadius ?? childStyle?.borderRadius,
+        bottomRight: childStyle?.borderBottomRightRadius ?? childStyle?.borderRadius,
+      } : (typeof radiusProp === 'number' ? {
+        topLeft: radiusProp,
+        topRight: radiusProp,
+        bottomLeft: radiusProp,
+        bottomRight: radiusProp,
+      } : {
+        topLeft: radiusProp?.topLeft ?? radiusProp?.default,
+        topRight: radiusProp?.topRight ?? radiusProp?.default,
+        bottomLeft: radiusProp?.bottomLeft ?? radiusProp?.default,
+        bottomRight: radiusProp?.bottomRight ?? radiusProp?.default,
+      });
+    const result = {
+      bottomLeft: R(Math.max(cornerRadiusPartial.bottomLeft ?? 0, 0)),
+      bottomRight: R(Math.max(cornerRadiusPartial.bottomRight ?? 0, 0)),
+      topLeft: R(Math.max(cornerRadiusPartial.topLeft ?? 0, 0)),
+      topRight: R(Math.max(cornerRadiusPartial.topRight ?? 0, 0)),
+    };
+    return result;
+  }, [childStyle, doGetChildRadius, radiusProp]);
 
   const shadow = useMemo(() => {
 
@@ -158,40 +212,7 @@ export const Shadow: React.FC<ShadowI> = ({
     const startColorOpacity = startColorRgb.alpha ?? 1;
     const finalColorOpacity = finalColorRgb.alpha ?? 1;
 
-
-    const doGetChildRadius = getChildRadiusProp && radiusProp === undefined;
-
-    if (doGetChildRadius && React.Children.count(children) > 1)
-      throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
-
-    const childStyle = doGetChildRadius
-      ? (React.Children.only(children) as any | undefined)?.props?.style as ViewStyle | undefined
-      : undefined;
-
-    /** May be negative / undefined */
-    const cornerRadiusPartial: Partial<CornerRadius> = doGetChildRadius
-      ? {
-        topLeft: childStyle?.borderTopLeftRadius ?? childStyle?.borderRadius,
-        topRight: childStyle?.borderTopRightRadius ?? childStyle?.borderRadius,
-        bottomLeft: childStyle?.borderBottomLeftRadius ?? childStyle?.borderRadius,
-        bottomRight: childStyle?.borderBottomRightRadius ?? childStyle?.borderRadius,
-      } : (typeof radiusProp === 'number' ? {
-        topLeft: radiusProp,
-        topRight: radiusProp,
-        bottomLeft: radiusProp,
-        bottomRight: radiusProp,
-      } : {
-        topLeft: radiusProp?.topLeft ?? radiusProp?.default,
-        topRight: radiusProp?.topRight ?? radiusProp?.default,
-        bottomLeft: radiusProp?.bottomLeft ?? radiusProp?.default,
-        bottomRight: radiusProp?.bottomRight ?? radiusProp?.default,
-      });
-    const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = {
-      bottomLeft: R(Math.max(cornerRadiusPartial.bottomLeft ?? 0, 0)),
-      bottomRight: R(Math.max(cornerRadiusPartial.bottomRight ?? 0, 0)),
-      topLeft: R(Math.max(cornerRadiusPartial.topLeft ?? 0, 0)),
-      topRight: R(Math.max(cornerRadiusPartial.topRight ?? 0, 0)),
-    };
+    const { topLeft, topRight, bottomLeft, bottomRight } = radiuses;
 
     const cornerShadowRadius: CornerRadiusShadow = {
       topLeftShadow: sumDps(topLeft, distance),
@@ -365,31 +386,40 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
     </>);
-  }, [
-    startColorProp, finalColorProp, getChildRadiusProp, radiusProp, children, distance, sidesProp,
-    cornersProp, distanceWithAdditional, heightWithAdditional, height, width, widthWithAdditional, paintInside,
-  ]);
+  }, [height, width, startColorProp, finalColorProp, radiuses, distance, sidesProp, cornersProp,
+    distanceWithAdditional, heightWithAdditional,  widthWithAdditional, paintInside]);
 
-  return (
-    <View style={containerViewStyle}>
-      {/* Shadow below the children. Any benefit of using totalX instead of '100%'? */}
+  const result = useMemo(() => {
+    return (<View style={containerViewStyle}>
+      {/* TODO any benefit in using width/height instead of '100%' here? */}
       <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
         {shadow}
       </View>
       <View
-      // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
-      // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
-        style={[viewStyle]}
-        onLayout={(e) => {
+        // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
+        // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
+        style={[{ alignSelf: 'flex-start' }, sizeProp && {
+          width, height,
+          borderTopLeftRadius: radiuses.topLeft,
+          borderTopRightRadius: radiuses.topRight,
+          borderBottomLeftRadius: radiuses.bottomLeft,
+          borderBottomRightRadius: radiuses.bottomRight,
+        }, viewStyle]}
+        {...!sizeProp && { // Only use onLayout if sizeProp wasn't received.
+          onLayout: (e) => {
           // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
           // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
           // the pixel gap between the child and the shadow.
-          const layout = e.nativeEvent.layout;
-          setChildWidth(layout.width);
-          setChildHeight(layout.height);
-        }}>
+            const layout = e.nativeEvent.layout;
+            setChildWidth(layout.width);
+            setChildHeight(layout.height);
+          },
+        }}
+      >
         {children}
       </View>
-    </View>
-  );
+    </View>);
+  }, [shadow, children, width, height, sizeProp, radiuses, viewStyle, containerViewStyle, offsetX, offsetY]);
+
+  return result;
 };
