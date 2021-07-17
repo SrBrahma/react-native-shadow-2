@@ -30,6 +30,8 @@ Compatible with Android, iOS and Web. And Expo!
 
 Implementation: [./src/index.tsx](./src/index.tsx)
 
+[🍟 Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+
 
 ## 🥳 New version 3.0.0! (2021-07-17) 🥳
 
