@@ -110,14 +110,14 @@ import { Shadow } from 'react-native-shadow-2';
 
 * Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.
 
-* **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now (v3) magically use relative positions and sizings.
+* **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positioning and sizing.
 There may be a pixel wide gap on the first render on the right and bottom SVG parts connections, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
 on the following render, as this lib will get the exact pixel size of the child component using onLayout.
 This gap won't always happen and it's usually hardly noticeable.
 If you don't want to this to happen at all, you can use the `size` property.
 
-* **`[Web]`** If your child have a decimal size, there may be a pixel wide gap between the child and the right/bottom shadow, as browsers usually allow decimal sizings and will blur the last pixel line/row.
-You can either fix it by using `paintInside` prop to hide the possible imperfections or use the `size` property to avoid it from happening.
+* **`[Web]`** If your child is manually set to have a decimal size, there may be a pixel wide gap between your child component and the right/bottom shadow, as browsers usually allow decimal sizings and it will blur the last pixel line/row.
+You can either fix it by using the `paintInside` property to hide this possible imperfection or use the `size` property to avoid it from happening.
 
 # 📰 [Changelog](./CHANGELOG.md)
 
