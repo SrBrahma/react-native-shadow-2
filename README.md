@@ -20,17 +20,17 @@
 
 # react-native-shadow-2
 
-[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch.
+[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch. Also, it doesn't require the usage of the `size` property.
 
 It solves the old React Native issue of not having the same shadow appearence and implementation for Android, iOS and Web.
 
 The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think about the solution to this shadow issue.
 
-Compatible with Android, iOS and Web. And Expo!
+Compatible with Android, iOS and Web. **And Expo!**
 
 Implementation: [./src/index.tsx](./src/index.tsx)
 
-[🍟 Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+## [🍟 Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
 
 ## 🥳 New version 3.0.0! (2021-07-17) 🥳
@@ -39,10 +39,10 @@ Implementation: [./src/index.tsx](./src/index.tsx)
 
 Before this new version, it was required to manually enter your component size or leave it as undefined and the integrated onLayout would get its size and apply the shadow on the next render.
 
-Now, **the shadow is applied on the same render without entering its size!**
+Now, **the shadow is smartly applied on the same render without entering its size!**
 
 
-## 💿 Installation
+# 💿 Installation
 
 ### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg).
 
@@ -55,7 +55,7 @@ yarn add react-native-shadow-2
 ```
 
 
-## 📖 Usage
+# 📖 Usage
 
 ### Structure
 ```tsx
@@ -106,7 +106,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **size** | `[width: number, height: number]` | `undefined` | If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,<br/>you can use this property. Using this won't trigger the onLayout, so only 1 render is made.<br/><br/>It's also good if you want an animated view.<br/><br/>It will apply the corresponding `width` and `height` styles to the `viewStyle` property.<br/><br/>The values will be properly rounded using our R() function.
 
 
-## 🐛 Notes / Known Issues
+# 🐛 Notes / Known Issues
 
 * Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.
 
@@ -119,7 +119,7 @@ If you don't want to this to happen at all, you can use the `size` property.
 * **`[Web]`** If your child have a decimal size, there may be a pixel wide gap between the child and the right/bottom shadow, as browsers usually allow decimal sizings and will blur the last pixel line/row.
 You can either fix it by using `paintInside` prop to hide the possible imperfections or use the `size` property to avoid it from happening.
 
-## 📰 [Changelog](./CHANGELOG.md)
+# 📰 [Changelog](./CHANGELOG.md)
 
-## 🦉 Alternatives
+# 🦉 Alternatives
 * [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. It doesn't support Expo though, as `react-native-shadow-2` does.
