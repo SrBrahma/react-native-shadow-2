@@ -1,19 +1,9 @@
-<!--
-  README generated with handlebars, typedoc-plugin-markdown and my
-  temporary typedoc-plugin-markdown to table code.
-
-  The README.hbs is in resources/README.hbs.
-
-  DO NOT edit the README.md, but the README.hbs and then run `npm run readme`.
- -->
-
-
 <div align="center">
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![TypeScript](https://badgen.net/npm/types/env-var)](http://www.typescriptlang.org/)
 [![npm](https://img.shields.io/npm/v/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
+[![TypeScript](https://badgen.net/npm/types/env-var)](http://www.typescriptlang.org/)
 [![npm](https://img.shields.io/npm/dw/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 </div>
 
@@ -42,7 +32,7 @@ Before this new version, it was required to manually enter your component size o
 Now, **the shadow is smartly applied on the same render without entering its size!**
 
 
-# 💿 Installation
+## 💿 Installation
 
 ### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg).
 
@@ -55,7 +45,7 @@ yarn add react-native-shadow-2
 ```
 
 
-# 📖 Usage
+## 📖 Usage
 
 ### Structure
 ```tsx
@@ -106,7 +96,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **size** | `[width: number, height: number]` | `undefined` | If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,<br/>you can use this property. Using this won't trigger the onLayout, so only 1 render is made.<br/><br/>It's also good if you want an animated view.<br/><br/>It will apply the corresponding `width` and `height` styles to the `viewStyle` property.<br/><br/>The values will be properly rounded using our R() function.
 
 
-# 🐛 Notes / Known Issues
+## 🐛 Notes / Known Issues
 
 * Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.
 
@@ -119,7 +109,7 @@ If you don't want to this to happen at all, you can use the `size` property.
 * **`[Web]`** If your child is manually set to have a decimal size, there may be a pixel wide gap between your child component and the right/bottom shadow, as browsers usually allow decimal sizings and it will blur the last pixel line/row.
 You can either fix it by using the `paintInside` property to hide this possible imperfection or use the `size` property to avoid it from happening.
 
-# 📰 [Changelog](./CHANGELOG.md)
+## 📰 [Changelog](./CHANGELOG.md)
 
-# 🦉 Alternatives
+## 🦉 Alternatives
 * [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. It doesn't support Expo though, as `react-native-shadow-2` does.
