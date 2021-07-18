@@ -112,4 +112,4 @@ You can either fix it by using the `paintInside` property to hide this possible 
 ## 📰 [Changelog](./CHANGELOG.md)
 
 ## 🦉 Alternatives
-* [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. It doesn't support Expo though, as `react-native-shadow-2` does.
+* [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. But, it doesn't support shadow on the same render if not defining the size, and it doesn't support Expo.
