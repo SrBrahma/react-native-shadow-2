@@ -23,5 +23,5 @@ module.exports = {
   }
 };
 
-// [*1] - https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/TYPED_LINTING.md#getting-started---linting-with-type-information
-// [*2] - https://github.com/Intellicode/eslint-plugin-react-native#configuration
+// [*1]: https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/TYPED_LINTING.md#getting-started---linting-with-type-information
+// [*2]: https://github.com/Intellicode/eslint-plugin-react-native#configuration

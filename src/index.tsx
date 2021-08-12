@@ -66,7 +66,7 @@ export interface ShadowI {
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
    * Fallbacks to 0. */
-  radius?: number | {default?: number, topLeft?: number, topRight?: number, bottomLeft?: number, bottomRight?: number};
+  radius?: number | {default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    * @default true */
@@ -270,8 +270,8 @@ export const Shadow: React.FC<ShadowI> = ({
           We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
           We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
-      {activeSides.left &&
-        <Svg
+      {activeSides.left
+        && <Svg
           width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
           style={{ position: 'absolute', left: -distance, top: topLeft }}
         >
@@ -281,8 +281,8 @@ export const Shadow: React.FC<ShadowI> = ({
           <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
         </Svg>
       }
-      {activeSides.right &&
-        <Svg
+      {activeSides.right
+        && <Svg
           width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
           style={{ position: 'absolute', left: width, top: topRight }}
         >
@@ -290,8 +290,8 @@ export const Shadow: React.FC<ShadowI> = ({
           <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
         </Svg>
       }
-      {activeSides.bottom &&
-        <Svg
+      {activeSides.bottom
+        && <Svg
           width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
           style={{ position: 'absolute', top: height, left: bottomLeft }}
         >
@@ -299,8 +299,8 @@ export const Shadow: React.FC<ShadowI> = ({
           <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
         </Svg>
       }
-      {activeSides.top &&
-        <Svg
+      {activeSides.top
+        && <Svg
           width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
           style={{ position: 'absolute', top: -distance, left: topLeft }}
         >
@@ -315,8 +315,8 @@ export const Shadow: React.FC<ShadowI> = ({
       {/* The anchor for the svgs is the top left point in the corner square.
         The starting point is the clockwise external arc init point. */}
 
-      {activeCorners.topLeft &&
-        <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
+      {activeCorners.topLeft
+        && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
           style={{ position: 'absolute', top: -distance, left: -distance }}
         >
           <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
@@ -326,9 +326,9 @@ export const Shadow: React.FC<ShadowI> = ({
           } h${-distance} Z`}/>
         </Svg>
       }
-      {activeCorners.topRight &&
-        <Svg width={topRightShadow + additional} height={topRightShadow + additional}
-          style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }]  }}
+      {activeCorners.topRight
+        && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+          style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
         >
           <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
           <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
@@ -338,9 +338,9 @@ export const Shadow: React.FC<ShadowI> = ({
           {/*  */}
         </Svg>
       }
-      {activeCorners.bottomLeft &&
-        <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-          style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }]  }}
+      {activeCorners.bottomLeft
+        && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+          style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
         >
           <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
           <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
@@ -349,10 +349,12 @@ export const Shadow: React.FC<ShadowI> = ({
           } v${distance} Z`}/>
         </Svg>
       }
-      {activeCorners.bottomRight &&
-        <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
-          style={{ position: 'absolute', top: height, left: width,
-            transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }]  }}
+      {activeCorners.bottomRight
+        && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+          style={{
+            position: 'absolute', top: height, left: width,
+            transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }],
+          }}
         >
           <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
           <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
@@ -378,7 +380,7 @@ export const Shadow: React.FC<ShadowI> = ({
             <Rect width={topLeft} height={topLeft} fill='#000'/>
             <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
             <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
-            <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`}fill='#000'/>
+            <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
           </Mask>
         </Defs>
         <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
@@ -386,39 +388,45 @@ export const Shadow: React.FC<ShadowI> = ({
       }
 
     </>);
-  }, [height, width, startColorProp, finalColorProp, radiuses, distance, sidesProp, cornersProp,
-    distanceWithAdditional, heightWithAdditional,  widthWithAdditional, paintInside]);
+  }, [
+    height, width, startColorProp, finalColorProp, radiuses, distance, sidesProp, cornersProp,
+    distanceWithAdditional, heightWithAdditional, widthWithAdditional, paintInside,
+  ]);
 
   const result = useMemo(() => {
-    return (<View style={containerViewStyle}>
-      {/* TODO any benefit in using width/height instead of '100%' here? */}
-      <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
-        {shadow}
-      </View>
-      <View
+    return (
+      <View style={containerViewStyle}>
+        {/* TODO any benefit in using width/height instead of '100%' here? */}
+        <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
+          {shadow}
+        </View>
+        <View
         // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
         // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
-        style={[{ alignSelf: 'flex-start' }, sizeProp && {
-          width, height,
-          borderTopLeftRadius: radiuses.topLeft,
-          borderTopRightRadius: radiuses.topRight,
-          borderBottomLeftRadius: radiuses.bottomLeft,
-          borderBottomRightRadius: radiuses.bottomRight,
-        }, viewStyle]}
-        {...!sizeProp && { // Only use onLayout if sizeProp wasn't received.
-          onLayout: (e) => {
-          // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
-          // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
-          // the pixel gap between the child and the shadow.
-            const layout = e.nativeEvent.layout;
-            setChildWidth(layout.width);
-            setChildHeight(layout.height);
-          },
-        }}
-      >
-        {children}
+          style={[
+            { alignSelf: 'flex-start' }, sizeProp && {
+              width, height,
+              borderTopLeftRadius: radiuses.topLeft,
+              borderTopRightRadius: radiuses.topRight,
+              borderBottomLeftRadius: radiuses.bottomLeft,
+              borderBottomRightRadius: radiuses.bottomRight,
+            }, viewStyle,
+          ]}
+          {...!sizeProp && { // Only use onLayout if sizeProp wasn't received.
+            onLayout: (e) => {
+              // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
+              // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
+              // the pixel gap between the child and the shadow.
+              const layout = e.nativeEvent.layout;
+              setChildWidth(layout.width);
+              setChildHeight(layout.height);
+            },
+          }}
+        >
+          {children}
+        </View>
       </View>
-    </View>);
+    );
   }, [shadow, children, width, height, sizeProp, radiuses, viewStyle, containerViewStyle, offsetX, offsetY]);
 
   return result;
