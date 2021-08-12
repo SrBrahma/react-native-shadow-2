@@ -1,19 +1,9 @@
-<!--
-  README generated with handlebars, typedoc-plugin-markdown and my
-  temporary typedoc-plugin-markdown to table code.
-
-  The README.hbs is in resources/README.hbs.
-
-  DO NOT edit the README.md, but the README.hbs and then run `npm run readme`.
- -->
-
-
 <div align="center">
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![TypeScript](https://badgen.net/npm/types/env-var)](http://www.typescriptlang.org/)
 [![npm](https://img.shields.io/npm/v/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
+[![TypeScript](https://badgen.net/npm/types/env-var)](http://www.typescriptlang.org/)
 [![npm](https://img.shields.io/npm/dw/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 </div>
 
@@ -42,7 +32,7 @@ Before this new version, it was required to manually enter your component size o
 Now, **the shadow is smartly applied on the same render without entering its size!**
 
 
-# 💿 Installation
+## 💿 Installation
 
 ### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg).
 
@@ -55,7 +45,7 @@ yarn add react-native-shadow-2
 ```
 
 
-# 📖 Usage
+## 📖 Usage
 
 ### Structure
 ```tsx
@@ -125,20 +115,20 @@ import { Shadow } from 'react-native-shadow-2';
 <!--/$shadowProperties-->
 
 
-# 🐛 Notes / Known Issues
+## 🐛 Notes / Known Issues
 
 * Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.
 
-* **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now (v3) magically use relative positions and sizings.
+* **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positioning and sizing.
 There may be a pixel wide gap on the first render on the right and bottom SVG parts connections, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
 on the following render, as this lib will get the exact pixel size of the child component using onLayout.
 This gap won't always happen and it's usually hardly noticeable.
 If you don't want to this to happen at all, you can use the `size` property.
 
-* **`[Web]`** If your child have a decimal size, there may be a pixel wide gap between the child and the right/bottom shadow, as browsers usually allow decimal sizings and will blur the last pixel line/row.
-You can either fix it by using `paintInside` prop to hide the possible imperfections or use the `size` property to avoid it from happening.
+* **`[Web]`** If your child is manually set to have a decimal size, there may be a pixel wide gap between your child component and the right/bottom shadow, as browsers usually allow decimal sizings and it will blur the last pixel line/row.
+You can either fix it by using the `paintInside` property to hide this possible imperfection or use the `size` property to avoid it from happening.
 
-# 📰 [Changelog](./CHANGELOG.md)
+## 📰 [Changelog](./CHANGELOG.md)
 
-# 🦉 Alternatives
-* [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. It doesn't support Expo though, as `react-native-shadow-2` does.
+## 🦉 Alternatives
+* [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. But, it doesn't support shadow on the same render if not defining the size, and it doesn't support Expo.
