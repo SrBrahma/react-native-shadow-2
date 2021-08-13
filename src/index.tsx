@@ -86,7 +86,7 @@ export interface ShadowI {
    *
    * Read `paintInside` property description for related configuration.
    * @default [0, 0] */
-  offset?: [x: number | string, y: number | string];
+  offset?: [number | string, number | string];
   /** If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.
    *
    * You may want this as true when using offset or if your child have some transparency.
@@ -115,7 +115,7 @@ export interface ShadowI {
    * It's also good if you want an animated view.
    *
    * The values will be properly rounded using our R() function. */
-  size?: [width: number, height: number];
+  size?: [number, number];
 }
 
 export const Shadow: React.FC<ShadowI> = ({
