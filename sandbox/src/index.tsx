@@ -97,7 +97,7 @@ export interface ShadowProps {
    * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
    * radiuses from the `radius` property or from the child, if `getChildRadiusStyle`. You may overwrite those defaults
    * by undefine'ing the changed styles in this property. */
-  viewStyle?: ViewStyle;
+  viewStyle?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerViewStyle?: StyleProp<ViewStyle>;
   /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
