@@ -270,43 +270,39 @@ export const Shadow: React.FC<ShadowI> = ({
           We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
           We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
-      {activeSides.left
-        && <Svg
-          width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', left: -distance, top: topLeft }}
-        >
-          <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
+      {activeSides.left && <Svg
+        width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', left: -distance, top: topLeft }}
+      >
+        <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
           just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-          <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
-        </Svg>
+        <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
+      </Svg>
       }
-      {activeSides.right
-        && <Svg
-          width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', left: width, top: topRight }}
-        >
-          <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
-        </Svg>
+      {activeSides.right && <Svg
+        width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', left: width, top: topRight }}
+      >
+        <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
+      </Svg>
       }
-      {activeSides.bottom
-        && <Svg
-          width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', top: height, left: bottomLeft }}
-        >
-          <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
-        </Svg>
+      {activeSides.bottom && <Svg
+        width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', top: height, left: bottomLeft }}
+      >
+        <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
+      </Svg>
       }
-      {activeSides.top
-        && <Svg
-          width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', top: -distance, left: topLeft }}
-        >
-          <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
-        </Svg>
+      {activeSides.top && <Svg
+        width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', top: -distance, left: topLeft }}
+      >
+        <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
+      </Svg>
       }
 
 
@@ -315,53 +311,49 @@ export const Shadow: React.FC<ShadowI> = ({
       {/* The anchor for the svgs is the top left point in the corner square.
         The starting point is the clockwise external arc init point. */}
 
-      {activeCorners.topLeft
-        && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-          style={{ position: 'absolute', top: -distance, left: -distance }}
-        >
-          <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
-          <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-            ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-            : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
-          } h${-distance} Z`}/>
-        </Svg>
+      {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
+        style={{ position: 'absolute', top: -distance, left: -distance }}
+      >
+        <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
+        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
+          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
+        } h${-distance} Z`}/>
+      </Svg>
       }
-      {activeCorners.topRight
-        && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
-          style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
-        >
-          <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
-          <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-            ? `h${-topRight} v${-topLeft}`
-            : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
-          } v${-distance} Z`}/>
-          {/*  */}
-        </Svg>
+      {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+        style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
+      >
+        <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
+        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
+          ? `h${-topRight} v${-topLeft}`
+          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
+        } v${-distance} Z`}/>
+        {/*  */}
+      </Svg>
       }
-      {activeCorners.bottomLeft
-        && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-          style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
-        >
-          <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
-          <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
-            ? `h${bottomLeft} v${bottomLeft}`
-            : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
-          } v${distance} Z`}/>
-        </Svg>
+      {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
+      >
+        <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
+        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
+          ? `h${bottomLeft} v${bottomLeft}`
+          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
+        } v${distance} Z`}/>
+      </Svg>
       }
-      {activeCorners.bottomRight
-        && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
-          style={{
-            position: 'absolute', top: height, left: width,
-            transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }],
-          }}
-        >
-          <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
-          <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
-            ? `v${-bottomRight} h${bottomRight}`
-            : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
-          } h${distance} Z`}/>
-        </Svg>
+      {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+        style={{
+          position: 'absolute', top: height, left: width,
+          transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }],
+        }}
+      >
+        <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
+        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
+          ? `v${-bottomRight} h${bottomRight}`
+          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
+        } h${distance} Z`}/>
+      </Svg>
       }
 
 
