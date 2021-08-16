@@ -3,6 +3,7 @@ import { Platform, StyleProp, View, ViewStyle, PixelRatio } from 'react-native';
 import { Svg, Defs, LinearGradient, Rect, Stop, Path, RadialGradient, Mask } from 'react-native-svg';
 import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
+import { uppercaseFirstLetter, objFromKeys } from './utils';
 
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
@@ -45,6 +46,12 @@ function sumDps(a: number, b: number) {
  *
  * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
 const additional = 1;
+
+const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
+const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
+const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
+
+
 
 
 export interface ShadowProps {
@@ -120,6 +127,10 @@ export interface ShadowProps {
    *
    * The values will be properly rounded using our R() function. */
   size?: [width: number, height: number];
+  /** If the shadow will move to its inner side instead of going out.
+   *
+   * @default false */
+  inset?: boolean;
 }
 
 export const Shadow: React.FC<ShadowProps> = ({
@@ -136,6 +147,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   getChildRadiusStyle: getChildRadiusProp = true,
   paintInside: paintInsideProp,
   viewStyle,
+  inset,
 }) => {
   const [widthProp, heightProp] = sizeProp ? [R(sizeProp[0]), R(sizeProp[1])] : [];
   const [childWidth, setChildWidth] = useState<number | undefined>();
@@ -173,31 +185,19 @@ export const Shadow: React.FC<ShadowProps> = ({
 
   }, [children, doGetChildRadius]);
 
+  /** useMemo here may give some performance */
   const radiuses = useMemo(() => {
     /** Not yet treated. May be negative / undefined */
     const cornerRadiusPartial: Partial<CornerRadius> = doGetChildRadius
-      ? {
-        topLeft: childStyle?.borderTopLeftRadius ?? childStyle?.borderRadius,
-        topRight: childStyle?.borderTopRightRadius ?? childStyle?.borderRadius,
-        bottomLeft: childStyle?.borderBottomLeftRadius ?? childStyle?.borderRadius,
-        bottomRight: childStyle?.borderBottomRightRadius ?? childStyle?.borderRadius,
-      } : (typeof radiusProp === 'number' ? {
-        topLeft: radiusProp,
-        topRight: radiusProp,
-        bottomLeft: radiusProp,
-        bottomRight: radiusProp,
-      } : {
-        topLeft: radiusProp?.topLeft ?? radiusProp?.default,
-        topRight: radiusProp?.topRight ?? radiusProp?.default,
-        bottomLeft: radiusProp?.bottomLeft ?? radiusProp?.default,
-        bottomRight: radiusProp?.bottomRight ?? radiusProp?.default,
-      });
-    const result = {
-      bottomLeft: R(Math.max(cornerRadiusPartial.bottomLeft ?? 0, 0)),
-      bottomRight: R(Math.max(cornerRadiusPartial.bottomRight ?? 0, 0)),
-      topLeft: R(Math.max(cornerRadiusPartial.topLeft ?? 0, 0)),
-      topRight: R(Math.max(cornerRadiusPartial.topRight ?? 0, 0)),
-    };
+      ? objFromKeys(cornersArray, k => (childStyle as any)?.[`border${uppercaseFirstLetter(k)}Radius`] ?? childStyle?.borderRadius)
+      : (typeof radiusProp === 'number'
+        ? objFromKeys(cornersArray, () => radiusProp)
+        : objFromKeys(cornersArray, k => radiusProp?.[k] ?? radiusProp?.default)
+      );
+
+    /** Round and zero negative radius values */
+    const result = objFromKeys(cornersArray, k => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
+
     return result;
   }, [childStyle, doGetChildRadius, radiusProp]);
 
@@ -221,31 +221,20 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     const { topLeft, topRight, bottomLeft, bottomRight } = radiuses;
 
-    const cornerShadowRadius: CornerRadiusShadow = {
+    const cornerShadowRadius: CornerRadiusShadow = { // Not using objFromKeys here as the key is different
       topLeftShadow: sumDps(topLeft, distance),
       topRightShadow: sumDps(topRight, distance),
       bottomLeftShadow: sumDps(bottomLeft, distance),
       bottomRightShadow: sumDps(bottomRight, distance),
     };
 
-
     const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
 
     /** Which sides will have shadow. */
-    const activeSides: Record<Side, boolean> = {
-      left: sidesProp.includes('left'),
-      right: sidesProp.includes('right'),
-      top: sidesProp.includes('top'),
-      bottom: sidesProp.includes('bottom'),
-    };
+    const activeSides: Record<Side, boolean> = objFromKeys(sidesArray, k => sidesProp.includes(k));
 
     /** Which corners will have shadow. */
-    const activeCorners: Record<Corner, boolean> = {
-      topLeft: cornersProp.includes('topLeft'),
-      topRight: cornersProp.includes('topRight'),
-      bottomLeft: cornersProp.includes('bottomLeft'),
-      bottomRight: cornersProp.includes('bottomRight'),
-    };
+    const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, k => cornersProp.includes(k));
 
     // Fragment wasn't working for some reason, so, using array.
     const linearGradient = [
@@ -269,19 +258,24 @@ export const Shadow: React.FC<ShadowProps> = ({
       </RadialGradient>);
     }
 
+    // const insetInnerRadius: CornerRadius = inset
+    //   ? objFromKeys(cornersArray, k => Math.max(, 0))
+    //   : objFromKeys(cornersArray, () => 0)
+
+    //   const insetLimitedDistance: number =
 
     return (<>
-      {/* Sides */}
-
       {/* shape-rendering fixes some gaps on web. Not available on Android/iOS, but won't affect them.
           We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
           We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
       {activeSides.left && <Svg
         width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', left: -distance, top: topLeft }}
+        style={{ position: 'absolute', left: inset ? 0 : -distance, top: topLeft }}
       >
-        <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Defs><LinearGradient id='left' y1='0' y2='0' {...inset ? { x1: '0', x2: '1' } : { x1: '1', x2: '0' }}>
+          {linearGradient}
+        </LinearGradient></Defs>
         {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
           just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
         <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
@@ -289,43 +283,56 @@ export const Shadow: React.FC<ShadowProps> = ({
       }
       {activeSides.right && <Svg
         width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', left: width, top: topRight }}
+        style={{
+          position: 'absolute', left: width, top: topRight,
+          ...(inset && { transform: [{ translateX: -distance }] }), // using right: 0 would leave a gap
+        }}
       >
-        <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Defs><LinearGradient id='right' y1='0' y2='0' {...inset ? { x1: '1', x2: '0' } : { x1: '0', x2: '1' }}>
+          {linearGradient}
+        </LinearGradient></Defs>
         <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
       </Svg>
       }
       {activeSides.bottom && <Svg
         width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', top: height, left: bottomLeft }}
+        style={{
+          position: 'absolute', left: bottomLeft, top: height,
+          ...(inset && { transform: [{ translateY: -distance }] }),
+        }}
       >
-        <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+        <Defs><LinearGradient id='bottom' x1='0' x2='0' {...inset ? { y1: '1', y2: '0' } : { y1: '0', y2: '1' }}>
+          {linearGradient}
+        </LinearGradient></Defs>
         <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
       </Svg>
       }
       {activeSides.top && <Svg
         width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', top: -distance, left: topLeft }}
+        style={{ position: 'absolute', top: inset ? 0 : -distance, left: topLeft }}
       >
-        <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Defs><LinearGradient id='top' x1='0' x2='0' {...inset ? { y1: '0', y2: '1' } : { y1: '1', y2: '0' }}>
+          {linearGradient}
+        </LinearGradient></Defs>
         <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
       </Svg>
       }
 
 
-      {/* Corners */}
-
       {/* The anchor for the svgs is the top left point in the corner square.
         The starting point is the clockwise external arc init point. */}
 
       {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: -distance }}
+        style={{ position: 'absolute', ...(!inset && { top: -distance, left: -distance }) }}
       >
         <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
-        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
-        } h${-distance} Z`}/>
+        {inset
+          ? <Path fill='url(#topLeft)' d={`M0,${topLeft} a${topLeft},${topLeft} 0 0 1 ${topLeft} ${-topLeft} v${distance} a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft} h${-distance} Z`}/>
+          : <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+            ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
+            : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
+          } h${-distance} Z`}/>
+        }
       </Svg>
       }
       {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
@@ -389,44 +396,51 @@ export const Shadow: React.FC<ShadowProps> = ({
     </>);
   }, [
     height, width, startColorProp, finalColorProp, radiuses, distance, sidesProp, cornersProp,
-    distanceWithAdditional, heightWithAdditional, widthWithAdditional, paintInside,
+    distanceWithAdditional, heightWithAdditional, widthWithAdditional, paintInside, inset,
   ]);
 
   const result = useMemo(() => {
-    return (
-      <View style={containerViewStyle}>
-        {/* TODO any benefit in using width/height instead of '100%' here? */}
-        <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
-          {shadow}
-        </View>
-        <View
+    let content = [
+      // TODO any benefit in using width/height instead of '100%' here?
+      <View key='0' style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
+        {shadow}
+      </View>,
+      <View key='1'
         // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
         // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
-          style={[
-            { alignSelf: 'flex-start' }, sizeProp && {
-              width, height,
-              borderTopLeftRadius: radiuses.topLeft,
-              borderTopRightRadius: radiuses.topRight,
-              borderBottomLeftRadius: radiuses.bottomLeft,
-              borderBottomRightRadius: radiuses.bottomRight,
-            }, viewStyle,
-          ]}
-          {...!sizeProp && { // Only use onLayout if sizeProp wasn't received.
-            onLayout: (e) => {
-              // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
-              // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
-              // the pixel gap between the child and the shadow.
-              const layout = e.nativeEvent.layout;
-              setChildWidth(layout.width);
-              setChildHeight(layout.height);
-            },
-          }}
-        >
-          {children}
-        </View>
+        style={[
+          { alignSelf: 'flex-start' }, sizeProp && {
+            width, height,
+            borderTopLeftRadius: radiuses.topLeft,
+            borderTopRightRadius: radiuses.topRight,
+            borderBottomLeftRadius: radiuses.bottomLeft,
+            borderBottomRightRadius: radiuses.bottomRight,
+          }, viewStyle,
+        ]}
+        {...!sizeProp && { // Only use onLayout if sizeProp wasn't received.
+          onLayout: (e) => {
+          // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
+          // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
+          // the pixel gap between the child and the shadow.
+            const layout = e.nativeEvent.layout;
+            setChildWidth(layout.width);
+            setChildHeight(layout.height);
+          },
+        }}
+      >
+        {children}
+      </View>,
+    ];
+
+    if (inset) // Make the shadow above the child component if inset
+      content = content.reverse();
+
+    return (
+      <View style={containerViewStyle}>
+        {content}
       </View>
     );
-  }, [shadow, children, width, height, sizeProp, radiuses, viewStyle, containerViewStyle, offsetX, offsetY]);
+  }, [shadow, children, width, height, sizeProp, radiuses, viewStyle, containerViewStyle, offsetX, offsetY, inset]);
 
   return result;
 };

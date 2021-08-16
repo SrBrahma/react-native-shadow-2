@@ -26,6 +26,8 @@ export const App: React.FC = () => {
   const [finalColor, setFinalColor] = useState(defaults.finalColor);
   const [childColor, setChildColor] = useState(defaults.childColor);
 
+  const [inset, setInset] = useState(true);
+
   return (
     <PageScrollView viewStyle={styles.container}>
 
@@ -82,6 +84,9 @@ export const App: React.FC = () => {
           <MySlider name='Size Width Prop' step={0.1} range={[0, 200]} value={size[0]} onValueChange={v=>setSize([v, size[1]])}/>
           <MySlider name='Size Height Prop' step={0.1} range={[0, 200]} value={size[1]} onValueChange={v=>setSize([size[0], v])}/>
 
+          <MySwitch name='Inset' value={inset} onValueChange={setInset}/>
+
+
         </View>
 
         <Shadow
@@ -95,6 +100,7 @@ export const App: React.FC = () => {
           containerViewStyle={{ margin: 100 }}
           size={doUseSizeProp ? size : undefined}
           viewStyle={doUseSizeProp ? { backgroundColor: childColor } : undefined}
+          inset={inset}
         >
           <View style={[!doUseSizeProp && { width: childWidth, height: childHeight }, {
             backgroundColor: childColor,
@@ -117,9 +123,9 @@ const defaults = {
   borderRadius: 30,
   width: 200,
   height: 200,
-  startColor: tinycolor('#00000020').toHex8String(),
+  startColor: tinycolor('#f0f').toHex8String(), //tinycolor('#00000020').toHex8String(),
   finalColor: tinycolor('#0000').toHex8String(),
-  childColor: tinycolor('#fff').toHex8String(),
+  childColor: tinycolor('#000').toHex8String(), // tinycolor('#fff').toHex8String(),
 };
 
 
