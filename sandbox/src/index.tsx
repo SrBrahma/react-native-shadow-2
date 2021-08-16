@@ -47,7 +47,7 @@ function sumDps(a: number, b: number) {
 const additional = 1;
 
 
-export interface ShadowI {
+export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.
    * Accepts alpha channel.
    *
@@ -118,7 +118,7 @@ export interface ShadowI {
   size?: [width: number, height: number];
 }
 
-export const Shadow: React.FC<ShadowI> = ({
+export const Shadow: React.FC<ShadowProps> = ({
   radius: radiusProp,
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
