@@ -84,12 +84,16 @@ export interface ShadowProps {
    *
    * Accepts `'x%'` values, in relation to the child's size.
    *
-   * Read `paintInside` property description for related configuration.
+   * Setting an offset will default `paintInside` to true, as it is the usual desired behaviour.
+   *
    * @default [0, 0] */
   offset?: [x: number | string, y: number | string];
   /** If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.
    *
    * You may want this as true when using offset or if your child have some transparency.
+   *
+   * The default changes to true if `offset` property is defined.
+   *
    * @default false */
   paintInside?: boolean;
   /** The style of the view that wraps your child component.
@@ -128,16 +132,19 @@ export const Shadow: React.FC<ShadowProps> = ({
   distance: distanceProp = 10,
   children,
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
-  offset = [0, 0],
+  offset,
   getChildRadiusStyle: getChildRadiusProp = true,
-  paintInside = false,
+  paintInside: paintInsideProp,
   viewStyle,
 }) => {
   const [widthProp, heightProp] = sizeProp ? [R(sizeProp[0]), R(sizeProp[1])] : [];
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
 
-  const [offsetX, offsetY] = offset;
+  /** Defaults to true if offset is defined, else defaults to false */
+  const paintInside = paintInsideProp ?? (offset ? true : false);
+  const [offsetX, offsetY] = offset ?? [0, 0];
+
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
   /** Read {@link additional}, [*4] */
   const distanceWithAdditional = distance + additional;

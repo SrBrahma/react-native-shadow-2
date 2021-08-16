@@ -16,6 +16,7 @@
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-41.0.0.tar.gz",
     "react-native-shadow-2": "1.1.1",
+    "react-native-simple-radio-button": "2.7.4",
     "react-native-web": "~0.13.12",
     "tinycolor2": "1.4.2"
   },
@@ -23,6 +24,7 @@
     "@babel/core": "^7.14.6",
     "@types/react": "~16.9.35",
     "@types/react-native": "~0.63.2",
+    "@types/react-native-simple-radio-button": "2.7.1",
     "@types/tinycolor2": "1.4.3",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",

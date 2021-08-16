@@ -6,7 +6,7 @@ import { Shadow } from './index';
 import Slider from '@react-native-community/slider';
 import tinycolor from 'tinycolor2';
 import { PageScrollView } from 'pagescrollview';
-
+import RadioForm from 'react-native-simple-radio-button';
 
 
 export const App: React.FC = () => {
@@ -14,7 +14,7 @@ export const App: React.FC = () => {
   const [borderRadius, setBorderRadius] = useState(defaults.borderRadius);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
-  const [paintInside, setPaintInside] = useState(false);
+  const [paintInside, setPaintInside] = useState<boolean | undefined>(undefined);
   const [getChildRadius, setGetChildRadius] = useState(true);
   const [size, setSize] = useState([defaults.width, defaults.height] as [number, number]);
   const [doUseSizeProp, setDoUseSizeProp] = useState(false);
@@ -62,13 +62,22 @@ export const App: React.FC = () => {
           }}/>
 
           <NameValue name='Child Color' value={childColor} valueMonospace/>
+
           <TextInput style={styles.textInput} defaultValue={defaults.childColor} autoCorrect={false} onChangeText={(text) => {
             const color = tinycolor(text);
             if (color.isValid())
               setChildColor(color.toHex8String());
           }}/>
 
-          <MySwitch name='Paint Inside' value={paintInside} onValueChange={setPaintInside}/>
+          <NameValue name='Paint Inside' value={paintInside}/>
+          <RadioForm
+            initial={undefined}
+            radio_props={[{ label: 'undefined', value: undefined }, { label: 'false', value: false }, { label: 'true', value: true }] as any}
+            onPress={v => setPaintInside(v)}
+            formHorizontal
+            labelHorizontal={false}
+          />
+
           <MySwitch name='Use Size Prop' value={doUseSizeProp} onValueChange={setDoUseSizeProp}/>
           <MySlider name='Size Width Prop' step={0.1} range={[0, 200]} value={size[0]} onValueChange={v=>setSize([v, size[1]])}/>
           <MySlider name='Size Height Prop' step={0.1} range={[0, 200]} value={size[1]} onValueChange={v=>setSize([size[0], v])}/>
@@ -79,7 +88,7 @@ export const App: React.FC = () => {
           distance={distance}
           startColor={startColor}
           finalColor={finalColor}
-          offset={[offsetX, offsetY]}
+          offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
           paintInside={paintInside}
           getChildRadiusStyle={getChildRadius}
           radius={getChildRadius ? undefined : borderRadius}
@@ -87,13 +96,13 @@ export const App: React.FC = () => {
           size={doUseSizeProp ? size : undefined}
           viewStyle={doUseSizeProp ? { backgroundColor: childColor } : undefined}
         >
-          <View style={[!doUseSizeProp && { width: childWidth, height: childHeight },
-            { backgroundColor: childColor,
-              // If borderRadius change from a positive value to a negative one, it won't change the current radius.
-              // This is here just to avoid the slider causing it to happen, for fast movements. You can disable this line
-              // to see what I mean. Nothing to worry about in prod envs.
-              borderRadius: Math.max(borderRadius, 0),
-            }]}/>
+          <View style={[!doUseSizeProp && { width: childWidth, height: childHeight }, {
+            backgroundColor: childColor,
+            // If borderRadius change from a positive value to a negative one, it won't change the current radius.
+            // This is here just to avoid the slider causing it to happen, for fast movements. You can disable this line
+            // to see what I mean. Nothing to worry about in prod envs.
+            borderRadius: Math.max(borderRadius, 0),
+          }]}/>
         </Shadow>
       </View>
 
@@ -115,9 +124,9 @@ const defaults = {
 
 
 const NameValue: React.FC<{
-  name: string, value: string | number | boolean, valueMonospace?: boolean
+  name: string, value: string | number | boolean | undefined, valueMonospace?: boolean
 }> = ({ name, value, valueMonospace = false }) => {
-  const prettyValue = typeof value === 'number' ? value.toFixed(1).replace(/[.,]0+$/, '') : value; // https://stackoverflow.com/a/5623195/10247962
+  const prettyValue = typeof value === 'number' ? value.toFixed(1).replace(/[.,]0+$/, '') : String(value); // https://stackoverflow.com/a/5623195/10247962
   return (
     <View style={{
       alignSelf: 'stretch',
