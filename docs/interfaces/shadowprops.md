@@ -1,4 +1,4 @@
-# Interface: ShadowI
+# Interface: ShadowProps
 
 ## Properties
 
@@ -86,7 +86,7 @@ Moves the shadow. Negative x moves it to the left, negative y moves it up.
 
 Accepts `'x%'` values, in relation to the child's size.
 
-Read `paintInside` property description for related configuration.
+Setting an offset will default `paintInside` to true, as it is the usual desired behaviour.
 
 **`default`** [0, 0]
 
@@ -100,13 +100,15 @@ If the shadow should be applied inside the external shadows, below the child. `s
 
 You may want this as true when using offset or if your child have some transparency.
 
+The default changes to true if `offset` property is defined.
+
 **`default`** false
 
 ___
 
 ### viewStyle
 
-• `Optional` **viewStyle**: `ViewStyle`
+• `Optional` **viewStyle**: `StyleProp`<`ViewStyle`\>
 
 The style of the view that wraps your child component.
 

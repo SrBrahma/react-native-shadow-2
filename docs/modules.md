@@ -2,7 +2,7 @@
 
 ## Interfaces
 
-- [ShadowI](interfaces/shadowi.md)
+- [ShadowProps](interfaces/shadowprops.md)
 
 ## Functions
 
@@ -26,4 +26,4 @@ Rounds the given size to a pixel perfect size.
 
 ### Shadow
 
-• `Const` **Shadow**: `React.FC`<[`ShadowI`](interfaces/shadowi.md)\>
+• `Const` **Shadow**: `React.FC`<[`ShadowProps`](interfaces/shadowprops.md)\>

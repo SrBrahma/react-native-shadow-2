@@ -47,7 +47,7 @@ function sumDps(a: number, b: number) {
 const additional = 1;
 
 
-export interface ShadowI {
+export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.
    * Accepts alpha channel.
    *
@@ -65,7 +65,7 @@ export interface ShadowI {
    *
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
-   * Fallbacks to 0. */
+   * Each corner fallbacks to 0. */
   radius?: number | {default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
@@ -84,12 +84,16 @@ export interface ShadowI {
    *
    * Accepts `'x%'` values, in relation to the child's size.
    *
-   * Read `paintInside` property description for related configuration.
+   * Setting an offset will default `paintInside` to true, as it is the usual desired behaviour.
+   *
    * @default [0, 0] */
   offset?: [x: number | string, y: number | string];
   /** If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.
    *
    * You may want this as true when using offset or if your child have some transparency.
+   *
+   * **The default changes to true if `offset` property is defined.**
+   *
    * @default false */
   paintInside?: boolean;
   /** The style of the view that wraps your child component.
@@ -97,7 +101,7 @@ export interface ShadowI {
    * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
    * radiuses from the `radius` property or from the child, if `getChildRadiusStyle`. You may overwrite those defaults
    * by undefine'ing the changed styles in this property. */
-  viewStyle?: ViewStyle;
+  viewStyle?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerViewStyle?: StyleProp<ViewStyle>;
   /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
@@ -118,7 +122,7 @@ export interface ShadowI {
   size?: [width: number, height: number];
 }
 
-export const Shadow: React.FC<ShadowI> = ({
+export const Shadow: React.FC<ShadowProps> = ({
   radius: radiusProp,
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
@@ -128,16 +132,19 @@ export const Shadow: React.FC<ShadowI> = ({
   distance: distanceProp = 10,
   children,
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
-  offset = [0, 0],
+  offset,
   getChildRadiusStyle: getChildRadiusProp = true,
-  paintInside = false,
+  paintInside: paintInsideProp,
   viewStyle,
 }) => {
   const [widthProp, heightProp] = sizeProp ? [R(sizeProp[0]), R(sizeProp[1])] : [];
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
 
-  const [offsetX, offsetY] = offset;
+  /** Defaults to true if offset is defined, else defaults to false */
+  const paintInside = paintInsideProp ?? (offset ? true : false);
+  const [offsetX, offsetY] = offset ?? [0, 0];
+
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
   /** Read {@link additional}, [*4] */
   const distanceWithAdditional = distance + additional;
@@ -270,43 +277,39 @@ export const Shadow: React.FC<ShadowI> = ({
           We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
           We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
-      {activeSides.left
-        && <Svg
-          width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', left: -distance, top: topLeft }}
-        >
-          <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
+      {activeSides.left && <Svg
+        width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', left: -distance, top: topLeft }}
+      >
+        <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
           just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-          <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
-        </Svg>
+        <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
+      </Svg>
       }
-      {activeSides.right
-        && <Svg
-          width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', left: width, top: topRight }}
-        >
-          <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
-        </Svg>
+      {activeSides.right && <Svg
+        width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', left: width, top: topRight }}
+      >
+        <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
+      </Svg>
       }
-      {activeSides.bottom
-        && <Svg
-          width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', top: height, left: bottomLeft }}
-        >
-          <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
-        </Svg>
+      {activeSides.bottom && <Svg
+        width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', top: height, left: bottomLeft }}
+      >
+        <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
+      </Svg>
       }
-      {activeSides.top
-        && <Svg
-          width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-          style={{ position: 'absolute', top: -distance, left: topLeft }}
-        >
-          <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
-        </Svg>
+      {activeSides.top && <Svg
+        width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+        style={{ position: 'absolute', top: -distance, left: topLeft }}
+      >
+        <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
+      </Svg>
       }
 
 
@@ -315,54 +318,46 @@ export const Shadow: React.FC<ShadowI> = ({
       {/* The anchor for the svgs is the top left point in the corner square.
         The starting point is the clockwise external arc init point. */}
 
-      {activeCorners.topLeft
-        && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-          style={{ position: 'absolute', top: -distance, left: -distance }}
-        >
-          <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
-          <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-            ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-            : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
-          } h${-distance} Z`}/>
-        </Svg>
-      }
-      {activeCorners.topRight
-        && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
-          style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
-        >
-          <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
-          <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-            ? `h${-topRight} v${-topLeft}`
-            : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
-          } v${-distance} Z`}/>
-          {/*  */}
-        </Svg>
-      }
-      {activeCorners.bottomLeft
-        && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-          style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
-        >
-          <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
-          <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
-            ? `h${bottomLeft} v${bottomLeft}`
-            : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
-          } v${distance} Z`}/>
-        </Svg>
-      }
-      {activeCorners.bottomRight
-        && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
-          style={{
-            position: 'absolute', top: height, left: width,
-            transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }],
-          }}
-        >
-          <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
-          <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
-            ? `v${-bottomRight} h${bottomRight}`
-            : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
-          } h${distance} Z`}/>
-        </Svg>
-      }
+      {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
+        style={{ position: 'absolute', top: -distance, left: -distance }}
+      >
+        <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
+        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
+          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
+        } h${-distance} Z`}/>
+      </Svg>}
+      {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+        style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
+      >
+        <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
+        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
+          ? `h${-topRight} v${-topLeft}`
+          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
+        } v${-distance} Z`}/>
+        {/*  */}
+      </Svg>}
+      {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
+      >
+        <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
+        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
+          ? `h${bottomLeft} v${bottomLeft}`
+          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
+        } v${distance} Z`}/>
+      </Svg>}
+      {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+        style={{
+          position: 'absolute', top: height, left: width,
+          transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }],
+        }}
+      >
+        <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
+        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
+          ? `v${-bottomRight} h${bottomRight}`
+          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
+        } h${distance} Z`}/>
+      </Svg>}
 
 
       {/* Paint the inner area, so we can offset it.
@@ -395,16 +390,17 @@ export const Shadow: React.FC<ShadowI> = ({
 
   const result = useMemo(() => {
     return (
-      <View style={containerViewStyle}>
+      <View style={[containerViewStyle]}>
         {/* TODO any benefit in using width/height instead of '100%' here? */}
         <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
           {shadow}
         </View>
         <View
-        // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
-        // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
           style={[
-            { alignSelf: 'flex-start' }, sizeProp && {
+            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+            { alignSelf: 'flex-start' },
+            sizeProp && {
               width, height,
               borderTopLeftRadius: radiuses.topLeft,
               borderTopRightRadius: radiuses.topRight,

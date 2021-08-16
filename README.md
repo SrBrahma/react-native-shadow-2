@@ -87,17 +87,38 @@ import { Shadow } from 'react-native-shadow-2';
 | **startColor** | `string` | `'#00000020'` | The color of the shadow when it's right next to the given content, leaving it. Accepts alpha channel.
 | **finalColor** | `string` | `'#0000', transparent.` | The color of the shadow at the maximum distance from the content. Accepts alpha channel.
 | **distance** | `number` | `10` | How far the shadow will go.
-| **radius** | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined` | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, undefined corners will have the radius of the `default` property if it's defined.<br/><br/>If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.<br/><br/>Fallbacks to 0.
+| **radius** | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined` | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, undefined corners will have the radius of the `default` property if it's defined.<br/><br/>If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.<br/><br/>Each corner fallbacks to 0.
 | **getChildRadiusStyle** | `boolean` | `true` | If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each<br/>corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
 | **sides** | `("left" \| "right" \| "top" \| "bottom")[]` | `['left', 'right', 'top', 'bottom']` | The sides of your content that will have the shadows drawn. Doesn't include corners.
 | **corners** | `("topLeft" \| "topRight" \| "bottomLeft" \| "bottomRight")[]` | `['topLeft', 'topRight', 'bottomLeft', 'bottomRight']` | The corners that will have the shadows drawn.
-| **offset** | `[x: string \| number, y: string \| number]` | `[0, 0]` | Moves the shadow. Negative x moves it to the left, negative y moves it up.<br/><br/>Accepts `'x%'` values, in relation to the child's size.<br/><br/>Read `paintInside` property description for related configuration
-| **paintInside** | `boolean` | `false` | If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.<br/><br/>You may want this as true when using offset or if your child have some transparency.
+| **offset** | `[x: string \| number, y: string \| number]` | `[0, 0]` | Moves the shadow. Negative x moves it to the left, negative y moves it up.<br/><br/>Accepts `'x%'` values, in relation to the child's size.<br/><br/>Setting an offset will default `paintInside` to true, as it is the usual desired behaviour.
+| **paintInside** | `boolean` | `false` | If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.<br/><br/>You may want this as true when using offset or if your child have some transparency.<br/><br/>**The default changes to true if `offset` property is defined.**
 | **viewStyle** | `ViewStyle` | `undefined` | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the<br/>radiuses from the `radius` property or from the child, if `getChildRadiusStyle`. You may overwrite those defaults<br/>by undefine'ing the changed styles in this property.
 | **containerViewStyle** | `StyleProp<ViewStyle>` | `undefined` | The style of the view that contains the shadow and your child component.
 | **size** | `[width: number, height: number]` | `undefined` | If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,<br/>you can use this property. Using this won't trigger the onLayout, so only 1 render is made.<br/><br/>It will apply the corresponding `width` and `height` styles to the `viewStyle` property.<br/><br/>You may want to set `backgroundColor` in the `viewStyle` property for your child background color.<br/><br/>It's also good if you want an animated view.<br/><br/>The values will be properly rounded using our R() function.
 
 <!--/$shadowProperties-->
+
+## ⁉️ FAQ
+
+**Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
+
+**A**: Use `viewStyle={{alignSelf: undefined}}` or `'stretch'` instead of undefined in your Shadow component. Read the link above to understand why!
+
+**Q**: I want a preset for my Shadows, so I don't have to type the same props among them and I want to quickly change them all if I want to!
+
+**A**: This package exports the `ShadowProps` type, that are the props of the Shadow component. I am for example using the following:
+```tsx
+export const ShadowPresets = {
+  button: {
+    offset: [0, 1], distance: 1, startColor: '#0003',
+  } as ShadowProps,
+};
+```
+and then in your Shadow component:
+```tsx
+<Shadow {...ShadowPresets.button}>
+```
 
 
 ## 🐛 Notes / Known Issues
