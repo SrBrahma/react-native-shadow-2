@@ -326,8 +326,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
           : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
         } h${-distance} Z`}/>
-      </Svg>
-      }
+      </Svg>}
       {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
         style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
       >
@@ -337,8 +336,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
         } v${-distance} Z`}/>
         {/*  */}
-      </Svg>
-      }
+      </Svg>}
       {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
         style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
       >
@@ -347,8 +345,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           ? `h${bottomLeft} v${bottomLeft}`
           : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
         } v${distance} Z`}/>
-      </Svg>
-      }
+      </Svg>}
       {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
         style={{
           position: 'absolute', top: height, left: width,
@@ -360,8 +357,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           ? `v${-bottomRight} h${bottomRight}`
           : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
         } h${distance} Z`}/>
-      </Svg>
-      }
+      </Svg>}
 
 
       {/* Paint the inner area, so we can offset it.
@@ -394,16 +390,17 @@ export const Shadow: React.FC<ShadowProps> = ({
 
   const result = useMemo(() => {
     return (
-      <View style={containerViewStyle}>
+      <View style={[containerViewStyle]}>
         {/* TODO any benefit in using width/height instead of '100%' here? */}
         <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
           {shadow}
         </View>
         <View
-        // Without alignSelf, if your Shadow component had a sibling under the same View, the shadow wouldn't grow shorter
-        // than this sibling, being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI
           style={[
-            { alignSelf: 'flex-start' }, sizeProp && {
+            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+            { alignSelf: 'flex-start' },
+            sizeProp && {
               width, height,
               borderTopLeftRadius: radiuses.topLeft,
               borderTopRightRadius: radiuses.topRight,
