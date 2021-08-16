@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "files": [
@@ -13,11 +13,7 @@
     "prepare": "npm run build",
     "prepublishOnly": "npm run test",
     "docs": "typedoc",
-    "readmeOnly": "ts-node ./resources/README/generateReadme.ts",
-    "readme": "npm-run-all --sequential docs readmeOnly",
     "docsWatch": "typedoc --watch",
-    "readmeWatchOnly": "ts-node-dev --respawn --watch docs/**/*,resources/README/README.hbs ./resources/README/generateReadme.ts",
-    "readmeWatch": "// not working. run separatelly docsWatch and readmeWatchOnly. // npm-run-all --parallel readmeWatchOnly docsWatch",
     "sandbox": "npm run --prefix ./sandbox web"
   },
   "repository": {

@@ -65,7 +65,7 @@ export interface ShadowProps {
    *
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
-   * Fallbacks to 0. */
+   * Each corner fallbacks to 0. */
   radius?: number | {default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
@@ -92,7 +92,7 @@ export interface ShadowProps {
    *
    * You may want this as true when using offset or if your child have some transparency.
    *
-   * The default changes to true if `offset` property is defined.
+   * **The default changes to true if `offset` property is defined.**
    *
    * @default false */
   paintInside?: boolean;
