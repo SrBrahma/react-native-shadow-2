@@ -69,7 +69,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 ### Advanced
 ```tsx
-<Shadow distance={15} startColor={'#eb9066d8'} finalColor={'#ff00ff10'} offset={[3, 4]} paintInside>
+<Shadow distance={15} startColor={'#eb9066d8'} finalColor={'#ff00ff10'} offset={[3, 4]}>
   <View style={{ borderTopLeftRadius: 24, borderBottomRightRadius: 0, borderRadius: 10, backgroundColor: '#c454f0dd' }}>
     <Text style={{ margin: 20, fontSize: 20 }}>🤯</Text>
   </View>
