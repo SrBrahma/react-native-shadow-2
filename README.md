@@ -14,7 +14,7 @@
 
 It solves the old React Native issue of not having the same shadow appearence and implementation for Android, iOS and Web.
 
-The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think about the solution to this shadow issue.
+The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think more seriously about this shadow issue.
 
 Compatible with Android, iOS and Web. **And Expo!**
 
