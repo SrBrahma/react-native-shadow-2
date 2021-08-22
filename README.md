@@ -20,6 +20,8 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 Implementation: [./src/index.tsx](./src/index.tsx)
 
+## [Read the FAQ below!](#-faq)
+
 ## [🍟 Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
 
@@ -129,7 +131,7 @@ and then in your Shadow component:
 
 ## 🐛 Notes / Known Issues
 
-* Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.
+* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15)
 
 * **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positioning and sizing.
 There may be a pixel wide gap on the first render on the right and bottom SVG parts connections, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
