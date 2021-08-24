@@ -105,7 +105,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 **Q**: How to set the Shadow opacity?
 
-**A**: The opacity in react-native-shadow-2, differently from the original version, is set directly at the `startColor` and `finalColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [Any of those patterns, but not int colors, are accepted](https://reactnative.dev/docs/colors)
+**A**: The opacity in react-native-shadow-2, differently from the original version, is set directly at the `startColor` and `finalColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [Any of those patterns, but not int colors, are accepted](https://reactnative.dev/docs/colors).
 
 
 **Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
