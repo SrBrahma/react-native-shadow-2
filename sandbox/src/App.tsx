@@ -1,12 +1,12 @@
 // Sandbox to test the library. I tried using the symlink npx workaround but it's somewhat bugged.
 // Using a copy of the lib code here.
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Switch, TextInput, Pressable } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2'; // Aliased in Sandbox in dev.
-import Slider from '@react-native-community/slider';
-import tinycolor from 'tinycolor2';
-import { PageScrollView } from 'pagescrollview';
 import RadioForm from 'react-native-simple-radio-button';
+import Slider from '@react-native-community/slider';
+import { PageScrollView } from 'pagescrollview';
+import tinycolor from 'tinycolor2';
 
 
 export const App: React.FC = () => {
@@ -25,6 +25,8 @@ export const App: React.FC = () => {
   const [startColor, setStartColor] = useState(defaults.startColor);
   const [finalColor, setFinalColor] = useState(defaults.finalColor);
   const [childColor, setChildColor] = useState(defaults.childColor);
+
+  const [inset, setInset] = useState(true);
 
   return (
     <PageScrollView viewStyle={styles.container}>
@@ -82,6 +84,9 @@ export const App: React.FC = () => {
           <MySlider name='Size Width Prop' step={0.1} range={[0, 200]} value={size[0]} onValueChange={v=>setSize([v, size[1]])}/>
           <MySlider name='Size Height Prop' step={0.1} range={[0, 200]} value={size[1]} onValueChange={v=>setSize([size[0], v])}/>
 
+          {/* <MySwitch name='Inset' value={inset} onValueChange={setInset}/> */}
+
+
         </View>
 
         <View>
@@ -123,9 +128,9 @@ const defaults = {
   borderRadius: 30,
   width: 200,
   height: 200,
-  startColor: tinycolor('#00000020').toHex8String(),
+  startColor: tinycolor('#f0f').toHex8String(), // tinycolor('#00000020').toHex8String(),
   finalColor: tinycolor('#0000').toHex8String(),
-  childColor: tinycolor('#fff').toHex8String(),
+  childColor: tinycolor('#000').toHex8String(), // tinycolor('#fff').toHex8String(),
 };
 
 
@@ -153,7 +158,7 @@ const MySlider: React.FC<{
 }> = ({ name, step = 1, range, value, onValueChange }) => {
   return (
     <View style={{ marginBottom: 18 }}>
-      <NameValue {...{ name, value }} />
+      <NameValue {...{ name, value }}/>
       <View style={{ flexDirection: 'row' }}>
         <Pressable onPress={() => onValueChange(value - step)} style={({ pressed }) => [styles.decIncButton, pressed && { backgroundColor: '#bbb' }]}>
           <Text selectable={false} style={{ fontSize: 16, fontWeight: 'bold' }}>{'-'}</Text>
@@ -177,7 +182,7 @@ const MySwitch: React.FC<{
 }> = ({ name, onValueChange, value }) => {
   return (<>
     <NameValue name={name} value={value}/>
-    <Switch value={value} onValueChange={onValueChange} style={styles.switch} />
+    <Switch value={value} onValueChange={onValueChange} style={styles.switch}/>
   </>);
 };
 

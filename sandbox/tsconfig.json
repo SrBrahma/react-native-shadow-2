@@ -6,7 +6,7 @@
     "noUncheckedIndexedAccess": true,    /* Include 'undefined' in index signature results */
     "baseUrl": ".",
     "paths": {
-      "react-native-shadow-2": ["../src/index.tsx"],
+      "react-native-shadow-2": ["../src"],
     },
   },
   "include": ["App.tsx", "src/**/*"],
