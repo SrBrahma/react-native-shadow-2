@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Platform, StyleProp, View, ViewStyle, PixelRatio } from 'react-native';
+import { Platform, StyleProp, View, ViewStyle, PixelRatio, StyleSheet } from 'react-native';
 import { Svg, Defs, LinearGradient, Rect, Stop, Path, RadialGradient, Mask } from 'react-native-svg';
 import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
@@ -69,8 +69,19 @@ export interface ShadowProps {
   radius?: number | {default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
+   *
+   * **`getViewStyleRadius`** have priority over this, if the corresponding styles are found in `viewStyle`.
+   *
+   * Will be renamed to getChildRadius at next major.
    * @default true */
   getChildRadiusStyle?: boolean;
+  /** If it should try to get the radius from the **`viewStyle`** property if `radius` property is undefined. It will get the values for each
+   * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
+   *
+   * It has priority over **`getChildRadiusStyle`**, if radius styles are found in `viewStyle`.
+   * @default true */
+  // TODO StyleSheet.flatten childStyle and viewStyle?
+  getViewStyleRadius?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
@@ -108,7 +119,7 @@ export interface ShadowProps {
    *
    * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
    * @default true */
-  // getChildSizeStyle?: boolean;
+  // TODO getChildSizeStyle?: boolean;
   /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
    * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
    *
@@ -133,7 +144,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   children,
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
   offset,
-  getChildRadiusStyle: getChildRadiusProp = true,
+  getChildRadiusStyle: getChildRadiusStyleProp = true,
   paintInside: paintInsideProp,
   viewStyle,
 }) => {
@@ -155,7 +166,8 @@ export const Shadow: React.FC<ShadowProps> = ({
   /** Will (+ additional), only if its value isn't '100%'. */
   const heightWithAdditional = typeof height === 'string' ? height : height + 1;
 
-  const doGetChildRadius = getChildRadiusProp && (radiusProp === undefined);
+
+  const doGetChildRadius = getChildRadiusStyleProp && (radiusProp === undefined);
 
   const childStyle: ViewStyle | undefined = useMemo(() => {
     if (doGetChildRadius && React.Children.count(children) > 1)
@@ -163,15 +175,9 @@ export const Shadow: React.FC<ShadowProps> = ({
     const childStyleTemp = doGetChildRadius
       ? (React.Children.only(children) as any | undefined)?.props?.style as ViewStyle | undefined
       : undefined;
-      // Convert array style to a single obj style.
-    return (Array.isArray(childStyleTemp)
-      ? childStyleTemp.reduce((obj, v) => {
-        if (v && typeof v === 'object')
-          return { ...obj, ...v };
-      }, {})
-      : childStyleTemp);
-
+    return StyleSheet.flatten(childStyleTemp); // Convert possible array style to a single obj style.
   }, [children, doGetChildRadius]);
+
 
   const radiuses = useMemo(() => {
     /** Not yet treated. May be negative / undefined */
