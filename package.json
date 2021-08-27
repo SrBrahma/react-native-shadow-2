@@ -3,6 +3,7 @@
   "version": "4.0.0",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
     "/lib"
   ],
