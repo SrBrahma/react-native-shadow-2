@@ -2,7 +2,7 @@
 // Using a copy of the lib code here.
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Switch, TextInput, Pressable } from 'react-native';
-import { Shadow } from './index';
+import { Shadow } from 'react-native-shadow-2'; // Aliased in Sandbox in dev.
 import Slider from '@react-native-community/slider';
 import tinycolor from 'tinycolor2';
 import { PageScrollView } from 'pagescrollview';
@@ -38,10 +38,10 @@ export const App: React.FC = () => {
           <MySlider name='Child Width' step={0.1} range={[0, 200]} value={childWidth} onValueChange={setChildWidth}/>
           <MySlider name='Child Height' step={0.1} range={[0, 200]} value={childHeight} onValueChange={setChildHeight}/>
           <MySlider name='Distance' value={distance} onValueChange={setDistance}
-            range={[-10, 100]}  // min -10 to show < 0 won't do anything
+            range={[-10, 100]} // min -10 to show < 0 won't do anything
           />
           <MySlider name='Border Radius' value={borderRadius} onValueChange={setBorderRadius}
-            range={[-10, 100]}  // min -10 to show < 0 won't do anything
+            range={[-10, 100]} // min -10 to show < 0 won't do anything
           />
           <MySlider name='Offset X' range={[-20, 20]} value={offsetX} onValueChange={setOffsetX}/>
           <MySlider name='Offset Y' range={[-20, 20]} value={offsetY} onValueChange={setOffsetY}/>
@@ -130,7 +130,7 @@ const defaults = {
 
 
 const NameValue: React.FC<{
-  name: string, value: string | number | boolean | undefined, valueMonospace?: boolean
+  name: string; value: string | number | boolean | undefined; valueMonospace?: boolean;
 }> = ({ name, value, valueMonospace = false }) => {
   const prettyValue = typeof value === 'number' ? value.toFixed(1).replace(/[.,]0+$/, '') : String(value); // https://stackoverflow.com/a/5623195/10247962
   return (
@@ -148,8 +148,8 @@ const MySlider: React.FC<{
   name: string;
   step?: number;
   range: [min: number, max: number];
-  value: number
-  onValueChange: (value: number) => void
+  value: number;
+  onValueChange: (value: number) => void;
 }> = ({ name, step = 1, range, value, onValueChange }) => {
   return (
     <View style={{ marginBottom: 18 }}>
