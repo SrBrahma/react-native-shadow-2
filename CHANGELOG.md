@@ -3,6 +3,7 @@
 * Added `getViewStyleRadius`. [#19](https://github.com/SrBrahma/react-native-shadow-2/issues/19), thanks @rbozan!
 * Added support for `borderTopStartRadius`, `borderTopEndRadius`, `borderBottomStartRadius`, `borderTopStartRadius` in `getChildRadiusStyle` and in the new `getViewStyleRadius`. Before, only `left, right, top, bottom` combinations were supported.
 * Code improvements.
+* Added `types` to package.json to display `TypeScript Types` in https://reactnative.directory. - [react-native-community/directory #707](https://github.com/react-native-community/directory/pull/707#issuecomment-906719165). Thanks, [@Simek](https://github.com/Simek)!
 
 ### NOTE: `getChildRadiusStyle` will be renamed to `getChildRadius` at the next major.
 

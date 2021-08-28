@@ -30,7 +30,7 @@ export const App: React.FC = () => {
   const [finalColor, setFinalColor] = useState(defaults.finalColor);
   const [childColor, setChildColor] = useState(defaults.childColor);
 
-  const [inset, setInset] = useState(true);
+  // const [inset, setInset] = useState(true);
 
   return (
     <PageScrollView viewStyle={styles.container}>
@@ -84,8 +84,8 @@ export const App: React.FC = () => {
             labelHorizontal={false}
           />
 
-          <MySwitch name='getChildRadius' value={getChildRadius} onValueChange={setGetChildRadius}/>
-          <MySwitch name='getViewStyleRadius' value={getViewStyleRadius} onValueChange={setGetViewStyleRadius}/>
+          {/* <MySwitch name='getChildRadius' value={getChildRadius} onValueChange={setGetChildRadius}/>
+          <MySwitch name='getViewStyleRadius' value={getViewStyleRadius} onValueChange={setGetViewStyleRadius}/> */}
 
 
           <MySwitch name='Use Size Prop' value={doUseSizeProp} onValueChange={setDoUseSizeProp}/>

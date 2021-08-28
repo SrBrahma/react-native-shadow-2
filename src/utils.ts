@@ -11,11 +11,6 @@ export function objFromKeys<KeysArray extends Readonly<string[]>>(keys: KeysArra
   return keys.reduce((obj, key) => ({ ...obj, [key]: fun(key) }), {} as Record<string, any>);
 }
 
-// https://stackoverflow.com/a/1026087/10247962
-export function uppercaseFirstLetter(string: string): string {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
 export function cornerToStyle(corner: Corner, alternative: boolean): keyof ViewStyle {
   switch (corner) {
     case 'topLeft': return alternative ? 'borderTopStartRadius' : 'borderTopLeftRadius';
