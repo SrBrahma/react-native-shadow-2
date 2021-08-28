@@ -2,12 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "skipLibCheck": true,
     /** By gev below */
     "noUncheckedIndexedAccess": true,    /* Include 'undefined' in index signature results */
-    "baseUrl": ".",
-    "paths": {
-      "react-native-shadow-2": ["../src"],
-    },
+    // "baseUrl": ".",
+    // "paths": {
+    //   "react-native-shadow-2": ["../src"],
+    // },
   },
   "include": ["App.tsx", "src/**/*"],
   "exclude": ["node_modules"]

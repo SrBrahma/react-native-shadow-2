@@ -2,11 +2,12 @@
 // Using a copy of the lib code here.
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { Shadow } from 'react-native-shadow-2'; // Aliased in Sandbox in dev.
 import RadioForm from 'react-native-simple-radio-button';
-import Slider from '@react-native-community/slider';
+import { Slider } from '@sharcoux/slider';
 import { PageScrollView } from 'pagescrollview';
 import tinycolor from 'tinycolor2';
+import { Shadow } from './src/index'; // Aliased in Sandbox in dev.
+
 
 
 export const App: React.FC = () => {
@@ -15,7 +16,10 @@ export const App: React.FC = () => {
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
   const [paintInside, setPaintInside] = useState<boolean | undefined>(undefined);
+
   const [getChildRadius, setGetChildRadius] = useState(true);
+  const [getViewStyleRadius, setGetViewStyleRadius] = useState(true);
+
   const [size, setSize] = useState([defaults.width, defaults.height] as [number, number]);
   const [doUseSizeProp, setDoUseSizeProp] = useState(false);
 
@@ -80,6 +84,10 @@ export const App: React.FC = () => {
             labelHorizontal={false}
           />
 
+          <MySwitch name='getChildRadius' value={getChildRadius} onValueChange={setGetChildRadius}/>
+          <MySwitch name='getViewStyleRadius' value={getViewStyleRadius} onValueChange={setGetViewStyleRadius}/>
+
+
           <MySwitch name='Use Size Prop' value={doUseSizeProp} onValueChange={setDoUseSizeProp}/>
           <MySlider name='Size Width Prop' step={0.1} range={[0, 200]} value={size[0]} onValueChange={v=>setSize([v, size[1]])}/>
           <MySlider name='Size Height Prop' step={0.1} range={[0, 200]} value={size[1]} onValueChange={v=>setSize([size[0], v])}/>
@@ -97,10 +105,14 @@ export const App: React.FC = () => {
             offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
             paintInside={paintInside}
             getChildRadiusStyle={getChildRadius}
-            radius={getChildRadius ? undefined : borderRadius}
+            getViewStyleRadius={getViewStyleRadius}
             containerViewStyle={{ margin: 100 }}
             size={doUseSizeProp ? size : undefined}
-            viewStyle={doUseSizeProp ? { backgroundColor: childColor } : undefined}
+            radius={getChildRadius ? undefined : borderRadius}
+            // TopEnd to check if it's supporting the Start/End combinations. When uncommenting this, also comment radius prop above.
+            // viewStyle={[doUseSizeProp && { backgroundColor: childColor }, { borderTopLeftRadius: 100, borderTopEndRadius: 10 }]}
+            viewStyle={[doUseSizeProp && { backgroundColor: childColor }]}
+
           >
             <View style={[
               !doUseSizeProp && { width: childWidth, height: childHeight },
@@ -113,7 +125,6 @@ export const App: React.FC = () => {
               },
             ]}/>
           </Shadow>
-          {/* <Text>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Text> */}
         </View>
       </View>
 
@@ -128,9 +139,9 @@ const defaults = {
   borderRadius: 30,
   width: 200,
   height: 200,
-  startColor: tinycolor('#f0f').toHex8String(), // tinycolor('#00000020').toHex8String(),
+  startColor: tinycolor('#00000020').toHex8String(),
   finalColor: tinycolor('#0000').toHex8String(),
-  childColor: tinycolor('#000').toHex8String(), // tinycolor('#fff').toHex8String(),
+  childColor: tinycolor('#fff').toHex8String(), // tinycolor('#fff').toHex8String(),
 };
 
 
@@ -246,7 +257,7 @@ const styles = StyleSheet.create({
   },
   decIncButton: {
     backgroundColor: '#fff',
-    padding: 8,
+    padding: 5,
     paddingHorizontal: 12,
     borderRadius: 4,
   },

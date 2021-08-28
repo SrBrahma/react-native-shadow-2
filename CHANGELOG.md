@@ -1,3 +1,14 @@
+## 4.1.0 - 2021-08-28
+
+* Added `getViewStyleRadius`. [#19](https://github.com/SrBrahma/react-native-shadow-2/issues/19), thanks @rbozan!
+* Added support for `borderTopStartRadius`, `borderTopEndRadius`, `borderBottomStartRadius`, `borderTopStartRadius` in `getChildRadiusStyle` and in the new `getViewStyleRadius`. Before, only `left, right, top, bottom` combinations were supported.
+* Code improvements.
+
+### NOTE: `getChildRadiusStyle` will be renamed to `getChildRadius` at the next major.
+
+### Sandbox
+* Now using @sharcoux/slider instead of @react-native-community/slider
+
 ## 4.0.0 - 2021-08-16
 Not too many changes here, but they require a major semver change. It implements [#13](https://github.com/SrBrahma/react-native-shadow-2/issues/13)
 
