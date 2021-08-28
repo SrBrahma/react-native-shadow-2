@@ -19,8 +19,9 @@ module.exports = {
       "jsx": true
     }
   },
+  "ignorePatterns": ["*.js", "*.json"], // Ignore root stuff that throws errors
   "rules": {
-  }
+  },
 };
 
 // [*1] - https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/TYPED_LINTING.md#getting-started---linting-with-type-information

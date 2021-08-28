@@ -1,18 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { Platform, StyleProp, View, ViewStyle, PixelRatio } from 'react-native';
-import { Svg, Defs, LinearGradient, Rect, Stop, Path, RadialGradient, Mask } from 'react-native-svg';
+import { PixelRatio, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
+import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, Side } from './utils';
 
 
-type Side = 'left' | 'right' | 'top' | 'bottom';
-type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
-type CornerRadius = Record<Corner, number>;
-// Add Shadow to the corner names
-type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 
-
-const OS = Platform.OS;
+const isWeb = Platform.OS === 'web';
 
 /** Rounds the given size to a pixel perfect size. */
 export function R(value: number): number {
@@ -21,7 +16,7 @@ export function R(value: number): number {
   // consistent behavior. We floor it, because it's better for the child to overlap by a pixel the right/bottom shadow part
   // than to have a pixel wide gap between them.
   // **Only if we receive a decimal value here!!!**. Read [*3]!! Else, the gap may still happen as we don't have control over it.
-  if (OS === 'web')
+  if (isWeb)
     return Math.floor(value);
 
   return PixelRatio.roundToNearestPixel(value);
@@ -46,6 +41,12 @@ function sumDps(a: number, b: number) {
  * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
 const additional = 1;
 
+const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
+// const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
+const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
+
+
+
 
 export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.
@@ -66,11 +67,21 @@ export interface ShadowProps {
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
    * Each corner fallbacks to 0. */
-  radius?: number | {default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
+  radius?: number | { default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
+   *
+   * If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style.
+   *
+   * Will be renamed to getChildRadius at next major.
    * @default true */
   getChildRadiusStyle?: boolean;
+  /** If it should try to get the radius from the **`viewStyle`** property if `radius` property is undefined. It will get the values for each
+   * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
+   *
+   * If **`getChildRadiusStyle`**, the corners defined in viewStyle will have priority over child's style.
+   * @default true */
+  getViewStyleRadius?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
@@ -108,7 +119,7 @@ export interface ShadowProps {
    *
    * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
    * @default true */
-  // getChildSizeStyle?: boolean;
+  // TODO getChildSizeStyle?: boolean;
   /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
    * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
    *
@@ -120,6 +131,10 @@ export interface ShadowProps {
    *
    * The values will be properly rounded using our R() function. */
   size?: [width: number, height: number];
+  // /** If the shadow will move to its inner side instead of going out.
+  //  *
+  //  * @default false */
+  // inset?: boolean;
 }
 
 export const Shadow: React.FC<ShadowProps> = ({
@@ -133,9 +148,11 @@ export const Shadow: React.FC<ShadowProps> = ({
   children,
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
   offset,
-  getChildRadiusStyle: getChildRadiusProp = true,
+  getChildRadiusStyle = true,
+  getViewStyleRadius = true,
   paintInside: paintInsideProp,
   viewStyle,
+  // inset,
 }) => {
   const [widthProp, heightProp] = sizeProp ? [R(sizeProp[0]), R(sizeProp[1])] : [];
   const [childWidth, setChildWidth] = useState<number | undefined>();
@@ -155,51 +172,51 @@ export const Shadow: React.FC<ShadowProps> = ({
   /** Will (+ additional), only if its value isn't '100%'. */
   const heightWithAdditional = typeof height === 'string' ? height : height + 1;
 
-  const doGetChildRadius = getChildRadiusProp && (radiusProp === undefined);
 
-  const childStyle: ViewStyle | undefined = useMemo(() => {
-    if (doGetChildRadius && React.Children.count(children) > 1)
-      throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
-    const childStyleTemp = doGetChildRadius
-      ? (React.Children.only(children) as any | undefined)?.props?.style as ViewStyle | undefined
-      : undefined;
-      // Convert array style to a single obj style.
-    return (Array.isArray(childStyleTemp)
-      ? childStyleTemp.reduce((obj, v) => {
-        if (v && typeof v === 'object')
-          return { ...obj, ...v };
-      }, {})
-      : childStyleTemp);
+  const radiuses: CornerRadius = useMemo(() => {
 
-  }, [children, doGetChildRadius]);
-
-  const radiuses = useMemo(() => {
     /** Not yet treated. May be negative / undefined */
-    const cornerRadiusPartial: Partial<CornerRadius> = doGetChildRadius
-      ? {
-        topLeft: childStyle?.borderTopLeftRadius ?? childStyle?.borderRadius,
-        topRight: childStyle?.borderTopRightRadius ?? childStyle?.borderRadius,
-        bottomLeft: childStyle?.borderBottomLeftRadius ?? childStyle?.borderRadius,
-        bottomRight: childStyle?.borderBottomRightRadius ?? childStyle?.borderRadius,
-      } : (typeof radiusProp === 'number' ? {
-        topLeft: radiusProp,
-        topRight: radiusProp,
-        bottomLeft: radiusProp,
-        bottomRight: radiusProp,
-      } : {
-        topLeft: radiusProp?.topLeft ?? radiusProp?.default,
-        topRight: radiusProp?.topRight ?? radiusProp?.default,
-        bottomLeft: radiusProp?.bottomLeft ?? radiusProp?.default,
-        bottomRight: radiusProp?.bottomRight ?? radiusProp?.default,
-      });
-    const result = {
-      bottomLeft: R(Math.max(cornerRadiusPartial.bottomLeft ?? 0, 0)),
-      bottomRight: R(Math.max(cornerRadiusPartial.bottomRight ?? 0, 0)),
-      topLeft: R(Math.max(cornerRadiusPartial.topLeft ?? 0, 0)),
-      topRight: R(Math.max(cornerRadiusPartial.topRight ?? 0, 0)),
-    };
+    const cornerRadiusPartial: Partial<CornerRadius> = (() => {
+      if (radiusProp) {
+        if (typeof radiusProp === 'number')
+          return objFromKeys(cornersArray, () => radiusProp);
+        else
+          return objFromKeys(cornersArray, (k) => radiusProp[k] ?? radiusProp.default);
+      }
+
+      /** We have to merge both viewStyle and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
+       * borderRadius in viewStyle.
+       *
+       * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
+      // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
+      let mergedStyle: {[K in keyof CornerRadius]: CornerRadius[K] | undefined} = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
+
+      if (getViewStyleRadius) {
+        const mergedViewStyle = StyleSheet.flatten(viewStyle ?? {}); // Convert possible array style to a single obj style.
+        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle?.borderRadius);
+      }
+
+      // Only enter block if there is a undefined corner that may now be defined;
+      if (getChildRadiusStyle && Object.values(mergedStyle).includes(undefined)) {
+        if (React.Children.count(children) > 1)
+          throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default value). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
+        /** May be an array of styles. */
+        const childStyleTemp: ViewStyle | undefined = ((React.Children.only(children) as JSX.Element | undefined)?.props?.style);
+        const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
+        mergedStyle = objFromKeys(cornersArray, (k) =>
+          mergedStyle[k] ?? // Don't overwrite viewStyle already defined radiuses.
+          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle?.borderRadius);
+      }
+
+      return mergedStyle;
+    })();
+
+    /** Round and zero negative radius values */
+    const result = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
+
     return result;
-  }, [childStyle, doGetChildRadius, radiusProp]);
+  }, [children, getChildRadiusStyle, getViewStyleRadius, radiusProp, viewStyle]);
+
 
   const shadow = useMemo(() => {
 
@@ -207,8 +224,8 @@ export const Shadow: React.FC<ShadowProps> = ({
     const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
     const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
 
-    const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & {alpha?: number};
-    const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & {alpha?: number};
+    const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
+    const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
 
     // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
     // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
@@ -221,31 +238,20 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     const { topLeft, topRight, bottomLeft, bottomRight } = radiuses;
 
-    const cornerShadowRadius: CornerRadiusShadow = {
+    const cornerShadowRadius: CornerRadiusShadow = { // Not using objFromKeys here as the key is different
       topLeftShadow: sumDps(topLeft, distance),
       topRightShadow: sumDps(topRight, distance),
       bottomLeftShadow: sumDps(bottomLeft, distance),
       bottomRightShadow: sumDps(bottomRight, distance),
     };
 
-
     const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
 
     /** Which sides will have shadow. */
-    const activeSides: Record<Side, boolean> = {
-      left: sidesProp.includes('left'),
-      right: sidesProp.includes('right'),
-      top: sidesProp.includes('top'),
-      bottom: sidesProp.includes('bottom'),
-    };
+    const activeSides: Record<Side, boolean> = objFromKeys(sidesArray, (k) => sidesProp.includes(k));
 
     /** Which corners will have shadow. */
-    const activeCorners: Record<Corner, boolean> = {
-      topLeft: cornersProp.includes('topLeft'),
-      topRight: cornersProp.includes('topRight'),
-      bottomLeft: cornersProp.includes('bottomLeft'),
-      bottomRight: cornersProp.includes('bottomRight'),
-    };
+    const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
 
     // Fragment wasn't working for some reason, so, using array.
     const linearGradient = [
@@ -265,7 +271,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       >
         {/* <Stop offset={radius / shadowRadius} stopOpacity={0}/> // Bad. There would be a tiny gap between the child and the corner shadow. */}
         <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
-        <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} />
+        <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity}/>
       </RadialGradient>);
     }
 
@@ -391,7 +397,6 @@ export const Shadow: React.FC<ShadowProps> = ({
   const result = useMemo(() => {
     return (
       <View style={[containerViewStyle]}>
-        {/* TODO any benefit in using width/height instead of '100%' here? */}
         <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
           {shadow}
         </View>

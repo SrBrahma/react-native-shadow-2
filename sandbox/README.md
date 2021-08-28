@@ -8,3 +8,6 @@ To run your project, navigate to the directory and run one of the following npm 
   - npm run android
   - npm run ios # requires an iOS device or macOS for access to an iOS simulator
   - npm run web
+
+
+Did https://reactnative.dev/docs/typescript#using-custom-path-aliases-with-typescript to alias to ../src/index.tsx

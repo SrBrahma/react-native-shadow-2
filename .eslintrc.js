@@ -19,6 +19,7 @@ module.exports = {
       "jsx": true
     }
   },
+  "ignorePatterns": ["*.js", "*.json"], // Ignore root stuff that throws errors
   "rules": {
   }
 };
