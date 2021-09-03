@@ -86,7 +86,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 <!--$shadowProperties-->
 
-| Property | Type | Default | Description
+| Property | Description | Type | Default
 | --- | --- | --- | ---
 | **startColor** | The color of the shadow when it's right next to the given content, leaving it. Accepts alpha channel. | `string` | `'#00000020'`
 | **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | `'#0000', transparent.`
