@@ -131,6 +131,9 @@ and then in your Shadow component:
 <Shadow {...ShadowPresets.button}>
 ```
 
+**Q**: The `offset` and `size` properties are throwing Typescript errors!
+
+**A**: Upgrade your Typescript to at least 4.0.0! Those two properties use [**labeled tuples**](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#labeled-tuple-elements). If you don't use Typescript, this won't happen.
 
 ## 🐛 Notes / Known Issues
 
