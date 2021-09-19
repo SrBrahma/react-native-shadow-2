@@ -22,7 +22,7 @@ Implementation: [./src/index.tsx](./src/index.tsx)
 
 ### [Read the FAQ below!](#️-faq)
 
-## [🍟 Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
 
 ## 🥳 New version 3.0.0! (2021-07-17) 🥳
@@ -101,6 +101,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **viewStyle** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. You may overwrite those defaults by undefine'ing the changed styles in this property. | `StyleProp<ViewStyle>` | `undefined`
 | **containerViewStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
 | **size** | If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render, you can use this property. Using this won't trigger the onLayout, so only 1 render is made.<br/><br/>It will apply the corresponding `width` and `height` styles to the `viewStyle` property.<br/><br/>You may want to set `backgroundColor` in the `viewStyle` property for your child background color.<br/><br/>It's also good if you want an animated view.<br/><br/>The values will be properly rounded using our R() function. | `[width: number, height: number]` | `undefined`
+| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the first render but only on the second render and beyond with the exact onLayout sizes. This is useful if dealing with radius greater than the sizes, to assure the fully round corners when the sides sizes are unknown and to avoid weird and overflowing shadows on the first render.<br/><br/>Note that when true, the shadow will only appear on the second render and beyond, when the sizes are known with onLayout. | `boolean` | `false`
 
 <!--/$shadowProperties-->
 
@@ -142,7 +143,7 @@ and then in your Shadow component:
 * **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positioning and sizing.
 There may be a pixel wide gap on the first render on the right and bottom SVG parts connections, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
 on the following render, as this lib will get the exact pixel size of the child component using onLayout.
-This gap won't always happen and it's usually hardly noticeable.
+This gap won't always happen and it's usually hardly noticeable, and it happens very fast, it's just one render.
 If you don't want to this to happen at all, you can use the `size` property.
 
 ## 📰 [Changelog](./CHANGELOG.md)
