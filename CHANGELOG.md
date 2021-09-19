@@ -3,7 +3,7 @@
 * Renamed `getChildRadiusStyle` property to `getChildRadius`.
 * Each corner radius is now limited using [this](https://css-tricks.com/what-happens-when-border-radii-overlap/). The link is for CSS but works in the same way for mobile. [#15](https://github.com/SrBrahma/react-native-shadow-2/issues/15). Thanks for the limit suggestion, [@jimmi-joensson](https://github.com/jimmi-joensson)!
 * Added safeRender property to only render on the 2nd render and beyond -- so, no relative rendering on the first render. This is useful when you want a pill/circle like shadow and you are inputting a radius greater than the corresponding sizes. On the future there may be a prop specific for those cases to have them working right on the first render.
-* The web version looks like it's now completly free from the pixel gaps/overlaps on the 2nd render and beyond!
+* In web looks like it's now completly free from the pixel gaps/overlaps on the 2nd render and beyond!
 * Added pointerEvents='box-none' to the container and content views, so clicks/presses go through them and your child may receive them. [#24](https://github.com/SrBrahma/react-native-shadow-2/issues/24). Thanks, [@AdamSheaHewett](https://github.com/AdamSheaHewett)
 * Fixed onLayout changes not taking effect when `size` prop was true then switched to false and then a new render was made.
 
