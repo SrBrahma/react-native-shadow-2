@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Pressable, StatusBar, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import RadioForm from 'react-native-simple-radio-button';
 import { Slider } from '@sharcoux/slider';
 import { PageScrollView } from 'pagescrollview';
 import tinycolor from 'tinycolor2';
@@ -99,13 +98,13 @@ export const App: React.FC = () => {
                 }}/>
 
                 <NameValue name='Paint Inside' value={paintInside}/>
-                <RadioForm
+                {/* <RadioForm // this $%&# added animations to all views.
                   initial={undefined}
                   radio_props={[{ label: 'undefined', value: undefined }, { label: 'false', value: false }, { label: 'true', value: true }] as any}
                   onPress={(v) => setPaintInside(v)}
                   formHorizontal
                   labelHorizontal={false}
-                />
+                /> */}
 
               </View>
             </View>
