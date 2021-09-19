@@ -75,11 +75,11 @@ export interface ShadowProps {
    *
    * Will be renamed to getChildRadius at next major.
    * @default true */
-  getChildRadiusStyle?: boolean;
+  getChildRadius?: boolean;
   /** If it should try to get the radius from the **`viewStyle`** property if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    *
-   * If **`getChildRadiusStyle`**, the corners defined in viewStyle will have priority over child's style.
+   * If **`getChildRadius`**, the corners defined in viewStyle will have priority over child's style.
    * @default true */
   getViewStyleRadius?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
@@ -110,7 +110,7 @@ export interface ShadowProps {
   /** The style of the view that wraps your child component.
    *
    * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
-   * radiuses from the `radius` property or from the child, if `getChildRadiusStyle`. You may overwrite those defaults
+   * radiuses from the `radius` property or from the child, if `getChildRadius`. You may overwrite those defaults
    * by undefine'ing the changed styles in this property. */
   viewStyle?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
@@ -148,7 +148,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   children,
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
   offset,
-  getChildRadiusStyle = true,
+  getChildRadius = true,
   getViewStyleRadius = true,
   paintInside: paintInsideProp,
   viewStyle,
@@ -197,7 +197,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       }
 
       // Only enter block if there is a undefined corner that may now be defined;
-      if (getChildRadiusStyle && Object.values(mergedStyle).includes(undefined)) {
+      if (getChildRadius && Object.values(mergedStyle).includes(undefined)) {
         if (React.Children.count(children) > 1)
           throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default value). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
         /** May be an array of styles. */
@@ -215,7 +215,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     const result = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
 
     return result;
-  }, [children, getChildRadiusStyle, getViewStyleRadius, radiusProp, viewStyle]);
+  }, [children, getChildRadius, getViewStyleRadius, radiusProp, viewStyle]);
 
 
   const shadow = useMemo(() => {
