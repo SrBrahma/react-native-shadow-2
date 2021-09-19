@@ -1,5 +1,6 @@
 import { ViewStyle } from 'react-native';
 
+
 export type Side = 'left' | 'right' | 'top' | 'bottom';
 export type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 export type CornerRadius = Record<Corner, number>;
@@ -7,7 +8,7 @@ export type CornerRadius = Record<Corner, number>;
 export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 
 /** Auxilary function to shorten code */
-export function objFromKeys<KeysArray extends Readonly<string[]>>(keys: KeysArray, fun: (key: KeysArray[number]) => any): Record<KeysArray[number], any> {
+export function objFromKeys<KeysArray extends Readonly<string[]>, Rtn>(keys: KeysArray, fun: (key: KeysArray[number]) => Rtn): Record<KeysArray[number], Rtn> {
   return keys.reduce((obj, key) => ({ ...obj, [key]: fun(key) }), {} as Record<string, any>);
 }
 

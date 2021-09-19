@@ -22,7 +22,7 @@ Implementation: [./src/index.tsx](./src/index.tsx)
 
 ### [Read the FAQ below!](#️-faq)
 
-## [🍟 Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
 
 ## 🥳 New version 3.0.0! (2021-07-17) 🥳
@@ -92,15 +92,16 @@ import { Shadow } from 'react-native-shadow-2';
 | **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | `'#0000', transparent.`
 | **distance** | How far the shadow will go. | `number` | `10`
 | **radius** | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, undefined corners will have the radius of the `default` property if it's defined.<br/><br/>If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.<br/><br/>Each corner fallbacks to 0. | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined`
-| **getChildRadiusStyle** | If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.<br/><br/>If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style. | `boolean` | `true`
-| **getViewStyleRadius** | If it should try to get the radius from the **`viewStyle`** if `radius` property is undefined. It will get the values for each corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.<br/><br/>If **`getChildRadiusStyle`**, the corners defined in viewStyle will have priority over child's style. | `boolean` | `true`
+| **getChildRadius** | If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.<br/><br/>If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style. | `boolean` | `true`
+| **getViewStyleRadius** | If it should try to get the radius from the **`viewStyle`** if `radius` property is undefined. It will get the values for each corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.<br/><br/>If **`getChildRadius`**, the corners defined in viewStyle will have priority over child's style. | `boolean` | `true`
 | **sides** | The sides of your content that will have the shadows drawn. Doesn't include corners. | `("left" \| "right" \| "top" \| "bottom")[]` | `['left', 'right', 'top', 'bottom']`
 | **corners** | The corners that will have the shadows drawn. | `("topLeft" \| "topRight" \| "bottomLeft" \| "bottomRight")[]` | `['topLeft', 'topRight', 'bottomLeft', 'bottomRight']`
 | **offset** | Moves the shadow. Negative x moves it to the left, negative y moves it up.<br/><br/>Accepts `'x%'` values, in relation to the child's size.<br/><br/>Setting an offset will default `paintInside` to true, as it is the usual desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
 | **paintInside** | If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.<br/><br/>You may want this as true when using offset or if your child have some transparency.<br/><br/>**The default changes to true if `offset` property is defined.** | `boolean` | `false`
-| **viewStyle** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadiusStyle`. You may overwrite those defaults by undefine'ing the changed styles in this property. | `StyleProp<ViewStyle>` | `undefined`
+| **viewStyle** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. You may overwrite those defaults by undefine'ing the changed styles in this property. | `StyleProp<ViewStyle>` | `undefined`
 | **containerViewStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
 | **size** | If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render, you can use this property. Using this won't trigger the onLayout, so only 1 render is made.<br/><br/>It will apply the corresponding `width` and `height` styles to the `viewStyle` property.<br/><br/>You may want to set `backgroundColor` in the `viewStyle` property for your child background color.<br/><br/>It's also good if you want an animated view.<br/><br/>The values will be properly rounded using our R() function. | `[width: number, height: number]` | `undefined`
+| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the first render but only on the second render and beyond with the exact onLayout sizes. This is useful if dealing with radius greater than the sizes, to assure the fully round corners when the sides sizes are unknown and to avoid weird and overflowing shadows on the first render.<br/><br/>Note that when true, the shadow will only appear on the second render and beyond, when the sizes are known with onLayout. | `boolean` | `false`
 
 <!--/$shadowProperties-->
 
@@ -137,16 +138,13 @@ and then in your Shadow component:
 
 ## 🐛 Notes / Known Issues
 
-* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15)
+* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15). **Update v5:** The radius is now properly limited on the 2nd render and beyond! You may use the safeRender to don't render the shadow until this 2nd render, when the onLayout happens and we get the exact sizes to apply this limit.
 
 * **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positioning and sizing.
 There may be a pixel wide gap on the first render on the right and bottom SVG parts connections, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
 on the following render, as this lib will get the exact pixel size of the child component using onLayout.
-This gap won't always happen and it's usually hardly noticeable.
+This gap won't always happen and it's usually hardly noticeable, and it happens very fast, it's just one render.
 If you don't want to this to happen at all, you can use the `size` property.
-
-* **`[Web]`** If your child is manually set to have a decimal size, there may be a pixel wide gap between your child component and the right/bottom shadow, as browsers usually allow decimal sizings and it will blur the last pixel line/row.
-You can either fix it by using the `paintInside` property to hide this possible imperfection or use the `size` property to avoid it from happening.
 
 ## 📰 [Changelog](./CHANGELOG.md)
 
