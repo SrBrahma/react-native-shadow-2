@@ -221,7 +221,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
 
     /** Round and zero negative radius values */
-    const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => Math.max(cornerRadiusPartial[k] ?? 0, 0));
+    const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
 
     let result = radiiPreSizeLimit;
 
@@ -450,7 +450,7 @@ export const Shadow: React.FC<ShadowProps> = ({
               // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
               // inspector is decimal. It will round up if (>= .5), else, down.
             const layout = e.nativeEvent.layout;
-            setChildWidth(R(layout.width)); // In web to round decimal values to integers. In mobile it's already rounded.
+            setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
             setChildHeight(layout.height);
           }}
         >
