@@ -24,6 +24,8 @@ Implementation: [./src/index.tsx](./src/index.tsx)
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
+## 📰 [Changelog 5.0.0 (2021-09-19)](./CHANGELOG.md)
+
 
 ## 🥳 New version 3.0.0! (2021-07-17) 🥳
 
@@ -145,8 +147,6 @@ There may be a pixel wide gap on the first render on the right and bottom SVG pa
 on the following render, as this lib will get the exact pixel size of the child component using onLayout.
 This gap won't always happen and it's usually hardly noticeable, and it happens very fast, it's just one render.
 If you don't want to this to happen at all, you can use the `size` property.
-
-## 📰 [Changelog](./CHANGELOG.md)
 
 ## 🦉 Alternatives
 * [react-native-neomorph-shadows](https://github.com/tokkozhin/react-native-neomorph-shadows) looks great and has different possibilities. But, it doesn't support shadow on the same render if not defining the size, and it doesn't support Expo.
