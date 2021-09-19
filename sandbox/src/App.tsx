@@ -97,7 +97,7 @@ export const App: React.FC = () => {
                     setChildColor(color.toHex8String());
                 }}/>
 
-                <NameValue name='Paint Inside' value={paintInside}/>
+                {/* <NameValue name='Paint Inside' value={paintInside}/> */}
                 {/* <RadioForm // this $%&# added animations to all views.
                   initial={undefined}
                   radio_props={[{ label: 'undefined', value: undefined }, { label: 'false', value: false }, { label: 'true', value: true }] as any}

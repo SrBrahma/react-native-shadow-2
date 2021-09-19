@@ -15,7 +15,6 @@ export function R(value: number): number {
   // The size rounding is browser-dependent, so we do the decimal rounding for web by ourselves to have a
   // consistent behavior. We floor it, because it's better for the child to overlap by a pixel the right/bottom shadow part
   // than to have a pixel wide gap between them.
-  // **Only if we receive a decimal value here!!!**. Read [*3]!! Else, the gap may still happen as we don't have control over it.
   if (isWeb)
     return Math.floor(value);
 
@@ -23,13 +22,15 @@ export function R(value: number): number {
 }
 /** Converts dp to pixels. */
 function P(value: number) {
+  if (isWeb) return value;
   return PixelRatio.getPixelSizeForLayoutSize(value);
 }
 /** How many pixels for each dp. scale = pixels/dp */
-const scale = PixelRatio.get();
+const scale = isWeb ? 1 : PixelRatio.get();
 
 /** Converts two sizes to pixel for perfect math, sum them and converts the result back to dp. */
 function sumDps(a: number, b: number) {
+  if (isWeb) return a + b;
   return R((P(a) + P(b)) / scale);
 }
 
@@ -39,7 +40,7 @@ function sumDps(a: number, b: number) {
  * would still strangely be cropped/clipped. We give this additional size to the svg so our rect/etc won't be unintendedly clipped.
  *
  * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
-const additional = 1;
+const additional = isWeb ? 0 : 1;
 
 const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
 // const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
@@ -73,7 +74,6 @@ export interface ShadowProps {
    *
    * If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style.
    *
-   * Will be renamed to getChildRadius at next major.
    * @default true */
   getChildRadius?: boolean;
   /** If it should try to get the radius from the **`viewStyle`** property if `radius` property is undefined. It will get the values for each
@@ -82,6 +82,7 @@ export interface ShadowProps {
    * If **`getChildRadius`**, the corners defined in viewStyle will have priority over child's style.
    * @default true */
   getViewStyleRadius?: boolean;
+  // TODO getChildSizeStyle?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
@@ -119,7 +120,6 @@ export interface ShadowProps {
    *
    * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
    * @default true */
-  // TODO getChildSizeStyle?: boolean;
   /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
    * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
    *
@@ -135,7 +135,16 @@ export interface ShadowProps {
   //  *
   //  * @default false */
   // inset?: boolean;
+  /** If you don't want the relative sizing and positioning of the shadow on the first render, but only on the second render and
+   * beyond with the exact onLayout sizes. This is useful if dealing with radius greater than the sizes, to assure
+   * the fully round corners when the sides sizes are unknown and to avoid weird and overflowing shadows on the first render.
+   *
+   * Note that when true, the shadow will only appear on the second render and beyond, when the sizes are known with onLayout.
+   *
+   * @default false */
+  safeRender?: boolean;
 }
+
 
 export const Shadow: React.FC<ShadowProps> = ({
   radius: radiusProp,
@@ -152,9 +161,8 @@ export const Shadow: React.FC<ShadowProps> = ({
   getViewStyleRadius = true,
   paintInside: paintInsideProp,
   viewStyle,
-  // inset,
+  safeRender = false,
 }) => {
-  const [widthProp, heightProp] = sizeProp ? [R(sizeProp[0]), R(sizeProp[1])] : [];
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
 
@@ -165,15 +173,15 @@ export const Shadow: React.FC<ShadowProps> = ({
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
   /** Read {@link additional}, [*4] */
   const distanceWithAdditional = distance + additional;
-  const width = widthProp ?? childWidth ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
-  const height = heightProp ?? childHeight ?? '100%';
+  const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
+  const height = (sizeProp ? R(sizeProp[1]) : childHeight) ?? '100%';
   /** Will (+ additional), only if its value isn't '100%'. */
-  const widthWithAdditional = typeof width === 'string' ? width : width + 1;
+  const widthWithAdditional = typeof width === 'string' ? width : width + additional;
   /** Will (+ additional), only if its value isn't '100%'. */
-  const heightWithAdditional = typeof height === 'string' ? height : height + 1;
+  const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
 
-  const radiuses: CornerRadius = useMemo(() => {
+  const radii: CornerRadius = useMemo(() => {
 
     /** Not yet treated. May be negative / undefined */
     const cornerRadiusPartial: Partial<CornerRadius> = (() => {
@@ -189,11 +197,11 @@ export const Shadow: React.FC<ShadowProps> = ({
        *
        * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
       // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
-      let mergedStyle: {[K in keyof CornerRadius]: CornerRadius[K] | undefined} = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
+      let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
 
       if (getViewStyleRadius) {
         const mergedViewStyle = StyleSheet.flatten(viewStyle ?? {}); // Convert possible array style to a single obj style.
-        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle?.borderRadius);
+        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle?.borderRadius) as Record<Corner, number | undefined>;
       }
 
       // Only enter block if there is a undefined corner that may now be defined;
@@ -205,20 +213,40 @@ export const Shadow: React.FC<ShadowProps> = ({
         const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
         mergedStyle = objFromKeys(cornersArray, (k) =>
           mergedStyle[k] ?? // Don't overwrite viewStyle already defined radiuses.
-          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle?.borderRadius);
+          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle?.borderRadius) as Record<Corner, number | undefined>;
       }
 
       return mergedStyle;
     })();
 
+
     /** Round and zero negative radius values */
-    const result = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
+    const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
+
+    let result = radiiPreSizeLimit;
+
+    if (typeof width === 'number' && typeof height === 'number') {
+      // https://css-tricks.com/what-happens-when-border-radii-overlap/
+      // Note that the tutorial doesn't mention the specification of minRatio < 1.
+      const minRatio = Math.min( // x / 0 = Infinity, not a problem here.
+        width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight), // top
+        height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight), // right
+        width / (radiiPreSizeLimit.bottomLeft + radiiPreSizeLimit.bottomRight), // bottom
+        height / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.bottomLeft), // left
+      );
+      if (minRatio < 1)
+        result = objFromKeys(cornersArray, (k) => R(radiiPreSizeLimit[k] * minRatio));
+    }
 
     return result;
-  }, [children, getChildRadius, getViewStyleRadius, radiusProp, viewStyle]);
+  }, [children, getChildRadius, getViewStyleRadius, height, radiusProp, viewStyle, width]);
 
 
   const shadow = useMemo(() => {
+
+    // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
+    if (safeRender && (typeof width === 'string' || typeof height === 'string'))
+      return null;
 
     // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
     const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
@@ -236,7 +264,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     const startColorOpacity = startColorRgb.alpha ?? 1;
     const finalColorOpacity = finalColorRgb.alpha ?? 1;
 
-    const { topLeft, topRight, bottomLeft, bottomRight } = radiuses;
+    const { topLeft, topRight, bottomLeft, bottomRight } = radii;
 
     const cornerShadowRadius: CornerRadiusShadow = { // Not using objFromKeys here as the key is different
       topLeftShadow: sumDps(topLeft, distance),
@@ -390,45 +418,47 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     </>);
   }, [
-    height, width, startColorProp, finalColorProp, radiuses, distance, sidesProp, cornersProp,
-    distanceWithAdditional, heightWithAdditional, widthWithAdditional, paintInside,
+    safeRender, width, height, startColorProp, finalColorProp, radii, distance, distanceWithAdditional, heightWithAdditional,
+    widthWithAdditional, paintInside, sidesProp, cornersProp,
   ]);
 
   const result = useMemo(() => {
     return (
-      <View style={[containerViewStyle]}>
+      // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
+      <View style={[containerViewStyle]} pointerEvents='box-none'>
         <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
           {shadow}
         </View>
         <View
+          pointerEvents="box-none"
           style={[
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
             { alignSelf: 'flex-start' },
             sizeProp && {
               width, height,
-              borderTopLeftRadius: radiuses.topLeft,
-              borderTopRightRadius: radiuses.topRight,
-              borderBottomLeftRadius: radiuses.bottomLeft,
-              borderBottomRightRadius: radiuses.bottomRight,
+              borderTopLeftRadius: radii.topLeft, // can't remember why we are passing the radii here.
+              borderTopRightRadius: radii.topRight,
+              borderBottomLeftRadius: radii.bottomLeft,
+              borderBottomRightRadius: radii.bottomRight,
             }, viewStyle,
           ]}
-          {...!sizeProp && { // Only use onLayout if sizeProp wasn't received.
-            onLayout: (e) => {
-              // [web] [*3]: the width/height we get here is already rounded, even if the real size according to the browser
-              // inspector is decimal. If a way to get the exact size is found, we could use Math.floor() on it to avoid
-              // the pixel gap between the child and the shadow.
-              const layout = e.nativeEvent.layout;
-              setChildWidth(layout.width);
-              setChildHeight(layout.height);
-            },
+
+          onLayout={(e) => {
+            if (sizeProp) // For some really strange reason, attaching conditionally the onLayout wasn't working
+              return; // on condition change, so we check here inside if the sizeProp is defined.
+              // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
+              // inspector is decimal. It will round up if (>= .5), else, down.
+            const layout = e.nativeEvent.layout;
+            setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
+            setChildHeight(layout.height);
           }}
         >
           {children}
         </View>
       </View>
     );
-  }, [shadow, children, width, height, sizeProp, radiuses, viewStyle, containerViewStyle, offsetX, offsetY]);
+  }, [shadow, children, width, height, sizeProp, radii, viewStyle, containerViewStyle, offsetX, offsetY]);
 
   return result;
 };
