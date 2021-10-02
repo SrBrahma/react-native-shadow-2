@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { PixelRatio, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
@@ -163,6 +163,8 @@ export const Shadow: React.FC<ShadowProps> = ({
   viewStyle,
   safeRender = false,
 }) => {
+  const isRTL = I18nManager.isRTL;
+
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
 
@@ -227,8 +229,8 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     if (typeof width === 'number' && typeof height === 'number') {
       // https://css-tricks.com/what-happens-when-border-radii-overlap/
-      // Note that the tutorial doesn't mention the specification of minRatio < 1.
-      const minRatio = Math.min( // x / 0 = Infinity, not a problem here.
+      // Note that the tutorial doesn't mention the specification of minRatio < 1 but it's required and said in specification.
+      const minRatio = Math.min( // 'x / 0 = Infinity' is js, not a problem here.
         width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight), // top
         height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight), // right
         width / (radiiPreSizeLimit.bottomLeft + radiiPreSizeLimit.bottomRight), // bottom
@@ -312,8 +314,8 @@ export const Shadow: React.FC<ShadowProps> = ({
           It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
           We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
       {activeSides.left && <Svg
-        width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', left: -distance, top: topLeft }}
+        width={distanceWithAdditional} height={heightWithAdditional}
+        style={{ position: 'absolute', left: -distance, top: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
         <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
         {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
@@ -322,24 +324,24 @@ export const Shadow: React.FC<ShadowProps> = ({
       </Svg>
       }
       {activeSides.right && <Svg
-        width={distanceWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', left: width, top: topRight }}
+        width={distanceWithAdditional} height={heightWithAdditional}
+        style={{ position: 'absolute', left: width, top: topRight, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
         <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
         <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
       </Svg>
       }
       {activeSides.bottom && <Svg
-        width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', top: height, left: bottomLeft }}
+        width={widthWithAdditional} height={distanceWithAdditional}
+        style={{ position: 'absolute', top: height, left: bottomLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
         <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
         <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
       </Svg>
       }
       {activeSides.top && <Svg
-        width={widthWithAdditional} height={distanceWithAdditional} {...{ shapeRendering: 'crispEdges' }}
-        style={{ position: 'absolute', top: -distance, left: topLeft }}
+        width={widthWithAdditional} height={distanceWithAdditional}
+        style={{ position: 'absolute', top: -distance, left: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
         <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
         <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
@@ -349,11 +351,11 @@ export const Shadow: React.FC<ShadowProps> = ({
 
       {/* Corners */}
 
-      {/* The anchor for the svgs is the top left point in the corner square.
+      {/* The anchor for the svgs path is the top left point in the corner square.
         The starting point is the clockwise external arc init point. */}
 
       {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: -distance }}
+        style={{ position: 'absolute', top: -distance, left: -distance, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
         <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
         <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
@@ -361,8 +363,12 @@ export const Shadow: React.FC<ShadowProps> = ({
           : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
         } h${-distance} Z`}/>
       </Svg>}
+
       {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: width, transform: [{ translateX: -topRight }] }}
+        style={{
+          position: 'absolute', top: -distance, left: width,
+          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
+        }}
       >
         <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
         <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
@@ -371,8 +377,9 @@ export const Shadow: React.FC<ShadowProps> = ({
         } v${-distance} Z`}/>
         {/*  */}
       </Svg>}
+
       {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
+        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...(isRTL ? [{ scaleX: -1 }] : [])] }}
       >
         <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
         <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
@@ -380,10 +387,11 @@ export const Shadow: React.FC<ShadowProps> = ({
           : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
         } v${distance} Z`}/>
       </Svg>}
+
       {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
         style={{
           position: 'absolute', top: height, left: width,
-          transform: [{ translateX: -bottomRight }, { translateY: -bottomRight }],
+          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
         }}
       >
         <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
@@ -398,8 +406,8 @@ export const Shadow: React.FC<ShadowProps> = ({
         [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
         and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
         paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg style={{ position: 'absolute' }}
-        width={widthWithAdditional} height={heightWithAdditional} {...{ shapeRendering: 'crispEdges' }}
+      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional}
+        style={{ position: 'absolute', ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
         <Defs>
           <Mask id='maskPaintBelow'>
@@ -419,7 +427,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     </>);
   }, [
     safeRender, width, height, startColorProp, finalColorProp, radii, distance, distanceWithAdditional, heightWithAdditional,
-    widthWithAdditional, paintInside, sidesProp, cornersProp,
+    widthWithAdditional, paintInside, sidesProp, cornersProp, isRTL,
   ]);
 
   const result = useMemo(() => {

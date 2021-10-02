@@ -1,7 +1,7 @@
 // Sandbox to test the library. I tried using the symlink npx workaround but it's somewhat bugged.
 // Using a copy of the lib code here.
 import React, { useState } from 'react';
-import { Pressable, StatusBar, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { I18nManager, Pressable, StatusBar, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Slider } from '@sharcoux/slider';
 import { PageScrollView } from 'pagescrollview';
@@ -41,6 +41,8 @@ export const App: React.FC = () => {
   const [finalColor, setFinalColor] = useState(defaults.finalColor);
   const [childColor, setChildColor] = useState(defaults.childColor);
 
+  const [rtl, setRtl] = useState(false);
+
   // const [inset, setInset] = useState(true);
 
   return (
@@ -66,10 +68,10 @@ export const App: React.FC = () => {
                 <MySlider name='Child Width' step={0.1} range={[0, 200]} value={childWidth} onValueChange={setChildWidth}/>
                 <MySlider name='Child Height' step={0.1} range={[0, 200]} value={childHeight} onValueChange={setChildHeight}/>
                 <MySlider name='Distance' value={distance} onValueChange={setDistance}
-                  range={[-10, 100]} // min -10 to show < 0 won't do anything
+                  range={[-10, 100]} step={0.1} // min -10 to show < 0 won't do anything
                 />
                 <MySlider name='Border Radius' value={borderRadius} onValueChange={setBorderRadius}
-                  range={[-10, 100]} // min -10 to show < 0 won't do anything
+                  range={[-10, 100]} step={0.1} // min -10 to show < 0 won't do anything
                 />
                 <MySlider name='Offset X' range={[-20, 20]} value={offsetX} onValueChange={setOffsetX}/>
                 <MySlider name='Offset Y' range={[-20, 20]} value={offsetY} onValueChange={setOffsetY}/>
@@ -96,6 +98,10 @@ export const App: React.FC = () => {
                   if (color.isValid())
                     setChildColor(color.toHex8String());
                 }}/>
+
+                <MySwitch
+                  name='Use RTL' value={rtl} onValueChange={(v) => {setRtl(v); I18nManager.forceRTL(v);}}
+                />
 
                 {/* <NameValue name='Paint Inside' value={paintInside}/> */}
                 {/* <RadioForm // this $%&# added animations to all views.

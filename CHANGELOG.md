@@ -1,3 +1,8 @@
+## 5.1.0 - 2021-10-02
+
+* This package now supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps). [#26](https://github.com/SrBrahma/react-native-shadow-2/issues/26). Thanks [@abdullahkn287](abdullahkn287) and [@serzh-f](https://github.com/serzh-f)!
+* [Web] - Removed `shape-rendering: 'crispEdges'` from the SVG parts as since 5.0.0 the Web shadow is pixel perfect (by properly rounding the sizes) and this previous semi-solution is no longer needed.
+
 ## 5.0.0 - 2021-09-19
 
 * Renamed `getChildRadiusStyle` property to `getChildRadius`.
