@@ -229,7 +229,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     if (typeof width === 'number' && typeof height === 'number') {
       // https://css-tricks.com/what-happens-when-border-radii-overlap/
-      // Note that the tutorial doesn't mention the specification of minRatio < 1 but it's required and said in specification.
+      // Note that the tutorial doesn't mention the specification of minRatio < 1 but it's required as said on it and will malfunction without it.
       const minRatio = Math.min( // 'x / 0 = Infinity' is js, not a problem here.
         width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight), // top
         height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight), // right
