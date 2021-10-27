@@ -187,7 +187,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     /** Not yet treated. May be negative / undefined */
     const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-      if (radiusProp) {
+      if (radiusProp !== undefined) {
         if (typeof radiusProp === 'number')
           return objFromKeys(cornersArray, () => radiusProp);
         else

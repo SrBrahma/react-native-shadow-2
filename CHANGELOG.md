@@ -1,10 +1,11 @@
-## 5.1.0 - 2021-10-02
+## 5.1.1 - 2021-10-27
+* Fixed the multi-children error being raised when > 1 child but `radius={0}`.
 
+## 5.1.0 - 2021-10-02
 * This package now supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps). [#26](https://github.com/SrBrahma/react-native-shadow-2/issues/26). Thanks [@abdullahkn287](abdullahkn287) and [@serzh-f](https://github.com/serzh-f)!
 * [Web] - Removed `shape-rendering: 'crispEdges'` from the SVG parts as since 5.0.0 the Web shadow is pixel perfect (by properly rounding the sizes) and this previous semi-solution is no longer needed.
 
 ## 5.0.0 - 2021-09-19
-
 * Renamed `getChildRadiusStyle` property to `getChildRadius`.
 * Each corner radius is now limited using [this](https://css-tricks.com/what-happens-when-border-radii-overlap/). The link is for CSS but works in the same way for mobile. [#15](https://github.com/SrBrahma/react-native-shadow-2/issues/15). Thanks for the limit suggestion, [@jimmi-joensson](https://github.com/jimmi-joensson)!
 * Added safeRender property to only render on the 2nd render and beyond -- so, no relative rendering on the first render. This is useful when you want a pill/circle like shadow and you are inputting a radius greater than the corresponding sizes. On the future there may be a prop specific for those cases to have them working right on the first render.
@@ -14,7 +15,6 @@
 
 
 ## 4.1.0 - 2021-08-28
-
 * Added `getViewStyleRadius`. [#19](https://github.com/SrBrahma/react-native-shadow-2/issues/19). Thanks [@rbozan](https://github.com/rbozan)!
 * Added support for `borderTopStartRadius`, `borderTopEndRadius`, `borderBottomStartRadius`, `borderTopStartRadius` in `getChildRadiusStyle` and in the new `getViewStyleRadius`. Before, only `left, right, top, bottom` combinations were supported.
 * Code improvements.
