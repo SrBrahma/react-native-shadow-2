@@ -1,3 +1,6 @@
+## 5.1.2 - 2021-11-07
+* Changed tsconfig target from `esnext` to `es6`. [#29](https://github.com/SrBrahma/react-native-shadow-2/issues/29)
+
 ## 5.1.1 - 2021-10-27
 * Fixed the multi-children error being raised when > 1 child but `radius={0}`.
 
