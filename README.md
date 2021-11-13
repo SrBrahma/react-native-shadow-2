@@ -18,7 +18,7 @@ The [ethercreative/react-native-shadow-generator](https://ethercreative.github.i
 
 Compatible with Android, iOS and Web. **And Expo!**
 
-Implementation: [./src/index.tsx](./src/index.tsx)
+Implementation: [./src/index.tsx](https://github.com/SrBrahma/react-native-shadow-2/blob/main/src/index.tsx)
 
 ### [Read the FAQ below!](#️-faq)
 
