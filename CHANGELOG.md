@@ -1,3 +1,9 @@
+## 6.0.0.beta.0 - 2021-12-15
+* Changed shadow wrapping View style from `width: '100%', height: '100%', position: 'absolute',` to `...StyleSheet.absoluteFillObject`. This fixed a strange overflowing shadow on the first render.
+* Changed finalColor default to **transparent startColor** instead of `#000`. This results in a better gradient when startColor isn't black. [Source](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972).
+* Added `shadowViewStyle` property to set the shadow wrapping View style.
+* TODO [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)?
+
 ## 5.1.2 - 2021-11-07
 * Changed tsconfig target from `esnext` to `es6`. [#29](https://github.com/SrBrahma/react-native-shadow-2/issues/29)
 

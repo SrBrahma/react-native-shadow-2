@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
-import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
+import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
 import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, Side } from './utils';
 
@@ -56,7 +56,10 @@ export interface ShadowProps {
    * @default '#00000020' */
   startColor?: string;
   /** The color of the shadow at the maximum distance from the content. Accepts alpha channel.
-   * @default '#0000', transparent. */
+   *
+   * It defaults to a transparent color of `startColor`. E.g.: `startColor` is `#f00`, so it defaults to `#f000`. [Reason here](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972).
+   *
+   * @default Transparent startColor */
   finalColor?: string;
   /** How far the shadow will go.
    * @default 10 */
@@ -116,6 +119,8 @@ export interface ShadowProps {
   viewStyle?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerViewStyle?: StyleProp<ViewStyle>;
+  /** The style of the view wrapping the shadow component. You shouldn't need to use this. */
+  shadowViewStyle?: StyleProp<ViewStyle>;
   /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
    *
    * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
@@ -151,8 +156,9 @@ export const Shadow: React.FC<ShadowProps> = ({
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
   containerViewStyle,
+  shadowViewStyle,
   startColor: startColorProp = '#00000020',
-  finalColor: finalColorProp = '#0000',
+  finalColor: finalColorProp = transparentize(1, startColorProp),
   distance: distanceProp = 10,
   children,
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
@@ -229,7 +235,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
     if (typeof width === 'number' && typeof height === 'number') {
       // https://css-tricks.com/what-happens-when-border-radii-overlap/
-      // Note that the tutorial doesn't mention the specification of minRatio < 1 but it's required as said on it and will malfunction without it.
+      // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
       const minRatio = Math.min( // 'x / 0 = Infinity' is js, not a problem here.
         width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight), // top
         height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight), // right
@@ -434,7 +440,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     return (
       // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
       <View style={[containerViewStyle]} pointerEvents='box-none'>
-        <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
+        <View style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewStyle]}>
           {shadow}
         </View>
         <View
@@ -466,7 +472,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         </View>
       </View>
     );
-  }, [shadow, children, width, height, sizeProp, radii, viewStyle, containerViewStyle, offsetX, offsetY]);
+  }, [containerViewStyle, offsetX, offsetY, shadowViewStyle, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
 
   return result;
 };
