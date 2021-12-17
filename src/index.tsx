@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import type { ViewProps } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
