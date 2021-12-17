@@ -143,6 +143,8 @@ export interface ShadowProps {
    *
    * @default false */
   safeRender?: boolean;
+  /** View props for shadow wrapping view */
+  shadowViewProps?: Omit<ViewProps, 'style'>;
 }
 
 
@@ -162,6 +164,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   paintInside: paintInsideProp,
   viewStyle,
   safeRender = false,
+  shadowViewProps = {},
 }) => {
   const isRTL = I18nManager.isRTL;
 
@@ -434,7 +437,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     return (
       // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
       <View style={[containerViewStyle]} pointerEvents='box-none'>
-        <View style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
+        <View {...shadowViewProps} style={{ width: '100%', height: '100%', position: 'absolute', left: offsetX, top: offsetY }}>
           {shadow}
         </View>
         <View
