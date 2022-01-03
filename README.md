@@ -119,4 +119,5 @@ and then in your Shadow component:
 
 ## 🐛 Notes / Known Issues
 
-* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15). **Update v5:** The radius is now properly limited on the 2nd render and beyond! You may use the safeRender to don't render the shadow until this 2nd render, when the onLayout happens and we get the exact sizes to apply this limit.
+* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15)
+**Update v5:** The radius is now properly limited on the 2nd render and beyond! You may use the safeRender to don't render the shadow until this 2nd render, when the onLayout happens and we get the exact sizes to apply this limit.
