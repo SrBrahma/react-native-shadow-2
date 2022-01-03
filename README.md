@@ -10,7 +10,7 @@
 
 # react-native-shadow-2
 
-[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch. Also, it doesn't require the usage of the `size` property.
+[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch. Also, it doesn't require the usage of the `size` property: the shadow is smartly applied on the first render and then precisely reapplied on the next renders.
 
 It solves the old React Native issue of not having the same shadow appearence and implementation for Android, iOS and Web.
 
@@ -18,23 +18,11 @@ The [ethercreative/react-native-shadow-generator](https://ethercreative.github.i
 
 Compatible with Android, iOS and Web. **And Expo!**
 
-Implementation: [./src/index.tsx](https://github.com/SrBrahma/react-native-shadow-2/blob/main/src/index.tsx)
-
 ### [Read the FAQ below!](#️-faq)
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
-## 📰 [Changelog 5.0.0 (2021-09-19)](./CHANGELOG.md)
-
-
-## 🥳 New version 3.0.0! (2021-07-17) 🥳
-
-### The long waited and most wanted feature is out!
-
-Before this new version, it was required to manually enter your component size or leave it as undefined and the integrated onLayout would get its size and apply the shadow on the next render.
-
-Now, **the shadow is smartly applied on the same render without entering its size!**
-
+## 📰 [Changelog 6.0.0 (2022-01-03)](./CHANGELOG.md)
 
 ## 💿 Installation
 
@@ -51,21 +39,12 @@ yarn add react-native-shadow-2
 
 ## 📖 Usage
 
-### Structure
+### Basic
 ```tsx
 import { Shadow } from 'react-native-shadow-2';
 
 <Shadow>
-   {/* Your component */}
-</Shadow>
-```
-
-### Basic
-```tsx
-<Shadow>
-  <View>
-    <Text style={{ margin: 20, fontSize: 20 }}>🙂</Text>
-  </View>
+  <Text style={{ margin: 20, fontSize: 20 }}>🙂</Text>
 </Shadow>
 ```
 
@@ -91,7 +70,7 @@ import { Shadow } from 'react-native-shadow-2';
 | Property | Description | Type | Default
 | --- | --- | --- | ---
 | **startColor** | The color of the shadow when it's right next to the given content, leaving it. Accepts alpha channel. | `string` | `'#00000020'`
-| **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | `'#0000', transparent.`
+| **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | Transparent color of startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
 | **distance** | How far the shadow will go. | `number` | `10`
 | **radius** | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, undefined corners will have the radius of the `default` property if it's defined.<br/><br/>If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.<br/><br/>Each corner fallbacks to 0. | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined`
 | **getChildRadius** | If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.<br/><br/>If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style. | `boolean` | `true`
@@ -111,17 +90,17 @@ import { Shadow } from 'react-native-shadow-2';
 
 **Q**: How to set the Shadow opacity?
 
-**A**: The opacity in react-native-shadow-2, differently from the original version, is set directly at the `startColor` and `finalColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
+**A**: The opacity in react-native-shadow-2, differently from the "original" version, is set directly at the `startColor` and `finalColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
 
 
 **Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
 
-**A**: Use `viewStyle={{alignSelf: 'stretch'}}` or `undefined` instead of `'stretch'`, in your Shadow component. Read the link above to understand why!
+**A**: Use `viewStyle={{alignSelf: 'stretch'}}` or `undefined` instead of `'stretch'`, in your Shadow component. Explanation in link above!
 
 
 **Q**: I want a preset for my Shadows, so I don't have to type the same props among them and I want to quickly change them all if I want to!
 
-**A**: This package exports the `ShadowProps` type, that are the props of the Shadow component. I am for example using the following:
+**A**: This package exports the `ShadowProps` type, that are the props of the Shadow component. You may do the following:
 ```tsx
 export const ShadowPresets = {
   button: {
@@ -141,9 +120,3 @@ and then in your Shadow component:
 ## 🐛 Notes / Known Issues
 
 * [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15). **Update v5:** The radius is now properly limited on the 2nd render and beyond! You may use the safeRender to don't render the shadow until this 2nd render, when the onLayout happens and we get the exact sizes to apply this limit.
-
-* **`[Mobile]`** The shadow, since v3, will be applied on the first render even if no size is passed to it, as we now magically use relative positioning and sizing.
-There may be a pixel wide gap on the first render on the right and bottom SVG parts connections, due to how React Native and react-native-svg handles percentage sizings and roundings. It's fixed automatically
-on the following render, as this lib will get the exact pixel size of the child component using onLayout.
-This gap won't always happen and it's usually hardly noticeable, and it happens very fast, it's just one render.
-If you don't want to this to happen at all, you can use the `size` property.

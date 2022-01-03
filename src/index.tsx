@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
@@ -119,8 +119,8 @@ export interface ShadowProps {
   viewStyle?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerViewStyle?: StyleProp<ViewStyle>;
-  /** The style of the view wrapping the shadow component. You shouldn't need to use this. */
-  shadowViewStyle?: StyleProp<ViewStyle>;
+  /** Props for the Shadow view. You shouldn't need to use this. You may pass style to this. */
+  shadowViewProps?: ViewProps;
   /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
    *
    * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
@@ -156,7 +156,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
   containerViewStyle,
-  shadowViewStyle,
+  shadowViewProps,
   startColor: startColorProp = '#00000020',
   finalColor: finalColorProp = transparentize(1, startColorProp),
   distance: distanceProp = 10,
@@ -440,7 +440,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     return (
       // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
       <View style={[containerViewStyle]} pointerEvents='box-none'>
-        <View style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewStyle]}>
+        <View pointerEvents='none' {...shadowViewProps} style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewProps?.style]}>
           {shadow}
         </View>
         <View
@@ -472,7 +472,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         </View>
       </View>
     );
-  }, [containerViewStyle, offsetX, offsetY, shadowViewStyle, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
+  }, [containerViewStyle, offsetX, offsetY, shadowViewProps, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
 
   return result;
 };

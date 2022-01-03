@@ -12,14 +12,14 @@ module.exports = {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "tsconfigRootDir": __dirname, // *1
-    "project": ['./tsconfig.json'], // *1
+    "project": ['./tsconfig.lint.json'], // *1
     "ecmaVersion": 12,
     "sourceType": "module",
     "ecmaFeatures": { // *2
       "jsx": true
     }
   },
-  "ignorePatterns": ["*.js", "*.json", "resources"],
+  "ignorePatterns": [".eslintrc.js"],
   "rules": {
   }
 };

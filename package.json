@@ -1,12 +1,10 @@
 {
   "name": "react-native-shadow-2",
-  "version": "6.0.0-beta.0",
+  "version": "6.0.0",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "files": [
-    "/lib"
-  ],
+  "files": ["/lib"],
   "scripts": {
     "test": "",
     "clean": "rimraf lib",
@@ -24,20 +22,20 @@
   "keywords": [
     "shadow",
     "shadows",
-    "native",
     "react-native",
+    "native",
+    "gradient",
+    "ios",
+    "android",
+    "react",
     "cross-platform",
     "automatic",
     "typescript",
     "cross",
-    "react",
-    "svg",
-    "ios",
-    "android",
     "blur",
-    "gradient",
     "shadow-2",
-    "native-shadow"
+    "native-shadow",
+    "svg"
   ],
   "author": "Henrique Bruno (aka SrBrahma)",
   "license": "ISC",
