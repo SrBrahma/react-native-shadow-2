@@ -95,7 +95,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 **Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
 
-**A**: Use `viewStyle={{alignSelf: 'stretch'}}` or `undefined` instead of `'stretch'`, in your Shadow component. Explanation in link above!
+**A**: Use `viewStyle={{alignSelf: 'stretch'}}` in your Shadow component. Explanation in link above!
 
 
 **Q**: I want a preset for my Shadows, so I don't have to type the same props among them and I want to quickly change them all if I want to!
