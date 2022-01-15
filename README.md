@@ -82,7 +82,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **viewStyle** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. | `StyleProp<ViewStyle>` | `undefined`
 | **containerViewStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
 | **getChildRadius** | If it should try to get the radii from the child's view `style` if our `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `viewStyle` have priority over child's view style, if **`getViewStyleRadius`**. | `boolean` | `true`
-| **getViewStyleRadius** | If it should try to get the radii from the **`viewStyle`** if our `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `viewStyle` have priority over child's view style, if **`getViewStyleRadius`**. | `boolean` | `true`
+| **getViewStyleRadius** | If it should try to get the radii from the `viewStyle` if `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `viewStyle` have priority over child's view style, if **`getViewStyleRadius`**. | `boolean` | `true`
 
 <!--/$shadowProperties-->
 
