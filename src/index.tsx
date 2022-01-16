@@ -373,7 +373,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
         style={{
           position: 'absolute', top: -distance, left: width,
-          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
+          transform: [{ translateX: isRTL ? topRight : -topRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
         }}
       >
         <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
