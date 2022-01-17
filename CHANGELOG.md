@@ -1,5 +1,5 @@
 ## 6.0.1 - 2022-01-16
-* Fixed topRight corner using bottomRight radius in its positioning. [#33](https://github.com/SrBrahma/react-native-shadow-2/pull/33). Thanks, [@timqha](https://github.com/timqha)!
+* Fixed topRight corner using bottomRight radius on its positioning instead its own radius. [#33](https://github.com/SrBrahma/react-native-shadow-2/pull/33). Thanks, [@timqha](https://github.com/timqha)!
 
 ## 6.0.0 - 2022-01-03
 * Changed finalColor default to **transparent startColor** instead of `#000`. This results in a better gradient when startColor isn't black. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972). As this (unlikely) may lead to unexpected visual results in your app, made this version a major.
