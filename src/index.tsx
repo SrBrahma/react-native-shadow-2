@@ -6,6 +6,9 @@ import type { RgbaColor } from 'polished/lib/types/color';
 import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, Side } from './utils';
 
 
+/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
+ * and somehow may be useful to you. */
+export const version = '6.0.2';
 
 const isWeb = Platform.OS === 'web';
 

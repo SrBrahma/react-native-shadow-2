@@ -1,3 +1,7 @@
+## 6.0.2 - 2022-01-26
+* Changed `react-native-svg` peerDep version from `'*'` to `'^12.1.0'` to warn users using older and certainly incompatible versions.
+* Added `version` export, the package semver version.
+
 ## 6.0.1 - 2022-01-16
 * Fixed topRight corner using bottomRight radius on its positioning instead its own radius. [#33](https://github.com/SrBrahma/react-native-shadow-2/pull/33). Thanks, [@timqha](https://github.com/timqha)!
 
