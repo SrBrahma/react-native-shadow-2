@@ -26,7 +26,7 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 ## 💿 Installation
 
-### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg).
+### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg#installation).
 
 ### 2. Then install react-native-shadow-2:
 
