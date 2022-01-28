@@ -22,7 +22,7 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
-## 📰 [Changelog 6.0.0 (2022-01-03)](./CHANGELOG.md)
+## 📰 [Changelog](./CHANGELOG.md)
 
 ## 💿 Installation
 
