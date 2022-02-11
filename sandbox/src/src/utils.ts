@@ -1,6 +1,7 @@
 import { ViewStyle } from 'react-native';
 
 
+
 export type Side = 'left' | 'right' | 'top' | 'bottom';
 export type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 export type CornerRadius = Record<Corner, number>;

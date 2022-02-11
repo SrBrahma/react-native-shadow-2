@@ -8,7 +8,7 @@ import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, S
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
  * and somehow may be useful to you. */
-export const version = '6.0.2';
+export const version = '6.0.3';
 
 const isWeb = Platform.OS === 'web';
 
@@ -212,7 +212,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
       if (getViewStyleRadius) {
         const mergedViewStyle = StyleSheet.flatten(viewStyle ?? {}); // Convert possible array style to a single obj style.
-        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle?.borderRadius) as Record<Corner, number | undefined>;
+        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
       }
 
       // Only enter block if there is a undefined corner that may now be defined;
@@ -224,7 +224,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
         mergedStyle = objFromKeys(cornersArray, (k) =>
           mergedStyle[k] ?? // Don't overwrite viewStyle already defined radiuses.
-          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle?.borderRadius) as Record<Corner, number | undefined>;
+          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle.borderRadius) as Record<Corner, number | undefined>;
       }
 
       return mergedStyle;
@@ -418,18 +418,25 @@ export const Shadow: React.FC<ShadowProps> = ({
       {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional}
         style={{ position: 'absolute', ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
-        <Defs>
-          <Mask id='maskPaintBelow'>
-            {/* Paint all white, then black on border external areas to erase them */}
-            <Rect width={width} height={height} fill='#fff'/>
-            {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
-            <Rect width={topLeft} height={topLeft} fill='#000'/>
-            <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
-            <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
-            <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
-          </Mask>
-        </Defs>
-        <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+        {(typeof width === 'number' && typeof height === 'number')
+          // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
+          // We use Path as workaround to it.
+          ? (<Path fill={startColor} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
+          : (<>
+            <Defs>
+              <Mask id='maskPaintBelow'>
+                {/* Paint all white, then black on border external areas to erase them */}
+                <Rect width={width} height={height} fill='#fff'/>
+                {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
+                <Rect width={topLeft} height={topLeft} fill='#000'/>
+                <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
+                <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
+                <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
+              </Mask>
+            </Defs>
+            <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+          </>)
+        }
       </Svg>
       }
 
@@ -442,12 +449,12 @@ export const Shadow: React.FC<ShadowProps> = ({
   const result = useMemo(() => {
     return (
       // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-      <View style={[containerViewStyle]} pointerEvents='box-none'>
+      <View style={containerViewStyle} pointerEvents='box-none'>
         <View pointerEvents='none' {...shadowViewProps} style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewProps?.style]}>
           {shadow}
         </View>
         <View
-          pointerEvents="box-none"
+          pointerEvents='box-none'
           style={[
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882

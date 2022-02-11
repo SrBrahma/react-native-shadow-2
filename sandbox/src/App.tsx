@@ -1,7 +1,7 @@
 // Sandbox to test the library. I tried using the symlink npx workaround but it's somewhat bugged.
 // Using a copy of the lib code here.
 import React, { useState } from 'react';
-import { I18nManager, Pressable, StatusBar, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { I18nManager, Platform, Pressable, StatusBar, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Slider } from '@sharcoux/slider';
 import { PageScrollView } from 'pagescrollview';
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: 12,
-    fontFamily: 'monospace',
+    fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier',
   },
   decIncButton: {
     backgroundColor: '#fff',

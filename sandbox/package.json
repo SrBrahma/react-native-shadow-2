@@ -7,34 +7,28 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@sharcoux/slider": "5.4.3",
-    "expo": "~42.0.3",
-    "pagescrollview": "1.1.0",
-    "polished": "4.1.3",
+    "@sharcoux/slider": "5.6.4",
+    "expo": "~44.0.6",
+    "pagescrollview": "1.3.2",
+    "polished": "4.1.4",
     "react": "16.13.1",
     "react-dom": "16.13.1",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-41.0.0.tar.gz",
+    "react-native": "0.63.4",
     "react-native-safe-area-context": "3.2.0",
     "react-native-svg": "12.1.1",
     "react-native-web": "~0.13.12",
     "tinycolor2": "1.4.2"
   },
   "devDependencies": {
-    "@babel/core": "7.15.5",
-    "@types/react": "~16.9.35",
-    "@types/react-native": "~0.63.2",
+    "@babel/core": "7.17.2",
+    "@types/react": "~17.0.39",
+    "@types/react-native": "~0.66.15",
     "@types/react-native-simple-radio-button": "2.7.1",
     "@types/tinycolor2": "1.4.3",
-    "@typescript-eslint/eslint-plugin": "4.31.1",
-    "@typescript-eslint/parser": "4.31.1",
     "babel-plugin-module-resolver": "4.1.0",
-    "eslint": "7.32.0",
-    "eslint-config-gev": "2.13.0",
-    "eslint-plugin-react": "7.25.2",
-    "eslint-plugin-react-hooks": "4.2.0",
-    "eslint-plugin-react-native": "3.11.0",
+    "eslint-config-gev": "2.27.2",
     "metro-with-symlinks": "1.4.0",
-    "typescript": "4.4.3"
+    "typescript": "4.5.5"
   },
   "private": true
 }

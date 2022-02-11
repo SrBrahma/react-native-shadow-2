@@ -1,3 +1,6 @@
+## 6.0.3 - 2022-02-11
+* Fixed paintInside gaps on iOS. [#36](https://github.com/SrBrahma/react-native-shadow-2/issues/36). Thanks, [@walterholohan](https://github.com/walterholohan)!
+
 ## 6.0.2 - 2022-01-26
 * Changed `react-native-svg` peerDep version from `'*'` to `'^12.1.0'` to warn users using older and certainly incompatible versions.
 * Added `version` export, the package semver version.
