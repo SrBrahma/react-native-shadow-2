@@ -81,9 +81,9 @@ import { Shadow } from 'react-native-shadow-2';
 | **safeRender** | If you don't want the relative sizing and positioning of the shadow on the 1st render but only on the 2nd render and beyond with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes, to avoid visual artifacts on the first render.<br/><br/>When `true`, the shadow only appears after the first render, where it's invisible. | `boolean` | `false`
 | **style** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
+| **stretch** | If your children shall ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
 | **getChildRadius** | If it should try to get the radii from the child's view `style` if our `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `style` have priority over child's view style, if **`getStyleRadius`**. | `boolean` | `true`
 | **getStyleRadius** | If it should try to get the radii from the `style` if `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `style` have priority over child's view style, if **`getStyleRadius`**. | `boolean` | `true`
-| **stretch** | If your children shall ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
 <!--/$shadowProperties-->
 
 ## ⁉️ FAQ
