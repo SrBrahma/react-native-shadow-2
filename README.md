@@ -83,7 +83,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **containerViewStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
 | **getChildRadius** | If it should try to get the radii from the child's view `style` if our `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `viewStyle` have priority over child's view style, if **`getViewStyleRadius`**. | `boolean` | `true`
 | **getViewStyleRadius** | If it should try to get the radii from the `viewStyle` if `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `viewStyle` have priority over child's view style, if **`getViewStyleRadius`**. | `boolean` | `true`
-
+| **stretch** | If your children shall ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
 <!--/$shadowProperties-->
 
 ## ⁉️ FAQ

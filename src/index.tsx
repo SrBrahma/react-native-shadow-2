@@ -8,7 +8,7 @@ import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, S
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
  * and somehow may be useful to you. */
-export const version = '6.0.3';
+export const version = '7.0.0';
 
 const isWeb = Platform.OS === 'web';
 
@@ -151,6 +151,14 @@ export interface ShadowProps {
    *
    * @default false */
   safeRender?: boolean;
+  /** Use this when you want your children to ocuppy all available horizontal space.
+   *
+   * Shortcut to `style={{alignSelf: 'stretch'}}.
+   *
+   * [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
+   *
+   * @default false */
+  stretch?: boolean;
 }
 
 
@@ -171,6 +179,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   paintInside: paintInsideProp,
   viewStyle,
   safeRender = false,
+  stretch = false,
 }) => {
   const isRTL = I18nManager.isRTL;
 
@@ -458,7 +467,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           style={[
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            { alignSelf: 'flex-start' },
+            { alignSelf: stretch ? 'stretch' : 'flex-start' },
             sizeProp && {
               width, height,
               borderTopLeftRadius: radii.topLeft, // can't remember why we are passing the radii here.
@@ -482,7 +491,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         </View>
       </View>
     );
-  }, [containerViewStyle, offsetX, offsetY, shadowViewProps, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
+  }, [containerViewStyle, shadowViewProps, offsetX, offsetY, shadow, stretch, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
 
   return result;
 };
