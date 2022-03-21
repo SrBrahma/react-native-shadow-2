@@ -1,54 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
+import { I18nManager, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
-import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, radialGradient, RadialGradientPropsOmited, RadiusProp, Side } from './utils';
-
-
-/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
- * and somehow may be useful to you. */
-export const version = '7.0.0';
-
-const isWeb = Platform.OS === 'web';
-
-/** Rounds the given size to a pixel perfect size. */
-export function R(value: number): number {
-  // In Web, 1dp=1px. But it accepts decimal sizes, and it's somewhat problematic.
-  // The size rounding is browser-dependent, so we do the decimal rounding for web by ourselves to have a
-  // consistent behavior. We floor it, because it's better for the child to overlap by a pixel the right/bottom shadow part
-  // than to have a pixel wide gap between them.
-  if (isWeb)
-    return Math.floor(value);
-
-  return PixelRatio.roundToNearestPixel(value);
-}
-/** Converts dp to pixels. */
-function P(value: number) {
-  if (isWeb) return value;
-  return PixelRatio.getPixelSizeForLayoutSize(value);
-}
-/** How many pixels for each dp. scale = pixels/dp */
-const scale = isWeb ? 1 : PixelRatio.get();
-
-/** Converts two sizes to pixel for perfect math, sum them and converts the result back to dp. */
-function sumDps(a: number, b: number) {
-  if (isWeb) return a + b;
-  return R((P(a) + P(b)) / scale);
-}
-
-/** [Android/ios?] [*4] A small safe margin for the svg sizes.
- *
- * It fixes some gaps that we had, as even that the svg size and the svg rect for example size were the same, this rect
- * would still strangely be cropped/clipped. We give this additional size to the svg so our rect/etc won't be unintendedly clipped.
- *
- * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
-const additional = isWeb ? 0 : 1;
-
-const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
-// const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
-const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
-
+import {
+  additional, Corner, CornerRadius, CornerRadiusShadow, cornersArray, cornerToStyle, objFromKeys,
+  R, radialGradient, RadialGradientPropsOmited, RadiusProp, Side, sidesArray, sumDps,
+} from './utils';
 
 
 
@@ -231,6 +189,14 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     const startColorOpacity = startColorRgb.alpha ?? 1;
     const finalColorOpacity = finalColorRgb.alpha ?? 1;
 
+    // Fragment wasn't working for some reason, so, using array.
+    const linearGradient = [
+      // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
+      // In web, smaller offsets needs to come before, so offset={0} definition comes first.
+      <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
+      <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
+    ];
+
     const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
       ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity,
     });
@@ -251,14 +217,6 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
 
     /** Which corners will have shadow. */
     const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
-
-    // Fragment wasn't working for some reason, so, using array.
-    const linearGradient = [
-      // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
-      // In web, smaller offsets needs to come before, so offset={0} definition comes first.
-      <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
-      <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
-    ];
 
 
     return (<>
