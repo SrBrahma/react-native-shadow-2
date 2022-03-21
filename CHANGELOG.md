@@ -2,14 +2,13 @@
 * Added `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
 * Renamed `containerViewStyle` property to `containerStyle`.
 * Renamed `viewStyle` property to `style`.
-* Renamed `getViewStyleRadius` to `getStyleRadius`
-* Improved performance and RAM usage due to some general refactorings.
-
+* Removed `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
+* Improved performance and RAM usage due to some general refactorings and improved memoizations.
 ### TODO
 * Use colord instead of polished?
-* [] Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
-* (Smart stretch? check for width/height etc?)
-* [] Removed error when there isn't a child or more than one.
+* Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
+* Smart stretch? check for width/height etc?
+* Removed error when there isn't a child or more than one.
 
 ## 6.0.3 - 2022-02-11
 * Fixed paintInside gaps on iOS. [#36](https://github.com/SrBrahma/react-native-shadow-2/issues/36). Thanks, [@walterholohan](https://github.com/walterholohan)!
