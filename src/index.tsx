@@ -32,7 +32,7 @@ export interface ShadowProps {
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
    * Each corner fallbacks to 0. */
-  radius?: RadiusProp;
+  radius?: number | { default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    *
@@ -130,8 +130,6 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     radius: radiusProp,
     sides: sidesProp = ['left', 'right', 'top', 'bottom'],
     corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
-    containerStyle,
-    shadowViewProps,
     startColor: startColorProp = '#00000020',
     finalColor: finalColorProp = transparentize(1, startColorProp),
     distance: distanceProp = 10,
@@ -144,7 +142,6 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     stretch = false,
     /** Defaults to true if offset is defined, else defaults to false */
     paintInside = props.offset ? true : false,
-    offset: [offsetX, offsetY] = [0, 0],
   } = props;
 
   const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
@@ -154,222 +151,39 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     [width, height, children, radiusProp, style, getChildRadius, getStyleRadius],
   );
 
-  const shadow = useMemo(() => {
-
-    // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
-    if (safeRender && (typeof width === 'string' || typeof height === 'string'))
-      return null;
-
-    /** To be used inside Svg style */
-    const rtlStyle = isRTL && { transform: [{ scaleX: -1 }] };
-    /** To be used inside Svg style.transform */
-    const rtlTransform = isRTL ? [{ scaleX: -1 }] : [];
-
-    const distance = R(Math.max(distanceProp, 0)); // Min val as 0
-    const distanceWithAdditional = distance + additional;
-
-    /** Will (+ additional), only if its value isn't '100%'. [*4] */
-    const widthWithAdditional = typeof width === 'string' ? width : width + additional;
-    /** Will (+ additional), only if its value isn't '100%'. [*4] */
-    const heightWithAdditional = typeof height === 'string' ? height : height + additional;
-
-    // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
-    const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
-    const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
-
-    const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
-    const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
-
-    // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
-    // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
-    // it isn't applied twice.
-    const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined }); // overwrite alpha
-    const finalColorWoOpacity = rgbToColorString({ ...finalColorRgb, alpha: undefined });
-
-    const startColorOpacity = startColorRgb.alpha ?? 1;
-    const finalColorOpacity = finalColorRgb.alpha ?? 1;
-
-    // Fragment wasn't working for some reason, so, using array.
-    const linearGradient = [
-      // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
-      // In web, smaller offsets needs to come before, so offset={0} definition comes first.
-      <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
-      <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
-    ];
-
-    const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
-      ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity,
-    });
-
-    const { topLeft, topRight, bottomLeft, bottomRight } = radii;
-
-    const cornerShadowRadius: CornerRadiusShadow = { // Not using objFromKeys here as the key is different
-      topLeftShadow: sumDps(topLeft, distance),
-      topRightShadow: sumDps(topRight, distance),
-      bottomLeftShadow: sumDps(bottomLeft, distance),
-      bottomRightShadow: sumDps(bottomRight, distance),
-    };
-
-    const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
-
-    /** Which sides will have shadow. */
-    const activeSides: Record<Side, boolean> = objFromKeys(sidesArray, (k) => sidesProp.includes(k));
-
-    /** Which corners will have shadow. */
-    const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
-
-
-    return (<>
-      {/* Sides */}
-
-      {activeSides.left && <Svg
-        width={distanceWithAdditional} height={heightWithAdditional}
-        style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-        {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
-          just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-        <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
-      </Svg>
-      }
-      {activeSides.right && <Svg
-        width={distanceWithAdditional} height={heightWithAdditional}
-        style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-        <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
-      </Svg>
-      }
-      {activeSides.bottom && <Svg
-        width={widthWithAdditional} height={distanceWithAdditional}
-        style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-        <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
-      </Svg>
-      }
-      {activeSides.top && <Svg
-        width={widthWithAdditional} height={distanceWithAdditional}
-        style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-        <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
-      </Svg>
-      }
-
-
-      {/* Corners */}
-
-      {/* The anchor for the svgs path is the top left point in the corner square.
-        The starting point is the clockwise external arc init point. */}
-
-      {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
-      >
-        <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
-        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
-        } h${-distance} Z`}/>
-      </Svg>}
-
-      {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
-        style={{
-          position: 'absolute', top: -distance, left: width,
-          transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
-        }}
-      >
-        <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
-        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-          ? `h${-topRight} v${-topLeft}`
-          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
-        } v${-distance} Z`}/>
-        {/*  */}
-      </Svg>}
-
-      {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
-      >
-        <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
-        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
-          ? `h${bottomLeft} v${bottomLeft}`
-          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
-        } v${distance} Z`}/>
-      </Svg>}
-
-      {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
-        style={{
-          position: 'absolute', top: height, left: width,
-          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...rtlTransform],
-        }}
-      >
-        <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
-        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
-          ? `v${-bottomRight} h${bottomRight}`
-          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
-        } h${distance} Z`}/>
-      </Svg>}
-
-
-      {/* Paint the inner area, so we can offset it.
-        [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
-        and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
-        paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional}
-        style={{ position: 'absolute', ...rtlStyle }}
-      >
-        {(typeof width === 'number' && typeof height === 'number')
-          // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
-          // We use Path as workaround to it.
-          ? (<Path fill={startColor} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
-          : (<>
-            <Defs>
-              <Mask id='maskPaintBelow'>
-                {/* Paint all white, then black on border external areas to erase them */}
-                <Rect width={width} height={height} fill='#fff'/>
-                {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
-                <Rect width={topLeft} height={topLeft} fill='#000'/>
-                <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
-                <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
-                <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
-              </Mask>
-            </Defs>
-            <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
-          </>)
-        }
-      </Svg>
-      }
-
-    </>);
-  }, [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, paintInside, sidesProp, cornersProp]);
+  const shadow = useMemo(() => getShadow({ safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside }),
+    [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, paintInside, sidesProp, cornersProp],
+  );
 
   const result = useMemo(() => {
+    const [offsetX, offsetY] = props.offset ?? [0, 0];
     return (
       // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-      <View style={containerStyle} pointerEvents='box-none'>
-        <View pointerEvents='none' {...shadowViewProps} style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewProps?.style]}>
+      <View style={props.containerStyle} pointerEvents='box-none'>
+        <View pointerEvents='none' {...props.shadowViewProps} style={[{
+          ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY,
+        }, props.shadowViewProps?.style]}
+        >
           {shadow}
         </View>
         <View
           pointerEvents='box-none'
-          style={[
+          style={[{
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            { alignSelf: stretch ? 'stretch' : 'flex-start' },
-            sizeProp && {
-              width, height,
-              borderTopLeftRadius: radii.topLeft, // can't remember why we are passing the radii here.
-              borderTopRightRadius: radii.topRight,
-              borderBottomLeftRadius: radii.bottomLeft,
-              borderBottomRightRadius: radii.bottomRight,
-            }, style,
-          ]}
-
+            alignSelf: stretch ? 'stretch' : 'flex-start',
+            borderTopLeftRadius: radii.topLeft, // can't remember why we are passing the radii here.
+            borderTopRightRadius: radii.topRight,
+            borderBottomLeftRadius: radii.bottomLeft,
+            borderBottomRightRadius: radii.bottomRight,
+          },
+          sizeProp && { width, height },
+          style]}
           onLayout={(e) => {
             if (sizeProp) // For some really strange reason, attaching conditionally the onLayout wasn't working
               return; // on condition change, so we check here inside if the sizeProp is defined.
-              // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
-              // inspector is decimal. It will round up if (>= .5), else, down.
+            // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
+            // inspector is decimal. It will round up if (>= .5), else, down.
             const layout = e.nativeEvent.layout;
             setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
             setChildHeight(layout.height);
@@ -379,10 +193,11 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
         </View>
       </View>
     );
-  }, [containerStyle, shadowViewProps, offsetX, offsetY, shadow, stretch, sizeProp, width, height, radii, style, children]);
+  }, [shadow, width, height, style, children, props.offset, props.containerStyle, props.shadowViewProps, stretch, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, sizeProp]);
 
   return result;
 };
+
 
 
 function getRadii({
@@ -452,4 +267,198 @@ function getRadii({
   }
 
   return result;
+}
+
+
+
+function getShadow({
+  safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside,
+}: {
+  safeRender: boolean;
+  width: string | number;
+  height: string | number;
+  isRTL: boolean;
+  distanceProp: number;
+  startColorProp: string;
+  finalColorProp: string;
+  radii: CornerRadius;
+  sidesProp: ('top' | 'left' | 'right' | 'bottom')[];
+  cornersProp: ('topRight' | 'topLeft' | 'bottomLeft' | 'bottomRight')[];
+  paintInside: boolean;
+}): JSX.Element | null {
+  // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
+  if (safeRender && (typeof width === 'string' || typeof height === 'string'))
+    return null;
+
+  /** To be used inside Svg style */
+  const rtlStyle = isRTL && { transform: [{ scaleX: -1 }] };
+  /** To be used inside Svg style.transform */
+  const rtlTransform = isRTL ? [{ scaleX: -1 }] : [];
+
+  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
+  const distanceWithAdditional = distance + additional;
+
+  /** Will (+ additional), only if its value isn't '100%'. [*4] */
+  const widthWithAdditional = typeof width === 'string' ? width : width + additional;
+  /** Will (+ additional), only if its value isn't '100%'. [*4] */
+  const heightWithAdditional = typeof height === 'string' ? height : height + additional;
+
+  // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
+  const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
+  const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
+
+  const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
+  const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
+
+  // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
+  // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
+  // it isn't applied twice.
+  const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined }); // overwrite alpha
+  const finalColorWoOpacity = rgbToColorString({ ...finalColorRgb, alpha: undefined });
+
+  const startColorOpacity = startColorRgb.alpha ?? 1;
+  const finalColorOpacity = finalColorRgb.alpha ?? 1;
+
+  // Fragment wasn't working for some reason, so, using array.
+  const linearGradient = [
+    // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
+    // In web, smaller offsets needs to come before, so offset={0} definition comes first.
+    <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
+    <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
+  ];
+
+  const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
+    ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity,
+  });
+
+  const { topLeft, topRight, bottomLeft, bottomRight } = radii;
+
+  const cornerShadowRadius: CornerRadiusShadow = {
+    topLeftShadow: sumDps(topLeft, distance),
+    topRightShadow: sumDps(topRight, distance),
+    bottomLeftShadow: sumDps(bottomLeft, distance),
+    bottomRightShadow: sumDps(bottomRight, distance),
+  };
+
+  const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
+
+  /** Which sides will have shadow. */
+  const activeSides: Record<Side, boolean> = objFromKeys(sidesArray, (k) => sidesProp.includes(k));
+
+  /** Which corners will have shadow. */
+  const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
+
+
+  return (<>
+    {/* Sides */}
+
+    {activeSides.left && <Svg
+      width={distanceWithAdditional} height={heightWithAdditional}
+      style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
+    >
+      <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+      {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
+                  just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
+      <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
+    </Svg>}
+    {activeSides.right && <Svg
+      width={distanceWithAdditional} height={heightWithAdditional}
+      style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
+    >
+      <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+      <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
+    </Svg>}
+    {activeSides.bottom && <Svg
+      width={widthWithAdditional} height={distanceWithAdditional}
+      style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
+    >
+      <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+      <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
+    </Svg>}
+    {activeSides.top && <Svg
+      width={widthWithAdditional} height={distanceWithAdditional}
+      style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
+    >
+      <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+      <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
+    </Svg>}
+
+
+    {/* Corners */}
+
+    {/* The anchor for the svgs path is the top left point in the corner square.
+              The starting point is the clockwise external arc init point. */}
+
+    {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
+      style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
+    >
+      <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
+      <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+        ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
+        : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`} h${-distance} Z`}/>
+    </Svg>}
+
+    {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+      style={{
+        position: 'absolute', top: -distance, left: width,
+        transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
+      }}
+    >
+      <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
+      <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
+        ? `h${-topRight} v${-topLeft}`
+        : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
+      {/*  */}
+    </Svg>}
+
+    {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+      style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
+    >
+      <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
+      <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
+        ? `h${bottomLeft} v${bottomLeft}`
+        : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`} v${distance} Z`}/>
+    </Svg>}
+
+    {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+      style={{
+        position: 'absolute', top: height, left: width,
+        transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...rtlTransform],
+      }}
+    >
+      <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
+      <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
+        ? `v${-bottomRight} h${bottomRight}`
+        : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`} h${distance} Z`}/>
+    </Svg>}
+
+
+    {/* Paint the inner area, so we can offset it.
+              [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
+              and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
+              paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
+    {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional}
+      style={{ position: 'absolute', ...rtlStyle }}
+    >
+      {(typeof width === 'number' && typeof height === 'number')
+      // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
+      // We use Path as workaround to it.
+        ? (<Path fill={startColor} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
+        : (<>
+          <Defs>
+            <Mask id='maskPaintBelow'>
+              {/* Paint all white, then black on border external areas to erase them */}
+              <Rect width={width} height={height} fill='#fff'/>
+              {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
+              <Rect width={topLeft} height={topLeft} fill='#000'/>
+              <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
+              <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
+              <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
+            </Mask>
+          </Defs>
+          <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+        </>)}
+    </Svg>}
+
+  </>);
 }
