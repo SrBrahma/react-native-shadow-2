@@ -1,9 +1,10 @@
 # 7.0.0 - 2022-03-21
-* [] Added `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
-* (Smart stretch? check for width/height etc?)
+* Added `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
+* Renamed `containerViewStyle` property to `containerStyle`.
+### TODO
 * [] Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
+* (Smart stretch? check for width/height etc?)
 * [] Removed error when there isn't a child or more than one.
-* [] Renamed properties:
 * * [] `viewStyle` to `style`
 
 ## 6.0.3 - 2022-02-11

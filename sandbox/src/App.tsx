@@ -125,7 +125,7 @@ export const App: React.FC = () => {
                 paintInside={paintInside}
                 getChildRadius={getChildRadius}
                 getViewStyleRadius={getViewStyleRadius}
-                containerViewStyle={{ margin: 100 }}
+                containerStyle={{ margin: 100 }}
                 size={doUseSizeProp ? size : undefined}
                 radius={getChildRadius ? undefined : borderRadius}
                 // TopEnd to check if it's supporting the Start/End combinations. When uncommenting this, also comment radius prop above.

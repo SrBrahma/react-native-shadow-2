@@ -121,7 +121,7 @@ export interface ShadowProps {
    * by undefine'ing the changed styles in this property. */
   viewStyle?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
-  containerViewStyle?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
   /** Props for the Shadow view. You shouldn't need to use this. You may pass style to this. */
   shadowViewProps?: ViewProps;
   /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
@@ -158,7 +158,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   radius: radiusProp,
   sides: sidesProp = ['left', 'right', 'top', 'bottom'],
   corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
-  containerViewStyle,
+  containerStyle,
   shadowViewProps,
   startColor: startColorProp = '#00000020',
   finalColor: finalColorProp = transparentize(1, startColorProp),
@@ -449,7 +449,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   const result = useMemo(() => {
     return (
       // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-      <View style={containerViewStyle} pointerEvents='box-none'>
+      <View style={containerStyle} pointerEvents='box-none'>
         <View pointerEvents='none' {...shadowViewProps} style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewProps?.style]}>
           {shadow}
         </View>
@@ -482,7 +482,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         </View>
       </View>
     );
-  }, [containerViewStyle, offsetX, offsetY, shadowViewProps, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
+  }, [containerStyle, offsetX, offsetY, shadowViewProps, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
 
   return result;
 };
