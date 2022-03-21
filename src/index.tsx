@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
-import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
+import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
-import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, Side } from './utils';
+import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, radialGradient, RadialGradientPropsOmited, Side } from './utils';
 
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
@@ -162,25 +162,28 @@ export interface ShadowProps {
 }
 
 
-export const Shadow: React.FC<ShadowProps> = ({
-  radius: radiusProp,
-  sides: sidesProp = ['left', 'right', 'top', 'bottom'],
-  corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
-  containerStyle,
-  shadowViewProps,
-  startColor: startColorProp = '#00000020',
-  finalColor: finalColorProp = transparentize(1, startColorProp),
-  distance: distanceProp = 10,
-  children,
-  size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
-  offset,
-  getChildRadius = true,
-  getStyleRadius = true,
-  paintInside: paintInsideProp,
-  style,
-  safeRender = false,
-  stretch = false,
-}) => {
+export const Shadow: React.FC<ShadowProps> = (props) => {
+
+  const {
+    radius: radiusProp,
+    sides: sidesProp = ['left', 'right', 'top', 'bottom'],
+    corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
+    containerStyle,
+    shadowViewProps,
+    startColor: startColorProp = '#00000020',
+    finalColor: finalColorProp = transparentize(1, startColorProp),
+    distance: distanceProp = 10,
+    children,
+    size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
+    offset,
+    getChildRadius = true,
+    getStyleRadius = true,
+    paintInside: paintInsideProp,
+    style,
+    safeRender = false,
+    stretch = false,
+  } = props;
+
   const isRTL = I18nManager.isRTL;
 
   const [childWidth, setChildWidth] = useState<number | undefined>();
@@ -284,6 +287,10 @@ export const Shadow: React.FC<ShadowProps> = ({
     const startColorOpacity = startColorRgb.alpha ?? 1;
     const finalColorOpacity = finalColorRgb.alpha ?? 1;
 
+    const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
+      ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity,
+    });
+
     const { topLeft, topRight, bottomLeft, bottomRight } = radii;
 
     const cornerShadowRadius: CornerRadiusShadow = { // Not using objFromKeys here as the key is different
@@ -309,28 +316,12 @@ export const Shadow: React.FC<ShadowProps> = ({
       <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
     ];
 
-    function radialGradient(id: string, top: boolean, left: boolean, radius: number, shadowRadius: number) {
-      return (<RadialGradient
-        id={id}
-        cx={left ? shadowRadius : 0}
-        cy={top ? shadowRadius : 0}
-        r={shadowRadius}
-        gradientUnits='userSpaceOnUse' // won't show if this isn't set
-      >
-        {/* <Stop offset={radius / shadowRadius} stopOpacity={0}/> // Bad. There would be a tiny gap between the child and the corner shadow. */}
-        <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
-        <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity}/>
-      </RadialGradient>);
-    }
+
 
 
     return (<>
       {/* Sides */}
 
-      {/* shape-rendering fixes some gaps on web. Not available on Android/iOS, but won't affect them.
-          We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
-          It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
-          We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
       {activeSides.left && <Svg
         width={distanceWithAdditional} height={heightWithAdditional}
         style={{ position: 'absolute', left: -distance, top: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
@@ -375,7 +366,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
         style={{ position: 'absolute', top: -distance, left: -distance, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
-        <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
+        <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
         <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
           ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
           : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
@@ -388,7 +379,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           transform: [{ translateX: isRTL ? topRight : -topRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
         }}
       >
-        <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
+        <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
         <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
           ? `h${-topRight} v${-topLeft}`
           : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
@@ -399,7 +390,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
         style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...(isRTL ? [{ scaleX: -1 }] : [])] }}
       >
-        <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
+        <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
         <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
           ? `h${bottomLeft} v${bottomLeft}`
           : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
@@ -412,7 +403,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
         }}
       >
-        <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
+        <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
         <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
           ? `v${-bottomRight} h${bottomRight}`
           : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
@@ -491,7 +482,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         </View>
       </View>
     );
-  }, [containerStyle, shadowViewProps, offsetX, offsetY, shadow, stretch, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, style, children]);
+  }, [containerStyle, shadowViewProps, offsetX, offsetY, shadow, stretch, sizeProp, width, height, radii, style, children]);
 
   return result;
 };

@@ -4,6 +4,7 @@
 * Renamed `viewStyle` property to `style`.
 * Renamed `getViewStyleRadius` to `getStyleRadius`
 ### TODO
+* Use colord instead of polished?
 * [] Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
 * (Smart stretch? check for width/height etc?)
 * [] Removed error when there isn't a child or more than one.
