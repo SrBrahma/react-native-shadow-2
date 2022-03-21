@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { I18nManager, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
+import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
+import { I18nManager, StyleSheet, View } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
+import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
-  additional, Corner, CornerRadius, CornerRadiusShadow, cornersArray, cornerToStyle, objFromKeys,
-  R, radialGradient, RadialGradientPropsOmited, RadiusProp, Side, sidesArray, sumDps,
+  additional, cornersArray, cornerToStyle, objFromKeys,
+  R, radialGradient, sidesArray, sumDps,
 } from './utils';
 
 
@@ -127,13 +129,11 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
 
 
   const {
-    radius: radiusProp,
     sides: sidesProp = ['left', 'right', 'top', 'bottom'],
     corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
     startColor: startColorProp = '#00000020',
     finalColor: finalColorProp = transparentize(1, startColorProp),
     distance: distanceProp = 10,
-    children,
     size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
     getChildRadius = true,
     getStyleRadius = true,
@@ -142,83 +142,102 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     stretch = false,
     /** Defaults to true if offset is defined, else defaults to false */
     paintInside = props.offset ? true : false,
+    children,
+    radius,
+
   } = props;
 
   const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
   const height = (sizeProp ? R(sizeProp[1]) : childHeight) ?? '100%';
 
-  const radii: CornerRadius = useMemo(() => getRadii({ radiusProp, getStyleRadius, style, getChildRadius, children, width, height }),
-    [width, height, children, radiusProp, style, getChildRadius, getStyleRadius],
+  const radii: CornerRadius = useMemo(() => getRadii({ getStyleRadius, getChildRadius, width, height, children, radius, style }),
+    [getStyleRadius, getChildRadius, width, height, children, radius, style],
   );
 
-  const shadow = useMemo(() => getShadow({ safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside }),
-    [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, paintInside, sidesProp, cornersProp],
-  );
+  const shadow = useMemo(() => getShadow({
+    safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside,
+  }), [width, height, distanceProp, startColorProp, finalColorProp, radii, paintInside, sidesProp, cornersProp, safeRender, isRTL]);
 
-  const result = useMemo(() => {
-    const [offsetX, offsetY] = props.offset ?? [0, 0];
-    return (
-      // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-      <View style={props.containerStyle} pointerEvents='box-none'>
-        <View pointerEvents='none' {...props.shadowViewProps} style={[{
-          ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY,
-        }, props.shadowViewProps?.style]}
-        >
-          {shadow}
-        </View>
-        <View
-          pointerEvents='box-none'
-          style={[{
-            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
-            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            alignSelf: stretch ? 'stretch' : 'flex-start',
-            borderTopLeftRadius: radii.topLeft, // can't remember why we are passing the radii here.
-            borderTopRightRadius: radii.topRight,
-            borderBottomLeftRadius: radii.bottomLeft,
-            borderBottomRightRadius: radii.bottomRight,
-          },
-          sizeProp && { width, height },
-          style]}
-          onLayout={(e) => {
-            if (sizeProp) // For some really strange reason, attaching conditionally the onLayout wasn't working
-              return; // on condition change, so we check here inside if the sizeProp is defined.
-            // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
-            // inspector is decimal. It will round up if (>= .5), else, down.
-            const layout = e.nativeEvent.layout;
-            setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
-            setChildHeight(layout.height);
-          }}
-        >
-          {children}
-        </View>
-      </View>
-    );
-  }, [shadow, width, height, style, children, props.offset, props.containerStyle, props.shadowViewProps, stretch, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, sizeProp]);
+  const result = useMemo(() => getResult({
+    props, shadow, stretch, radii, width, height, setChildWidth, setChildHeight,
+  }), [props, shadow, stretch, radii, width, height]);
 
   return result;
 };
 
 
 
-function getRadii({
-  radiusProp, getStyleRadius, style, getChildRadius, children, width, height,
+function getResult({
+  props, shadow, stretch, radii, width, height, setChildWidth, setChildHeight,
 }: {
-  radiusProp: RadiusProp | undefined;
-  getStyleRadius: boolean;
-  style: StyleProp<ViewStyle>;
-  getChildRadius: boolean;
-  children: React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined;
+  props: React.PropsWithChildren<ShadowProps>;
+  shadow: JSX.Element | null;
+  stretch: boolean;
+  radii: CornerRadius;
   width: string | number;
   height: string | number;
+  setChildWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setChildHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
+}): JSX.Element {
+  const [offsetX, offsetY] = props.offset ?? [0, 0];
+  return (
+  // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
+    <View style={props.containerStyle} pointerEvents='box-none'>
+      <View pointerEvents='none' {...props.shadowViewProps} style={[{
+        ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY,
+      }, props.shadowViewProps?.style]}
+      >
+        {shadow}
+      </View>
+      <View
+        pointerEvents='box-none'
+        style={[{
+          // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+          // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+          alignSelf: stretch ? 'stretch' : 'flex-start',
+          borderTopLeftRadius: radii.topLeft,
+          borderTopRightRadius: radii.topRight,
+          borderBottomLeftRadius: radii.bottomLeft,
+          borderBottomRightRadius: radii.bottomRight,
+        },
+        props.size && { width, height },
+        props.style]}
+        onLayout={(e) => {
+          if (props.size) // For some really strange reason, attaching conditionally the onLayout wasn't working
+            return; // on condition change, so we check here inside if the sizeProp is defined.
+          // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
+          // inspector is decimal. It will round up if (>= .5), else, down.
+          const layout = e.nativeEvent.layout;
+          setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
+          setChildHeight(layout.height);
+        }}
+      >
+        {props.children}
+      </View>
+    </View>
+  );
+}
+
+/** We make some effort for this to be likely memoized */
+function getRadii({
+  getStyleRadius, getChildRadius, width, height, radius, style, children,
+}: {
+  getStyleRadius: boolean;
+  getChildRadius: boolean;
+  width: string | number;
+  height: string | number;
+  radius: ShadowProps['radius'];
+  style: StyleProp<ViewStyle>;
+  children: any;
 }): CornerRadius {
+
   /** Not yet treated. May be negative / undefined */
   const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-    if (radiusProp !== undefined) {
-      if (typeof radiusProp === 'number')
-        return objFromKeys(cornersArray, () => radiusProp);
-
+    if (radius !== undefined) {
+      if (typeof radius === 'number')
+        return objFromKeys(cornersArray, () => radius);
       else
-        return objFromKeys(cornersArray, (k) => radiusProp[k] ?? radiusProp.default);
+        return objFromKeys(cornersArray, (k) => radius[k] ?? radius.default);
     }
 
     /** We have to merge both style and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
@@ -437,9 +456,7 @@ function getShadow({
               [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
               and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
               paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-    {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional}
-      style={{ position: 'absolute', ...rtlStyle }}
-    >
+    {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute', ...rtlStyle }}>
       {(typeof width === 'number' && typeof height === 'number')
       // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
       // We use Path as workaround to it.

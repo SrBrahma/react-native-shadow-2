@@ -51,14 +51,14 @@
   },
   "devDependencies": {
     "@types/react-native": "*",
-    "eslint-config-gev": "^2.27.2",
-    "react": "^17.0.1",
+    "eslint-config-gev": "^2.33.0",
+    "react": "^17.0.2",
     "react-native": "*",
-    "react-native-svg": "^12.1.1",
+    "react-native-svg": "^12.3.0",
     "rimraf": "^3.0.2",
     "typedoc": "^0.22.10",
     "typedoc-plugin-markdown": "^3.11.7",
-    "typescript": "^4.5.5"
+    "typescript": "^4.6.2"
   },
   "peerDependencies": {
     "react-native": "*",

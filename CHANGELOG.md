@@ -3,7 +3,7 @@
 * Renamed `containerViewStyle` property to `containerStyle`.
 * Renamed `viewStyle` property to `style`.
 * Renamed `getViewStyleRadius` to `getStyleRadius`
-* Improved performance by general refactorings.
+* Improved performance and RAM usage due to some general refactorings.
 
 ### TODO
 * Use colord instead of polished?
