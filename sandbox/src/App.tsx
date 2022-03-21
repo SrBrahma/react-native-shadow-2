@@ -29,7 +29,7 @@ export const App: React.FC = () => {
   const [paintInside, setPaintInside] = useState<boolean | undefined>(undefined);
 
   const [getChildRadius, setGetChildRadius] = useState(true);
-  const [getViewStyleRadius, setGetViewStyleRadius] = useState(true);
+  const [getStyleRadius, setGetViewStyleRadius] = useState(true);
 
   const [size, setSize] = useState([defaults.width, defaults.height] as [number, number]);
   const [doUseSizeProp, setDoUseSizeProp] = useState(true);
@@ -124,7 +124,7 @@ export const App: React.FC = () => {
                 offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
                 paintInside={paintInside}
                 getChildRadius={getChildRadius}
-                getViewStyleRadius={getViewStyleRadius}
+                getStyleRadius={getStyleRadius}
                 containerStyle={{ margin: 100 }}
                 size={doUseSizeProp ? size : undefined}
                 radius={getChildRadius ? undefined : borderRadius}

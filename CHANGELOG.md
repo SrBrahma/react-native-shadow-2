@@ -2,6 +2,7 @@
 * Added `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
 * Renamed `containerViewStyle` property to `containerStyle`.
 * Renamed `viewStyle` property to `style`.
+* Renamed `getViewStyleRadius` to `getStyleRadius`
 ### TODO
 * [] Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
 * (Smart stretch? check for width/height etc?)

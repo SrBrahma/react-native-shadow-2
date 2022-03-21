@@ -78,7 +78,7 @@ export interface ShadowProps {
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    *
-   * If **`getViewStyleRadius`**, the corners defined in style will have priority over child's style.
+   * If **`getStyleRadius`**, the corners defined in style will have priority over child's style.
    *
    * @default true */
   getChildRadius?: boolean;
@@ -87,7 +87,7 @@ export interface ShadowProps {
    *
    * If **`getChildRadius`**, the corners defined in style will have priority over child's style.
    * @default true */
-  getViewStyleRadius?: boolean;
+  getStyleRadius?: boolean;
   // TODO getChildSizeStyle?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
@@ -167,7 +167,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
   offset,
   getChildRadius = true,
-  getViewStyleRadius = true,
+  getStyleRadius = true,
   paintInside: paintInsideProp,
   style,
   safeRender = false,
@@ -210,7 +210,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
       let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
 
-      if (getViewStyleRadius) {
+      if (getStyleRadius) {
         const mergedViewStyle = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
         mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
       }
@@ -250,7 +250,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     }
 
     return result;
-  }, [children, getChildRadius, getViewStyleRadius, height, radiusProp, style, width]);
+  }, [children, getChildRadius, getStyleRadius, height, radiusProp, style, width]);
 
 
   const shadow = useMemo(() => {
