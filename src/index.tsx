@@ -78,14 +78,14 @@ export interface ShadowProps {
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    *
-   * If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style.
+   * If **`getViewStyleRadius`**, the corners defined in style will have priority over child's style.
    *
    * @default true */
   getChildRadius?: boolean;
-  /** If it should try to get the radius from the **`viewStyle`** property if `radius` property is undefined. It will get the values for each
+  /** If it should try to get the radius from the **`style`** property if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    *
-   * If **`getChildRadius`**, the corners defined in viewStyle will have priority over child's style.
+   * If **`getChildRadius`**, the corners defined in style will have priority over child's style.
    * @default true */
   getViewStyleRadius?: boolean;
   // TODO getChildSizeStyle?: boolean;
@@ -119,7 +119,7 @@ export interface ShadowProps {
    * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
    * radiuses from the `radius` property or from the child, if `getChildRadius`. You may overwrite those defaults
    * by undefine'ing the changed styles in this property. */
-  viewStyle?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerStyle?: StyleProp<ViewStyle>;
   /** Props for the Shadow view. You shouldn't need to use this. You may pass style to this. */
@@ -131,9 +131,9 @@ export interface ShadowProps {
   /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
    * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
    *
-   * It will apply the corresponding `width` and `height` styles to the `viewStyle` property.
+   * It will apply the corresponding `width` and `height` styles to the `style` property.
    *
-   * You may want to set `backgroundColor` in the `viewStyle` property for your child background color.
+   * You may want to set `backgroundColor` in the `style` property for your child background color.
    *
    * It's also good if you want an animated view.
    *
@@ -177,7 +177,7 @@ export const Shadow: React.FC<ShadowProps> = ({
   getChildRadius = true,
   getViewStyleRadius = true,
   paintInside: paintInsideProp,
-  viewStyle,
+  style,
   safeRender = false,
   stretch = false,
 }) => {
@@ -212,15 +212,15 @@ export const Shadow: React.FC<ShadowProps> = ({
           return objFromKeys(cornersArray, (k) => radiusProp[k] ?? radiusProp.default);
       }
 
-      /** We have to merge both viewStyle and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
-       * borderRadius in viewStyle.
+      /** We have to merge both style and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
+       * borderRadius in style.
        *
        * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
       // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
       let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
 
       if (getViewStyleRadius) {
-        const mergedViewStyle = StyleSheet.flatten(viewStyle ?? {}); // Convert possible array style to a single obj style.
+        const mergedViewStyle = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
         mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
       }
 
@@ -232,7 +232,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         const childStyleTemp: ViewStyle | undefined = ((React.Children.only(children) as JSX.Element | undefined)?.props?.style);
         const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
         mergedStyle = objFromKeys(cornersArray, (k) =>
-          mergedStyle[k] ?? // Don't overwrite viewStyle already defined radiuses.
+          mergedStyle[k] ?? // Don't overwrite style already defined radiuses.
           childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle.borderRadius) as Record<Corner, number | undefined>;
       }
 
@@ -259,7 +259,7 @@ export const Shadow: React.FC<ShadowProps> = ({
     }
 
     return result;
-  }, [children, getChildRadius, getViewStyleRadius, height, radiusProp, viewStyle, width]);
+  }, [children, getChildRadius, getViewStyleRadius, height, radiusProp, style, width]);
 
 
   const shadow = useMemo(() => {
@@ -474,7 +474,7 @@ export const Shadow: React.FC<ShadowProps> = ({
               borderTopRightRadius: radii.topRight,
               borderBottomLeftRadius: radii.bottomLeft,
               borderBottomRightRadius: radii.bottomRight,
-            }, viewStyle,
+            }, style,
           ]}
 
           onLayout={(e) => {
@@ -491,7 +491,7 @@ export const Shadow: React.FC<ShadowProps> = ({
         </View>
       </View>
     );
-  }, [containerStyle, shadowViewProps, offsetX, offsetY, shadow, stretch, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
+  }, [containerStyle, shadowViewProps, offsetX, offsetY, shadow, stretch, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, style, children]);
 
   return result;
 };

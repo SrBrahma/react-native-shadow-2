@@ -49,7 +49,7 @@ export const App: React.FC = () => {
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }}>
         <StatusBar backgroundColor={'#222'}/>
-        <PageScrollView viewStyle={styles.container}>
+        <PageScrollView style={styles.container}>
 
           <Text style={styles.title}>{`react-native-shadow-2 sandbox`}</Text>
           <Text style={styles.subtitle}>{`By SrBrahma @ https://github.com/SrBrahma/react-native-shadow-2`}</Text>
@@ -129,8 +129,8 @@ export const App: React.FC = () => {
                 size={doUseSizeProp ? size : undefined}
                 radius={getChildRadius ? undefined : borderRadius}
                 // TopEnd to check if it's supporting the Start/End combinations. When uncommenting this, also comment radius prop above.
-                // viewStyle={[doUseSizeProp && { backgroundColor: childColor }, { borderTopLeftRadius: 100, borderTopEndRadius: 10 }]}
-                viewStyle={[doUseSizeProp && { backgroundColor: childColor }]}
+                // style={[doUseSizeProp && { backgroundColor: childColor }, { borderTopLeftRadius: 100, borderTopEndRadius: 10 }]}
+                style={[doUseSizeProp && { backgroundColor: childColor }]}
               >
                 <View style={[
                   !doUseSizeProp && { width: childWidth, height: childHeight }, {
