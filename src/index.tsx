@@ -163,11 +163,7 @@ export interface ShadowProps {
 
 
 export const Shadow: React.FC<ShadowProps> = (props) => {
-
-
-
   const isRTL = I18nManager.isRTL;
-
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
 
@@ -183,38 +179,41 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     distance: distanceProp = 10,
     children,
     size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
-    offset,
     getChildRadius = true,
     getStyleRadius = true,
-    paintInside: paintInsideProp,
     style,
     safeRender = false,
     stretch = false,
+    /** Defaults to true if offset is defined, else defaults to false */
+    paintInside = props.offset ? true : false,
+    offset: [offsetX, offsetY] = [0, 0],
   } = props;
 
-  /** Defaults to true if offset is defined, else defaults to false */
-  const paintInside = paintInsideProp ?? (offset ? true : false);
-  const [offsetX, offsetY] = offset ?? [0, 0];
-
-  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
-  /** Read {@link additional}, [*4] */
-  const distanceWithAdditional = distance + additional;
   const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
   const height = (sizeProp ? R(sizeProp[1]) : childHeight) ?? '100%';
-  /** Will (+ additional), only if its value isn't '100%'. */
-  const widthWithAdditional = typeof width === 'string' ? width : width + additional;
-  /** Will (+ additional), only if its value isn't '100%'. */
-  const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
-
-  const radii: CornerRadius = getRadii({ radiusProp, getStyleRadius, style, getChildRadius, children, width, height });
-
+  const radii: CornerRadius = useMemo(() => getRadii({ radiusProp, getStyleRadius, style, getChildRadius, children, width, height }),
+    [width, height, children, radiusProp, style, getChildRadius, getStyleRadius],
+  );
 
   const shadow = useMemo(() => {
 
     // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
     if (safeRender && (typeof width === 'string' || typeof height === 'string'))
       return null;
+
+    /** To be used inside Svg style */
+    const rtlStyle = isRTL && { transform: [{ scaleX: -1 }] };
+    /** To be used inside Svg style.transform */
+    const rtlTransform = isRTL ? [{ scaleX: -1 }] : [];
+
+    const distance = R(Math.max(distanceProp, 0)); // Min val as 0
+    const distanceWithAdditional = distance + additional;
+
+    /** Will (+ additional), only if its value isn't '100%'. [*4] */
+    const widthWithAdditional = typeof width === 'string' ? width : width + additional;
+    /** Will (+ additional), only if its value isn't '100%'. [*4] */
+    const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
     // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
     const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
@@ -261,10 +260,6 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
       <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
     ];
 
-    /** To be used inside Svg style */
-    const rtlStyle = isRTL && { transform: [{ scaleX: -1 }] };
-    /** To be used inside Svg style.transform */
-    const rtlTransform = isRTL ? [{ scaleX: -1 }] : [];
 
     return (<>
       {/* Sides */}
@@ -388,10 +383,7 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
       }
 
     </>);
-  }, [
-    safeRender, width, height, startColorProp, finalColorProp, radii, distance, distanceWithAdditional, heightWithAdditional,
-    widthWithAdditional, paintInside, sidesProp, cornersProp, isRTL,
-  ]);
+  }, [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, paintInside, sidesProp, cornersProp]);
 
   const result = useMemo(() => {
     return (
