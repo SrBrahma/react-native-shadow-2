@@ -3,7 +3,7 @@ import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewPro
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
-import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, radialGradient, RadialGradientPropsOmited, Side } from './utils';
+import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, radialGradient, RadialGradientPropsOmited, RadiusProp, Side } from './utils';
 
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
@@ -74,7 +74,7 @@ export interface ShadowProps {
    * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
    *
    * Each corner fallbacks to 0. */
-  radius?: number | { default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
+  radius?: RadiusProp;
   /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
    * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
    *
@@ -164,6 +164,14 @@ export interface ShadowProps {
 
 export const Shadow: React.FC<ShadowProps> = (props) => {
 
+
+
+  const isRTL = I18nManager.isRTL;
+
+  const [childWidth, setChildWidth] = useState<number | undefined>();
+  const [childHeight, setChildHeight] = useState<number | undefined>();
+
+
   const {
     radius: radiusProp,
     sides: sidesProp = ['left', 'right', 'top', 'bottom'],
@@ -184,11 +192,6 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     stretch = false,
   } = props;
 
-  const isRTL = I18nManager.isRTL;
-
-  const [childWidth, setChildWidth] = useState<number | undefined>();
-  const [childHeight, setChildHeight] = useState<number | undefined>();
-
   /** Defaults to true if offset is defined, else defaults to false */
   const paintInside = paintInsideProp ?? (offset ? true : false);
   const [offsetX, offsetY] = offset ?? [0, 0];
@@ -204,65 +207,7 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
   const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
 
-  const radii: CornerRadius = useMemo(() => {
-
-    /** Not yet treated. May be negative / undefined */
-    const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-      if (radiusProp !== undefined) {
-        if (typeof radiusProp === 'number')
-          return objFromKeys(cornersArray, () => radiusProp);
-        else
-          return objFromKeys(cornersArray, (k) => radiusProp[k] ?? radiusProp.default);
-      }
-
-      /** We have to merge both style and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
-       * borderRadius in style.
-       *
-       * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
-      // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
-      let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
-
-      if (getStyleRadius) {
-        const mergedViewStyle = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
-        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
-      }
-
-      // Only enter block if there is a undefined corner that may now be defined;
-      if (getChildRadius && Object.values(mergedStyle).includes(undefined)) {
-        if (React.Children.count(children) > 1)
-          throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default value). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
-        /** May be an array of styles. */
-        const childStyleTemp: ViewStyle | undefined = ((React.Children.only(children) as JSX.Element | undefined)?.props?.style);
-        const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
-        mergedStyle = objFromKeys(cornersArray, (k) =>
-          mergedStyle[k] ?? // Don't overwrite style already defined radiuses.
-          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle.borderRadius) as Record<Corner, number | undefined>;
-      }
-
-      return mergedStyle;
-    })();
-
-
-    /** Round and zero negative radius values */
-    const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
-
-    let result = radiiPreSizeLimit;
-
-    if (typeof width === 'number' && typeof height === 'number') {
-      // https://css-tricks.com/what-happens-when-border-radii-overlap/
-      // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
-      const minRatio = Math.min( // 'x / 0 = Infinity' is js, not a problem here.
-        width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight), // top
-        height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight), // right
-        width / (radiiPreSizeLimit.bottomLeft + radiiPreSizeLimit.bottomRight), // bottom
-        height / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.bottomLeft), // left
-      );
-      if (minRatio < 1)
-        result = objFromKeys(cornersArray, (k) => R(radiiPreSizeLimit[k] * minRatio));
-    }
-
-    return result;
-  }, [children, getChildRadius, getStyleRadius, height, radiusProp, style, width]);
+  const radii: CornerRadius = getRadii({ radiusProp, getStyleRadius, style, getChildRadius, children, width, height });
 
 
   const shadow = useMemo(() => {
@@ -488,3 +433,73 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
 
   return result;
 };
+
+
+function getRadii({
+  radiusProp, getStyleRadius, style, getChildRadius, children, width, height,
+}: {
+  radiusProp: RadiusProp | undefined;
+  getStyleRadius: boolean;
+  style: StyleProp<ViewStyle>;
+  getChildRadius: boolean;
+  children: React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined;
+  width: string | number;
+  height: string | number;
+}): CornerRadius {
+  /** Not yet treated. May be negative / undefined */
+  const cornerRadiusPartial: Partial<CornerRadius> = (() => {
+    if (radiusProp !== undefined) {
+      if (typeof radiusProp === 'number')
+        return objFromKeys(cornersArray, () => radiusProp);
+
+      else
+        return objFromKeys(cornersArray, (k) => radiusProp[k] ?? radiusProp.default);
+    }
+
+    /** We have to merge both style and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
+       * borderRadius in style.
+       *
+       * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
+    // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
+    let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
+
+    if (getStyleRadius) {
+      const mergedViewStyle = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
+      mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
+    }
+
+    // Only enter block if there is a undefined corner that may now be defined;
+    if (getChildRadius && Object.values(mergedStyle).includes(undefined)) {
+      if (React.Children.count(children) > 1)
+        throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default value). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
+        /** May be an array of styles. */
+      const childStyleTemp: ViewStyle | undefined = ((React.Children.only(children) as JSX.Element | undefined)?.props?.style);
+      const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
+      mergedStyle = objFromKeys(cornersArray, (k) => mergedStyle[k] ?? // Don't overwrite style already defined radiuses.
+          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle.borderRadius) as Record<Corner, number | undefined>;
+    }
+
+    return mergedStyle;
+  })();
+
+
+  /** Round and zero negative radius values */
+  const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
+
+  let result = radiiPreSizeLimit;
+
+  if (typeof width === 'number' && typeof height === 'number') {
+    // https://css-tricks.com/what-happens-when-border-radii-overlap/
+    // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
+    const minRatio = Math.min(
+      width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight),
+      height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight),
+      width / (radiiPreSizeLimit.bottomLeft + radiiPreSizeLimit.bottomRight),
+      height / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.bottomLeft),
+    );
+    if (minRatio < 1)
+      result = objFromKeys(cornersArray, (k) => R(radiiPreSizeLimit[k] * minRatio));
+  }
+
+  return result;
+}

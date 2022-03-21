@@ -3,11 +3,19 @@ import { RadialGradient, Stop } from 'react-native-svg';
 
 
 
+/** Util type to prettify the given type. */
+type Id<T> = unknown & { [P in keyof T]: T[P] };
+
 export type Side = 'left' | 'right' | 'top' | 'bottom';
 export type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 export type CornerRadius = Record<Corner, number>;
+
 // Add Shadow to the corner names
 export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
+
+/** Type of `radius` property. */
+export type RadiusProp = number | Id<Partial<CornerRadius> & {default?: number}>;
+
 
 /** Auxilary function to shorten code */
 export function objFromKeys<KeysArray extends Readonly<string[]>, Rtn>(keys: KeysArray, fun: (key: KeysArray[number]) => Rtn): Record<KeysArray[number], Rtn> {

@@ -3,6 +3,8 @@
 * Renamed `containerViewStyle` property to `containerStyle`.
 * Renamed `viewStyle` property to `style`.
 * Renamed `getViewStyleRadius` to `getStyleRadius`
+* Improved performance by general refactorings.
+
 ### TODO
 * Use colord instead of polished?
 * [] Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
