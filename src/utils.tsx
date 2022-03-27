@@ -1,4 +1,3 @@
-import type { ViewStyle } from 'react-native';
 import { PixelRatio, Platform } from 'react-native';
 import { RadialGradient, Stop } from 'react-native-svg';
 
@@ -69,12 +68,12 @@ export function objFromKeys<KeysArray extends Readonly<string[]>, Rtn>(keys: Key
   return keys.reduce((obj, key) => ({ ...obj, [key]: fun(key) }), {} as Record<string, any>);
 }
 
-export const cornerToStyle: Record<Corner, [keyof ViewStyle, keyof ViewStyle]> = {
+export const cornerToStyle = {
+  topLeft: ['borderTopLeftRadius', 'borderTopStartRadius'],
   topRight: ['borderTopRightRadius', 'borderTopEndRadius'],
   bottomLeft: ['borderBottomLeftRadius', 'borderBottomStartRadius'],
   bottomRight: ['borderBottomRightRadius', 'borderBottomEndRadius'],
-  topLeft: ['borderTopLeftRadius', 'borderTopStartRadius'],
-};
+} as const;
 
 type RadialGradientProps = {
   id: string;

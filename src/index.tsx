@@ -185,7 +185,7 @@ function getResult({
   setChildHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
 }): JSX.Element {
   return (
-  // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
+    // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none'>
       {shadow}
       <View
@@ -227,9 +227,10 @@ function getRadii({
   height: string | number;
   radius: ShadowProps['radius'];
   style: StyleProp<ViewStyle>;
+  /** So we can check if it didn't change. */
   childStyleStr?: string;
 }): CornerRadius {
-  const childStyle = childStyleStr ? JSON.parse(childStyleStr) : {};
+  const childStyle: ViewStyle = childStyleStr ? JSON.parse(childStyleStr) : {};
 
   /** Not yet treated. May be negative / undefined */
   const cornerRadiusPartial: Partial<CornerRadius> = (() => {
@@ -240,44 +241,36 @@ function getRadii({
         return objFromKeys(cornersArray, (k) => radius[k] ?? radius.default);
     }
 
-    /** We have to merge both style and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
-       * borderRadius in style.
-       *
-       * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
-    // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
-    let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
+    const mergedStyleProp = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
 
-    // Get `style` radii
-    const mergedViewStyle = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
-    mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle[k][0]] ?? mergedViewStyle[cornerToStyle[k][1]] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
+    const cornersRadii = objFromKeys(cornersArray, (k) =>
+      // For each corner, first ~borderTopLeftRadius, then ~borderTopStartRadius, then borderRadius.
+      // Try to get `style` radii.
+      mergedStyleProp[cornerToStyle[k][0]] ?? mergedStyleProp[cornerToStyle[k][1]] ?? mergedStyleProp.borderRadius
+      // If not found on `style`, try to get on child's `style`.
+        ?? childStyle[cornerToStyle[k][0]] ?? childStyle[cornerToStyle[k][1]] ?? childStyle.borderRadius,
+    );
 
-    // Get child radii
-    // Only enter block if there is a undefined corner that may now be defined;
-    if (Object.values(mergedStyle).includes(undefined)) {
-      mergedStyle = objFromKeys(cornersArray, (k) => mergedStyle[k] // Don't overwrite style already defined radiuses.
-        ?? childStyle?.[cornerToStyle[k][0]] ?? childStyle?.[cornerToStyle[k][1]] ?? childStyle?.borderRadius) as Record<Corner, number | undefined>;
-    }
-
-    return mergedStyle;
+    return cornersRadii;
   })();
 
 
   /** Round and zero negative radius values */
-  const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
+  const radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
 
-  let result = radiiPreSizeLimit;
+  let result = radiiSanitized;
 
   if (typeof width === 'number' && typeof height === 'number') {
     // https://css-tricks.com/what-happens-when-border-radii-overlap/
     // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
     const minRatio = Math.min(
-      width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight),
-      height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight),
-      width / (radiiPreSizeLimit.bottomLeft + radiiPreSizeLimit.bottomRight),
-      height / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.bottomLeft),
+      width / (radiiSanitized.topLeft + radiiSanitized.topRight),
+      height / (radiiSanitized.topRight + radiiSanitized.bottomRight),
+      width / (radiiSanitized.bottomLeft + radiiSanitized.bottomRight),
+      height / (radiiSanitized.topLeft + radiiSanitized.bottomLeft),
     );
     if (minRatio < 1)
-      result = objFromKeys(cornersArray, (k) => R(radiiPreSizeLimit[k] * minRatio));
+      result = objFromKeys(cornersArray, (k) => R(radiiSanitized[k] * minRatio));
   }
 
   return result;
