@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { Children, useMemo, useState } from 'react';
 import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
 import { I18nManager, StyleSheet, View } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
@@ -112,6 +112,7 @@ export interface ShadowProps {
 // To help memoization.
 const defaultSides: Exclude<ShadowProps['sides'], undefined> = ['left', 'right', 'top', 'bottom'];
 const defaultCorners: Exclude<ShadowProps['corners'], undefined> = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
+const emptyObj = {};
 
 export const Shadow: React.FC<ShadowProps> = (props) => {
   const isRTL = I18nManager.isRTL;
@@ -132,36 +133,50 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     paintInside = props.offset ? true : false,
     children,
     radius,
-
+    containerStyle,
+    offset,
+    shadowViewProps,
   } = props;
 
   const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
   const height = (sizeProp ? R(sizeProp[1]) : childHeight) ?? '100%';
 
-  // const childrenStyle
+  /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
+   * I believe it can come to be a popular pattern. */
+  const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  const radii: CornerRadius = useMemo(() => getRadii({ width, height, children, radius, style }),
-    [width, height, children, radius, style],
+  /** String to allow memoization. Do JSON.parse() to use it. */
+  const childStyleStr: string = useMemo(() => {
+    return JSON.stringify(StyleSheet.flatten([childProps.style, childProps.s]));
+  }, [childProps.style, childProps.s]);
+
+  const radii: CornerRadius = useMemo(() => getRadii({ width, height, childStyleStr, radius, style }),
+    [width, height, childStyleStr, radius, style],
   );
 
   const shadow = useMemo(() => getShadow({
     safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside,
-  }), [width, height, distanceProp, startColorProp, finalColorProp, radii, paintInside, sidesProp, cornersProp, safeRender, isRTL]);
+    shadowViewProps, offset,
+  }), [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside, shadowViewProps, offset]);
 
-  const result = useMemo(() => getResult({
-    props, shadow, stretch, radii, width, height, setChildWidth, setChildHeight,
-  }), [props, shadow, stretch, radii, width, height]);
+  const Result = useMemo(() => getResult({
+    shadow, stretch, radii, width, height, setChildWidth, setChildHeight, children, containerStyle, sizeProp, style,
+  }), [children, shadow, style, stretch, radii, width, height, containerStyle, sizeProp]);
 
-  return result;
+  return Result;
 };
 
 
 
 function getResult({
-  props, shadow, stretch, radii, width, height, setChildWidth, setChildHeight,
+  shadow, stretch, radii, width, height, setChildWidth, setChildHeight,
+  containerStyle, children, sizeProp, style,
 }: {
-  props: React.PropsWithChildren<ShadowProps>;
+  containerStyle: ShadowProps['containerStyle'];
   shadow: JSX.Element | null;
+  children: any;
+  sizeProp: ShadowProps['size'];
+  style: ShadowProps['style'];
   stretch: boolean;
   radii: CornerRadius;
   width: string | number;
@@ -169,16 +184,10 @@ function getResult({
   setChildWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
 }): JSX.Element {
-  const [offsetX, offsetY] = props.offset ?? [0, 0];
   return (
   // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-    <View style={props.containerStyle} pointerEvents='box-none'>
-      <View pointerEvents='none' {...props.shadowViewProps} style={[{
-        ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY,
-      }, props.shadowViewProps?.style]}
-      >
+    <View style={containerStyle} pointerEvents='box-none'>
         {shadow}
-      </View>
       <View
         pointerEvents='box-none'
         style={[
@@ -191,11 +200,11 @@ function getResult({
             borderBottomLeftRadius: radii.bottomLeft,
             borderBottomRightRadius: radii.bottomRight,
           },
-          props.size && { width, height },
-          props.style,
+          sizeProp && { width, height },
+          style,
         ]}
         onLayout={(e) => {
-          if (props.size) // For some really strange reason, attaching conditionally the onLayout wasn't working
+          if (sizeProp) // For some really strange reason, attaching conditionally the onLayout wasn't working
             return; // on condition change, so we check here inside if the sizeProp is defined.
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
@@ -204,7 +213,7 @@ function getResult({
           setChildHeight(layout.height);
         }}
       >
-        {props.children}
+        {children}
       </View>
     </View>
   );
@@ -212,14 +221,15 @@ function getResult({
 
 /** We make some effort for this to be likely memoized */
 function getRadii({
-  width, height, radius, style, children,
+  width, height, radius, style, childStyleStr,
 }: {
   width: string | number;
   height: string | number;
   radius: ShadowProps['radius'];
   style: StyleProp<ViewStyle>;
-  children: any;
+  childStyleStr?: string;
 }): CornerRadius {
+  const childStyle = childStyleStr ? JSON.parse(childStyleStr) : {};
 
   /** Not yet treated. May be negative / undefined */
   const cornerRadiusPartial: Partial<CornerRadius> = (() => {
@@ -281,7 +291,8 @@ function getRadii({
 
 
 function getShadow({
-  safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside,
+  safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii,
+  sidesProp, cornersProp, paintInside, offset, shadowViewProps,
 }: {
   safeRender: boolean;
   width: string | number;
@@ -294,6 +305,8 @@ function getShadow({
   sidesProp: ('top' | 'left' | 'right' | 'bottom')[];
   cornersProp: ('topRight' | 'topLeft' | 'bottomLeft' | 'bottomRight')[];
   paintInside: boolean;
+  offset: ShadowProps['offset'];
+  shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element | null {
   // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
@@ -358,9 +371,12 @@ function getShadow({
   const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
 
 
-  return (<>
+  return (
+    <View pointerEvents='none' {...shadowViewProps} style={[
+      StyleSheet.absoluteFillObject, { left: offset?.[0] ?? 0, top: offset?.[1] ?? 0 }, shadowViewProps?.style,
+    ]}
+    >
     {/* Sides */}
-
     {activeSides.left && <Svg
       width={distanceWithAdditional} height={heightWithAdditional}
       style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
@@ -394,10 +410,8 @@ function getShadow({
 
 
     {/* Corners */}
-
     {/* The anchor for the svgs path is the top left point in the corner square.
               The starting point is the clockwise external arc init point. */}
-
     {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
       style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
     >
@@ -406,7 +420,6 @@ function getShadow({
         ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
         : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`} h${-distance} Z`}/>
     </Svg>}
-
     {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
       style={{
         position: 'absolute', top: -distance, left: width,
@@ -419,7 +432,6 @@ function getShadow({
         : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
       {/*  */}
     </Svg>}
-
     {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
       style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
     >
@@ -428,7 +440,6 @@ function getShadow({
         ? `h${bottomLeft} v${bottomLeft}`
         : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`} v${distance} Z`}/>
     </Svg>}
-
     {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
       style={{
         position: 'absolute', top: height, left: width,
@@ -440,7 +451,6 @@ function getShadow({
         ? `v${-bottomRight} h${bottomRight}`
         : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`} h${distance} Z`}/>
     </Svg>}
-
 
     {/* Paint the inner area, so we can offset it.
               [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
@@ -466,6 +476,6 @@ function getShadow({
           <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
         </>)}
     </Svg>}
-
-  </>);
+    </View>
+  );
 }
