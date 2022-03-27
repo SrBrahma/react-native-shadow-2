@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/SrBrahma/react-native-shadow-2#readme",
   "dependencies": {
-    "polished": "^4.1.4"
+    "colord": "2.9.2"
   },
   "devDependencies": {
     "@types/react-native": "*",

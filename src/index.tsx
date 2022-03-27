@@ -2,8 +2,7 @@ import { Children, useMemo, useState } from 'react';
 import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
 import { I18nManager, StyleSheet, View } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
-import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
-import type { RgbaColor } from 'polished/lib/types/color';
+import { colord } from 'colord';
 import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
   additional, cornersArray, cornerToStyle, objFromKeys,
@@ -123,7 +122,7 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     sides: sidesProp = defaultSides,
     corners: cornersProp = defaultCorners,
     startColor: startColorProp = '#00000020',
-    finalColor: finalColorProp = transparentize(1, startColorProp),
+    finalColor: finalColorProp = colord(startColorProp).alpha(0).toHex(),
     distance: distanceProp = 10,
     size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
     style,
@@ -206,7 +205,7 @@ function getResult({
           // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
           // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
             alignSelf: stretch ? 'stretch' : 'flex-start',
-            // We are defining here the radii so Pressable ripples are properly contained.
+            // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
             borderTopLeftRadius: topLeft,
             borderTopRightRadius: topRight,
             borderBottomLeftRadius: bottomLeft,
@@ -329,21 +328,17 @@ function getShadow({
   /** Will (+ additional), only if its value isn't '100%'. [*4] */
   const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
-  // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
-  const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
-  const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
+  const startColord = colord(startColorProp);
+  const finalColord = colord(finalColorProp);
 
-  const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
-  const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
-
-  // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
+  // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile gradient doesn't.
   // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
   // it isn't applied twice.
-  const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined }); // overwrite alpha
-  const finalColorWoOpacity = rgbToColorString({ ...finalColorRgb, alpha: undefined });
+  const startColorWoOpacity = startColord.alpha(1).toHex();
+  const finalColorWoOpacity = finalColord.alpha(1).toHex();
 
-  const startColorOpacity = startColorRgb.alpha ?? 1;
-  const finalColorOpacity = finalColorRgb.alpha ?? 1;
+  const startColorOpacity = startColord.alpha();
+  const finalColorOpacity = finalColord.alpha();
 
   // Fragment wasn't working for some reason, so, using array.
   const linearGradient = [
@@ -462,7 +457,7 @@ function getShadow({
         {(typeof width === 'number' && typeof height === 'number')
         // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
         // We use Path as workaround to it.
-          ? (<Path fill={startColor} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
+          ? (<Path fill={startColord.toHex()} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
           : (<>
             <Defs>
               <Mask id='maskPaintBelow'>
