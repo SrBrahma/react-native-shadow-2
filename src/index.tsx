@@ -153,18 +153,22 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
   //   return JSON.parse(childStyleStr);
   // }, [childProps.style, childProps.s]);
 
-  const radii: CornerRadius = useMemo(() => getRadii({ width, height, childStyleStr, radius, style }),
+  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => getRadii({ width, height, childStyleStr, radius, style }),
     [width, height, childStyleStr, radius, style],
   );
 
   const shadow = useMemo(() => getShadow({
-    safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside,
+    safeRender, topLeft, topRight, bottomLeft, bottomRight, width, height, isRTL, distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp, paintInside,
     shadowViewProps, offset,
-  }), [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside, shadowViewProps, offset]);
+  }), [
+    width, height, topLeft, topRight, bottomLeft, bottomRight, offset,
+    distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp,
+    paintInside, shadowViewProps, safeRender, isRTL,
+  ]);
 
   const result = useMemo(() => getResult({
-    shadow, stretch, radii, width, height, setChildLayoutWidth, setChildLayoutHeight, children, containerStyle, sizeProp, style,
-  }), [children, shadow, style, stretch, radii, width, height, containerStyle, sizeProp]);
+    shadow, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height, setChildLayoutWidth, setChildLayoutHeight, children, containerStyle, sizeProp, style,
+  }), [children, shadow, style, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height, containerStyle, sizeProp]);
 
   return result;
 };
@@ -172,16 +176,20 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
 
 
 function getResult({
-  shadow, stretch, radii, width, height, setChildLayoutWidth, setChildLayoutHeight,
+  shadow, stretch, width, height, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, sizeProp, style,
+  topLeft, topRight, bottomLeft, bottomRight,
 }: {
+  topLeft: number;
+  topRight: number;
+  bottomLeft: number;
+  bottomRight: number;
   containerStyle: ShadowProps['containerStyle'];
   shadow: JSX.Element | null;
   children: any;
   sizeProp: ShadowProps['size'];
   style: ShadowProps['style'];
   stretch: boolean;
-  radii: CornerRadius;
   width: string | number;
   height: string | number;
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
@@ -198,10 +206,11 @@ function getResult({
           // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
           // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
             alignSelf: stretch ? 'stretch' : 'flex-start',
-            borderTopLeftRadius: radii.topLeft,
-            borderTopRightRadius: radii.topRight,
-            borderBottomLeftRadius: radii.bottomLeft,
-            borderBottomRightRadius: radii.bottomRight,
+            // We are defining here the radii so Pressable ripples are properly contained.
+            borderTopLeftRadius: topLeft,
+            borderTopRightRadius: topRight,
+            borderBottomLeftRadius: bottomLeft,
+            borderBottomRightRadius: bottomRight,
           },
           sizeProp && { width, height },
           style,
@@ -282,7 +291,8 @@ function getRadii({
 
 
 function getShadow({
-  safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii,
+  safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp,
+  topLeft, topRight, bottomLeft, bottomRight,
   sidesProp, cornersProp, paintInside, offset, shadowViewProps,
 }: {
   safeRender: boolean;
@@ -292,7 +302,10 @@ function getShadow({
   distanceProp: number;
   startColorProp: string;
   finalColorProp: string;
-  radii: CornerRadius;
+  topLeft: number;
+  topRight: number;
+  bottomLeft: number;
+  bottomRight: number;
   sidesProp: ('top' | 'left' | 'right' | 'bottom')[];
   cornersProp: ('topRight' | 'topLeft' | 'bottomLeft' | 'bottomRight')[];
   paintInside: boolean;
@@ -343,8 +356,6 @@ function getShadow({
   const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
     ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity,
   });
-
-  const { topLeft, topRight, bottomLeft, bottomRight } = radii;
 
   const cornerShadowRadius: CornerRadiusShadow = {
     topLeftShadow: sumDps(topLeft, distance),
