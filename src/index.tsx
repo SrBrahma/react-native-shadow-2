@@ -116,8 +116,8 @@ const emptyObj = {};
 
 export const Shadow: React.FC<ShadowProps> = (props) => {
   const isRTL = I18nManager.isRTL;
-  const [childWidth, setChildWidth] = useState<number | undefined>();
-  const [childHeight, setChildHeight] = useState<number | undefined>();
+  const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
+  const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
 
   const {
     sides: sidesProp = defaultSides,
@@ -138,17 +138,20 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     shadowViewProps,
   } = props;
 
-  const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
-  const height = (sizeProp ? R(sizeProp[1]) : childHeight) ?? '100%';
+  const width = (sizeProp ? R(sizeProp[0]) : childLayoutWidth) ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const height = (sizeProp ? R(sizeProp[1]) : childLayoutHeight) ?? '100%';
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
    * I believe it can come to be a popular pattern. */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  /** String to allow memoization. Do JSON.parse() to use it. */
+  /** String to allow memoization. Do JSON.parse() to use it. Unsure if this is the best way to handle it. */
   const childStyleStr: string = useMemo(() => {
     return JSON.stringify(StyleSheet.flatten([childProps.style, childProps.s]));
   }, [childProps.style, childProps.s]);
+  // const childStyle: ViewStyle = useMemo(() => {
+  //   return JSON.parse(childStyleStr);
+  // }, [childProps.style, childProps.s]);
 
   const radii: CornerRadius = useMemo(() => getRadii({ width, height, childStyleStr, radius, style }),
     [width, height, childStyleStr, radius, style],
@@ -159,17 +162,17 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     shadowViewProps, offset,
   }), [safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp, radii, sidesProp, cornersProp, paintInside, shadowViewProps, offset]);
 
-  const Result = useMemo(() => getResult({
-    shadow, stretch, radii, width, height, setChildWidth, setChildHeight, children, containerStyle, sizeProp, style,
+  const result = useMemo(() => getResult({
+    shadow, stretch, radii, width, height, setChildLayoutWidth, setChildLayoutHeight, children, containerStyle, sizeProp, style,
   }), [children, shadow, style, stretch, radii, width, height, containerStyle, sizeProp]);
 
-  return Result;
+  return result;
 };
 
 
 
 function getResult({
-  shadow, stretch, radii, width, height, setChildWidth, setChildHeight,
+  shadow, stretch, radii, width, height, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, sizeProp, style,
 }: {
   containerStyle: ShadowProps['containerStyle'];
@@ -181,8 +184,8 @@ function getResult({
   radii: CornerRadius;
   width: string | number;
   height: string | number;
-  setChildWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
-  setChildHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
 }): JSX.Element {
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
@@ -209,8 +212,8 @@ function getResult({
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
           const layout = e.nativeEvent.layout;
-          setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
-          setChildHeight(layout.height);
+          setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
+          setChildLayoutHeight(layout.height);
         }}
       >
         {children}
@@ -247,7 +250,7 @@ function getRadii({
       // For each corner, first ~borderTopLeftRadius, then ~borderTopStartRadius, then borderRadius.
       // Try to get `style` radii.
       mergedStyleProp[cornerToStyle[k][0]] ?? mergedStyleProp[cornerToStyle[k][1]] ?? mergedStyleProp.borderRadius
-      // If not found on `style`, try to get on child's `style`.
+        // If not found on `style`, try to get on child's `style`.
         ?? childStyle[cornerToStyle[k][0]] ?? childStyle[cornerToStyle[k][1]] ?? childStyle.borderRadius,
     );
 
