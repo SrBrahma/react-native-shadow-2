@@ -187,7 +187,7 @@ function getResult({
   return (
   // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none'>
-        {shadow}
+      {shadow}
       <View
         pointerEvents='box-none'
         style={[
@@ -249,18 +249,13 @@ function getRadii({
 
     // Get `style` radii
     const mergedViewStyle = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
-    mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
+    mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle[k][0]] ?? mergedViewStyle[cornerToStyle[k][1]] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
 
     // Get child radii
     // Only enter block if there is a undefined corner that may now be defined;
     if (Object.values(mergedStyle).includes(undefined)) {
-      if (React.Children.count(children) > 1)
-        throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default value). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
-        /** May be an array of styles. */
-      const childStyleTemp: ViewStyle | undefined = ((React.Children.only(children) as JSX.Element | undefined)?.props?.style);
-      const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
-      mergedStyle = objFromKeys(cornersArray, (k) => mergedStyle[k] ?? // Don't overwrite style already defined radiuses.
-          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle.borderRadius) as Record<Corner, number | undefined>;
+      mergedStyle = objFromKeys(cornersArray, (k) => mergedStyle[k] // Don't overwrite style already defined radiuses.
+        ?? childStyle?.[cornerToStyle[k][0]] ?? childStyle?.[cornerToStyle[k][1]] ?? childStyle?.borderRadius) as Record<Corner, number | undefined>;
     }
 
     return mergedStyle;
@@ -376,106 +371,106 @@ function getShadow({
       StyleSheet.absoluteFillObject, { left: offset?.[0] ?? 0, top: offset?.[1] ?? 0 }, shadowViewProps?.style,
     ]}
     >
-    {/* Sides */}
-    {activeSides.left && <Svg
-      width={distanceWithAdditional} height={heightWithAdditional}
-      style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
-    >
-      <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-      {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
+      {/* Sides */}
+      {activeSides.left && <Svg
+        width={distanceWithAdditional} height={heightWithAdditional}
+        style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
+      >
+        <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
                   just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-      <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
-    </Svg>}
-    {activeSides.right && <Svg
-      width={distanceWithAdditional} height={heightWithAdditional}
-      style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
-    >
-      <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-      <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
-    </Svg>}
-    {activeSides.bottom && <Svg
-      width={widthWithAdditional} height={distanceWithAdditional}
-      style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
-    >
-      <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-      <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
-    </Svg>}
-    {activeSides.top && <Svg
-      width={widthWithAdditional} height={distanceWithAdditional}
-      style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
-    >
-      <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-      <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
-    </Svg>}
+        <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
+      </Svg>}
+      {activeSides.right && <Svg
+        width={distanceWithAdditional} height={heightWithAdditional}
+        style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
+      >
+        <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
+      </Svg>}
+      {activeSides.bottom && <Svg
+        width={widthWithAdditional} height={distanceWithAdditional}
+        style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
+      >
+        <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
+      </Svg>}
+      {activeSides.top && <Svg
+        width={widthWithAdditional} height={distanceWithAdditional}
+        style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
+      >
+        <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+        <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
+      </Svg>}
 
 
-    {/* Corners */}
-    {/* The anchor for the svgs path is the top left point in the corner square.
+      {/* Corners */}
+      {/* The anchor for the svgs path is the top left point in the corner square.
               The starting point is the clockwise external arc init point. */}
-    {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-      style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
-    >
-      <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
-      <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-        ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-        : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`} h${-distance} Z`}/>
-    </Svg>}
-    {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
-      style={{
-        position: 'absolute', top: -distance, left: width,
-        transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
-      }}
-    >
-      <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
-      <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-        ? `h${-topRight} v${-topLeft}`
-        : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
-      {/*  */}
-    </Svg>}
-    {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-      style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
-    >
-      <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
-      <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
-        ? `h${bottomLeft} v${bottomLeft}`
-        : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`} v${distance} Z`}/>
-    </Svg>}
-    {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
-      style={{
-        position: 'absolute', top: height, left: width,
-        transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...rtlTransform],
-      }}
-    >
-      <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
-      <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
-        ? `v${-bottomRight} h${bottomRight}`
-        : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`} h${distance} Z`}/>
-    </Svg>}
+      {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
+        style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
+      >
+        <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
+        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
+          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`} h${-distance} Z`}/>
+      </Svg>}
+      {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+        style={{
+          position: 'absolute', top: -distance, left: width,
+          transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
+        }}
+      >
+        <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
+        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
+          ? `h${-topRight} v${-topLeft}`
+          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
+        {/*  */}
+      </Svg>}
+      {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
+      >
+        <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
+        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
+          ? `h${bottomLeft} v${bottomLeft}`
+          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`} v${distance} Z`}/>
+      </Svg>}
+      {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+        style={{
+          position: 'absolute', top: height, left: width,
+          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...rtlTransform],
+        }}
+      >
+        <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
+        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
+          ? `v${-bottomRight} h${bottomRight}`
+          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`} h${distance} Z`}/>
+      </Svg>}
 
-    {/* Paint the inner area, so we can offset it.
-              [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
-              and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
-              paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-    {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute', ...rtlStyle }}>
-      {(typeof width === 'number' && typeof height === 'number')
-      // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
-      // We use Path as workaround to it.
-        ? (<Path fill={startColor} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
-        : (<>
-          <Defs>
-            <Mask id='maskPaintBelow'>
-              {/* Paint all white, then black on border external areas to erase them */}
-              <Rect width={width} height={height} fill='#fff'/>
-              {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
-              <Rect width={topLeft} height={topLeft} fill='#000'/>
-              <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
-              <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
-              <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
-            </Mask>
-          </Defs>
-          <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
-        </>)}
-    </Svg>}
+      {/* Paint the inner area, so we can offset it.
+      [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
+      and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
+      paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
+      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute', ...rtlStyle }}>
+        {(typeof width === 'number' && typeof height === 'number')
+        // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
+        // We use Path as workaround to it.
+          ? (<Path fill={startColor} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
+          : (<>
+            <Defs>
+              <Mask id='maskPaintBelow'>
+                {/* Paint all white, then black on border external areas to erase them */}
+                <Rect width={width} height={height} fill='#fff'/>
+                {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
+                <Rect width={topLeft} height={topLeft} fill='#000'/>
+                <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
+                <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
+                <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
+              </Mask>
+            </Defs>
+            <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+          </>)}
+      </Svg>}
     </View>
   );
 }
