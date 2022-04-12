@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { I18nManager, PixelRatio, Platform, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
+import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
+import { I18nManager, PixelRatio, Platform, StyleSheet, View } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
 import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
 import type { RgbaColor } from 'polished/lib/types/color';
-import { Corner, CornerRadius, CornerRadiusShadow, cornerToStyle, objFromKeys, Side } from './utils';
+import type { Corner, CornerRadius, CornerRadiusShadow, Side } from './utils';
+import { cornerToStyle, objFromKeys } from './utils';
 
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
@@ -151,6 +153,7 @@ export interface ShadowProps {
    *
    * @default false */
   safeRender?: boolean;
+  children?: React.ReactNode;
 }
 
 

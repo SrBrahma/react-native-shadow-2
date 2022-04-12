@@ -1,3 +1,6 @@
+## 6.0.4 - 2022-04-12
+* Fixed missed children type when using the new @types/react 18. [#44](https://github.com/SrBrahma/react-native-shadow-2/issues/44). Thanks [@Czino](https://github.com/Czino) and [@hcharley](https://github.com/hcharley)!
+
 ## 6.0.3 - 2022-02-11
 * Fixed paintInside gaps on iOS. [#36](https://github.com/SrBrahma/react-native-shadow-2/issues/36). Thanks, [@walterholohan](https://github.com/walterholohan)!
 
