@@ -105,6 +105,7 @@ export interface ShadowProps {
    *
    * @default false */
   stretch?: boolean;
+  children?: React.ReactNode;
 }
 
 
@@ -113,7 +114,7 @@ const defaultSides: Exclude<ShadowProps['sides'], undefined> = ['left', 'right',
 const defaultCorners: Exclude<ShadowProps['corners'], undefined> = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
 const emptyObj = {};
 
-export const Shadow: React.FC<ShadowProps> = (props) => {
+export function Shadow(props: ShadowProps): JSX.Element {
   const isRTL = I18nManager.isRTL;
   const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
   const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
@@ -176,7 +177,7 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
   }), [children, shadow, style, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height, containerStyle, sizeProp]);
 
   return result;
-};
+}
 
 
 
