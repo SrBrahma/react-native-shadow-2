@@ -137,23 +137,29 @@ export const Shadow: React.FC<ShadowProps> = (props) => {
     shadowViewProps,
   } = props;
 
-  const width = (sizeProp ? R(sizeProp[0]) : childLayoutWidth) ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
-  const height = (sizeProp ? R(sizeProp[1]) : childLayoutHeight) ?? '100%';
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
    * I believe it can come to be a popular pattern. */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  /** String to allow memoization. Do JSON.parse() to use it. Unsure if this is the best way to handle it. */
-  const childStyleStr: string = useMemo(() => {
-    return JSON.stringify(StyleSheet.flatten([childProps.style, childProps.s]));
-  }, [childProps.style, childProps.s]);
-  // const childStyle: ViewStyle = useMemo(() => {
-  //   return JSON.parse(childStyleStr);
-  // }, [childProps.style, childProps.s]);
+  const cStyle = useMemo(() => {
+    return StyleSheet.flatten([childProps.style, childProps.s]);
+  }, [childProps.s, childProps.style]);
 
-  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => getRadii({ width, height, childStyleStr, radius, style }),
-    [width, height, childStyleStr, radius, style],
+  const { cTopLeft, cTopRight, cBottomLeft, cBottomRight } = useMemo(() => {
+    return {
+      cTopLeft: cStyle.borderTopLeftRadius ?? cStyle.borderTopStartRadius ?? cStyle.borderRadius,
+      cTopRight: cStyle.borderTopRightRadius ?? cStyle.borderTopEndRadius ?? cStyle.borderRadius,
+      cBottomLeft: cStyle.borderBottomLeftRadius ?? cStyle.borderBottomStartRadius ?? cStyle.borderRadius,
+      cBottomRight: cStyle.borderBottomRightRadius ?? cStyle.borderBottomEndRadius ?? cStyle.borderRadius,
+    };
+  }, [cStyle.borderTopLeftRadius, cStyle.borderTopStartRadius, cStyle.borderRadius, cStyle.borderTopRightRadius, cStyle.borderTopEndRadius, cStyle.borderBottomLeftRadius, cStyle.borderBottomStartRadius, cStyle.borderBottomRightRadius, cStyle.borderBottomEndRadius]);
+
+  const width = (sizeProp ? R(sizeProp[0]) : childLayoutWidth) ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const height = (sizeProp ? R(sizeProp[1]) : childLayoutHeight) ?? '100%';
+
+  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => getRadii({ width, height, cTopLeft, cTopRight, cBottomLeft, cBottomRight, radius, style }),
+    [width, height, radius, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style],
   );
 
   const shadow = useMemo(() => getShadow({
@@ -232,25 +238,32 @@ function getResult({
 
 /** We make some effort for this to be likely memoized */
 function getRadii({
-  width, height, radius, style, childStyleStr,
+  width, height, radius, style, cTopLeft, cTopRight, cBottomLeft, cBottomRight,
 }: {
   width: string | number;
   height: string | number;
   radius: ShadowProps['radius'];
   style: StyleProp<ViewStyle>;
-  /** So we can check if it didn't change. */
-  childStyleStr?: string;
+  cTopLeft: number | undefined;
+  cTopRight: number | undefined;
+  cBottomLeft: number | undefined;
+  cBottomRight: number | undefined;
 }): CornerRadius {
-  const childStyle: ViewStyle = childStyleStr ? JSON.parse(childStyleStr) : {};
+
+
+  const child = {
+    topLeft: cTopLeft,
+    topRight: cTopRight,
+    bottomLeft: cBottomLeft,
+    bottomRight: cBottomRight,
+  };
 
   /** Not yet treated. May be negative / undefined */
   const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-    if (radius !== undefined) {
-      if (typeof radius === 'number')
-        return objFromKeys(cornersArray, () => radius);
-      else
-        return objFromKeys(cornersArray, (k) => radius[k] ?? radius.default);
-    }
+    if (radius !== undefined)
+      return objFromKeys(cornersArray, typeof radius === 'number'
+        ? () => radius
+        : (k) => radius[k] ?? radius.default);
 
     const mergedStyleProp = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
 
@@ -258,8 +271,8 @@ function getRadii({
       // For each corner, first ~borderTopLeftRadius, then ~borderTopStartRadius, then borderRadius.
       // Try to get `style` radii.
       mergedStyleProp[cornerToStyle[k][0]] ?? mergedStyleProp[cornerToStyle[k][1]] ?? mergedStyleProp.borderRadius
-        // If not found on `style`, try to get on child's `style`.
-        ?? childStyle[cornerToStyle[k][0]] ?? childStyle[cornerToStyle[k][1]] ?? childStyle.borderRadius,
+        // If corner not found on `style`, try to get on child's `style`.
+        ?? child[k],
     );
 
     return cornersRadii;

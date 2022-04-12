@@ -3,9 +3,10 @@
 * Renamed `containerViewStyle` property to `containerStyle`.
 * Renamed `viewStyle` property to `style`.
 * Removed `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
-* Removed error when there isn't a child or more than one.
+* Removed error when there is more than a child. Also fixed an error where there isn't a child.
 * Improved performance and RAM usage due to some general refactorings and improved memoizations.
-* Now using colord instead of polished to deal with colors' alpha.
+* Now using `colord` package instead of `polished` to deal with colors' alpha.
+
 ### TODO
 * Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
 * Smart stretch? check for width/height etc?
