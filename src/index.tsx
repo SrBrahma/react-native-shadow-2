@@ -140,9 +140,10 @@ export function Shadow(props: ShadowProps): JSX.Element {
 
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
-   * I believe it can come to be a popular pattern. */
+   * I believe it can come to be a popular pattern eventually. */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
+  /** Children's style. */
   const cStyle = useMemo(() => {
     return StyleSheet.flatten([childProps.style, childProps.s]);
   }, [childProps.s, childProps.style]);
@@ -163,20 +164,25 @@ export function Shadow(props: ShadowProps): JSX.Element {
     [width, height, radius, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style],
   );
 
+  const offsetX = offset?.[0] ?? 0;
+  const offsetY = offset?.[1] ?? 0;
+
   const shadow = useMemo(() => getShadow({
     safeRender, topLeft, topRight, bottomLeft, bottomRight, width, height, isRTL, distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp, paintInside,
-    shadowViewProps, offset,
+    shadowViewProps, offsetX, offsetY,
   }), [
-    width, height, topLeft, topRight, bottomLeft, bottomRight, offset,
+    width, height, topLeft, topRight, bottomLeft, bottomRight,
     distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp,
-    paintInside, shadowViewProps, safeRender, isRTL,
+    shadowViewProps,
+    offsetX, offsetY, paintInside, isRTL, safeRender,
   ]);
 
-  const result = useMemo(() => getResult({
-    shadow, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height, setChildLayoutWidth, setChildLayoutHeight, children, containerStyle, sizeProp, style,
-  }), [children, shadow, style, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height, containerStyle, sizeProp]);
-
-  return result;
+  // We won't memo this as children commonly changes.
+  return getResult({
+    shadow, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height,
+    children, containerStyle, sizeProp, style,
+    setChildLayoutWidth, setChildLayoutHeight,
+  });
 }
 
 
@@ -190,11 +196,11 @@ function getResult({
   topRight: number;
   bottomLeft: number;
   bottomRight: number;
-  containerStyle: ShadowProps['containerStyle'];
+  containerStyle: StyleProp<ViewStyle>;
   shadow: JSX.Element | null;
   children: any;
   sizeProp: ShadowProps['size'];
-  style: ShadowProps['style'];
+  style: StyleProp<ViewStyle>;
   stretch: boolean;
   width: string | number;
   height: string | number;
@@ -209,8 +215,8 @@ function getResult({
         pointerEvents='box-none'
         style={[
           {
-          // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
-          // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
             alignSelf: stretch ? 'stretch' : 'flex-start',
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
             borderTopLeftRadius: topLeft,
@@ -250,8 +256,6 @@ function getRadii({
   cBottomLeft: number | undefined;
   cBottomRight: number | undefined;
 }): CornerRadius {
-
-
   const child = {
     topLeft: cTopLeft,
     topRight: cTopRight,
@@ -302,11 +306,11 @@ function getRadii({
 }
 
 
-
+/** The SVG parts. */
 function getShadow({
   safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp,
   topLeft, topRight, bottomLeft, bottomRight,
-  sidesProp, cornersProp, paintInside, offset, shadowViewProps,
+  sidesProp, cornersProp, paintInside, offsetX, offsetY, shadowViewProps,
 }: {
   safeRender: boolean;
   width: string | number;
@@ -322,7 +326,8 @@ function getShadow({
   sidesProp: ('top' | 'left' | 'right' | 'bottom')[];
   cornersProp: ('topRight' | 'topLeft' | 'bottomLeft' | 'bottomRight')[];
   paintInside: boolean;
-  offset: ShadowProps['offset'];
+  offsetX: number | string;
+  offsetY: number | string;
   shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element | null {
   // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
@@ -384,7 +389,7 @@ function getShadow({
 
   return (
     <View pointerEvents='none' {...shadowViewProps} style={[
-      StyleSheet.absoluteFillObject, { left: offset?.[0] ?? 0, top: offset?.[1] ?? 0 }, shadowViewProps?.style,
+      StyleSheet.absoluteFillObject, { left: offsetX, top: offsetY }, shadowViewProps?.style,
     ]}
     >
       {/* Sides */}
