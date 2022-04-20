@@ -65,7 +65,10 @@ export const additional = isWeb ? 0 : 1;
 
 /** Auxilary function to shorten code */
 export function objFromKeys<KeysArray extends Readonly<string[]>, Rtn>(keys: KeysArray, fun: (key: KeysArray[number]) => Rtn): Record<KeysArray[number], Rtn> {
-  return keys.reduce((obj, key) => ({ ...obj, [key]: fun(key) }), {} as Record<string, any>);
+  const result: Record<KeysArray[number], Rtn> = {} as any;
+  for (const key of keys)
+    result[key as KeysArray[number]] = fun(key);
+  return result;
 }
 
 export const cornerToStyle = {
