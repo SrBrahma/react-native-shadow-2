@@ -5,7 +5,7 @@ import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-
 import { colord } from 'colord';
 import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
-  additional, cornersArray, cornerToStyle, objFromKeys,
+  additional, cornersArray, objFromKeys,
   R, radialGradient, sidesArray, sumDps,
 } from './utils';
 
@@ -59,23 +59,8 @@ export interface ShadowProps {
   style?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerStyle?: StyleProp<ViewStyle>;
-  /** Props for the Shadow view. You shouldn't need to use this. You may pass style to this. */
+  /** Props for the Shadow view. You shouldn't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
-  /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
-   *
-   * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
-   * @default true */
-  /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
-   * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
-   *
-   * It will apply the corresponding `width` and `height` styles to the `style` property.
-   *
-   * You may want to set `backgroundColor` in the `style` property for your child background color.
-   *
-   * It's also good if you want an animated view.
-   *
-   * The values will be properly rounded using our R() function. */
-  size?: [width: number, height: number];
   // /** If the shadow will move to its inner side instead of going out.
   //  *
   //  * @default false */
@@ -116,8 +101,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
     startColor: startColorProp = '#00000020',
     finalColor: finalColorProp = colord(startColorProp).alpha(0).toHex(),
     distance: distanceProp = 10,
-    size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
-    style,
+    style: styleProp,
     safeRender = false,
     stretch = false,
     /** Defaults to true if offset is defined, else defaults to false */
@@ -127,7 +111,6 @@ export function Shadow(props: ShadowProps): JSX.Element {
     offset,
     shadowViewProps,
   } = props;
-
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
    * I believe it can come to be a popular pattern eventually. */
@@ -147,19 +130,42 @@ export function Shadow(props: ShadowProps): JSX.Element {
     };
   }, [cStyle.borderTopLeftRadius, cStyle.borderTopStartRadius, cStyle.borderRadius, cStyle.borderTopRightRadius, cStyle.borderTopEndRadius, cStyle.borderBottomLeftRadius, cStyle.borderBottomStartRadius, cStyle.borderBottomRightRadius, cStyle.borderBottomEndRadius]);
 
-  const width = (sizeProp ? R(sizeProp[0]) : childLayoutWidth) ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
-  const height = (sizeProp ? R(sizeProp[1]) : childLayoutHeight) ?? '100%';
+  /** Flattened style. */
+  const style = useMemo(() => {
+    const style = StyleSheet.flatten(styleProp ?? {}); // TODO do we need to flat copy styleProp?
+    if (typeof style.width === 'number')
+      style.width = R(style.width);
+    if (typeof style.height === 'number')
+      style.height = R(style.height);
+    style.borderTopLeftRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
+    style.borderTopRightRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
+    style.borderTopLeftRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
+    style.borderTopLeftRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
+    return style;
 
-  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => getRadii({ width, height, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style }),
-    [width, height, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style],
-  );
+  }, [styleProp]);
+
+  const width = style.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const height = style.height ?? childLayoutHeight ?? '100%';
+
+  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => sanitizeRadii({
+    width, height, radii: {
+      topLeft: style.borderTopLeftRadius ?? cTopLeft,
+      topRight: style.borderTopRightRadius ?? cTopRight,
+      bottomLeft: style.borderBottomLeftRadius ?? cBottomLeft,
+      bottomRight: style.borderBottomRightRadius ?? cBottomRight,
+    },
+  }), [
+    width, height, style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomLeftRadius, style.borderBottomRightRadius, cTopLeft, cTopRight, cBottomLeft, cBottomRight,
+  ]);
 
   const offsetX = offset?.[0] ?? 0;
   const offsetY = offset?.[1] ?? 0;
 
   const shadow = useMemo(() => getShadow({
-    safeRender, topLeft, topRight, bottomLeft, bottomRight, width, height, isRTL, distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp, paintInside,
-    shadowViewProps, offsetX, offsetY,
+    topLeft, topRight, bottomLeft, bottomRight, width, height,
+    isRTL, distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp, paintInside,
+    shadowViewProps, offsetX, offsetY, safeRender,
   }), [
     width, height, topLeft, topRight, bottomLeft, bottomRight,
     distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp,
@@ -169,8 +175,8 @@ export function Shadow(props: ShadowProps): JSX.Element {
 
   // We won't memo this as children commonly changes.
   return getResult({
-    shadow, stretch, topLeft, topRight, bottomLeft, bottomRight, width, height,
-    children, containerStyle, sizeProp, style,
+    shadow, stretch, topLeft, topRight, bottomLeft, bottomRight,
+    children, containerStyle, style,
     setChildLayoutWidth, setChildLayoutHeight,
   });
 }
@@ -178,8 +184,8 @@ export function Shadow(props: ShadowProps): JSX.Element {
 
 
 function getResult({
-  shadow, stretch, width, height, setChildLayoutWidth, setChildLayoutHeight,
-  containerStyle, children, sizeProp, style,
+  shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
+  containerStyle, children, style,
   topLeft, topRight, bottomLeft, bottomRight,
 }: {
   topLeft: number;
@@ -189,11 +195,8 @@ function getResult({
   containerStyle: StyleProp<ViewStyle>;
   shadow: JSX.Element | null;
   children: any;
-  sizeProp: ShadowProps['size'];
-  style: StyleProp<ViewStyle>;
+  style: ViewStyle; // Already flattened
   stretch: boolean;
-  width: string | number;
-  height: string | number;
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
 }): JSX.Element {
@@ -214,17 +217,18 @@ function getResult({
             borderBottomLeftRadius: bottomLeft,
             borderBottomRightRadius: bottomRight,
           },
-          sizeProp && { width, height },
-          style,
+          style, // FIXME problematic radius? would topStart overwrite topLeft?
         ]}
         onLayout={(e) => {
-          if (sizeProp) // For some really strange reason, attaching conditionally the onLayout wasn't working
-            return; // on condition change, so we check here inside if the sizeProp is defined.
+          // For some really strange reason, attaching conditionally the onLayout wasn't working on condition change,
+          // so we do the check before the state change.
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
           const layout = e.nativeEvent.layout;
-          setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
-          setChildLayoutHeight(layout.height);
+          if (style.width === undefined) // Is this check good?
+            setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded. (?)
+          if (style.height === undefined)
+            setChildLayoutHeight(layout.height);
         }}
       >
         {children}
@@ -234,44 +238,19 @@ function getResult({
 }
 
 /** We make some effort for this to be likely memoized */
-function getRadii({
-  width, height, style, cTopLeft, cTopRight, cBottomLeft, cBottomRight,
-}: {
+function sanitizeRadii({ width, height, radii }: {
   width: string | number;
   height: string | number;
-  style: StyleProp<ViewStyle>;
-  cTopLeft: number | undefined;
-  cTopRight: number | undefined;
-  cBottomLeft: number | undefined;
-  cBottomRight: number | undefined;
-}): CornerRadius {
-  const child = {
-    topLeft: cTopLeft,
-    topRight: cTopRight,
-    bottomLeft: cBottomLeft,
-    bottomRight: cBottomRight,
-  };
-
   /** Not yet treated. May be negative / undefined */
-  const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-    const mergedStyleProp = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
-
-    const cornersRadii = objFromKeys(cornersArray, (k) =>
-      // For each corner, first ~borderTopLeftRadius, then ~borderTopStartRadius, then borderRadius.
-      // Try to get `style` radii.
-      mergedStyleProp[cornerToStyle[k][0]] ?? mergedStyleProp[cornerToStyle[k][1]] ?? mergedStyleProp.borderRadius
-        // If corner not found on `style`, try to get on child's `style`.
-        ?? child[k],
-    );
-
-    return cornersRadii;
-  })();
-
-
+  radii: {
+    topLeft: number | undefined;
+    topRight: number | undefined;
+    bottomLeft: number | undefined;
+    bottomRight: number | undefined;
+  };
+}): CornerRadius {
   /** Round and zero negative radius values */
-  const radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
-
-  let result = radiiSanitized;
+  let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(radii[k] ?? 0, 0)));
 
   if (typeof width === 'number' && typeof height === 'number') {
     // https://css-tricks.com/what-happens-when-border-radii-overlap/
@@ -283,10 +262,10 @@ function getRadii({
       height / (radiiSanitized.topLeft + radiiSanitized.bottomLeft),
     );
     if (minRatio < 1)
-      result = objFromKeys(cornersArray, (k) => R(radiiSanitized[k] * minRatio));
+      radiiSanitized = objFromKeys(cornersArray, (k) => R(radiiSanitized[k] * minRatio));
   }
 
-  return result;
+  return radiiSanitized;
 }
 
 

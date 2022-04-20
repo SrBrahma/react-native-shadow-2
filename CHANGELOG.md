@@ -1,11 +1,13 @@
 # 7.0.0 - 2022-03-21
-* Added `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
-* Renamed `containerViewStyle` property to `containerStyle`.
-* Renamed `viewStyle` property to `style`.
-* Removed `radius` property. You shall now define the radius in `style`'s `borderRadius` related properties, as `borderTopLeftRadius` / `borderTopStartRadius`.
-* Removed `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
-* Removed error when there is more than a child. Also fixed an error where there isn't a child.
-* Improved performance and RAM usage due to some general refactorings and improved memoizations.
+> Many major changes to simplify the library and improve the Shadow performance!
+* **Removed** `radius` property. If desired, you shall now define the radius in `style`'s `borderRadius` related properties, as `borderTopLeftRadius` / `borderTopStartRadius`.
+* **Removed** `size` property. If desired, you shall now define the size in `style`'s `width` and `height`.
+* **Added** `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
+* **Renamed** `containerViewStyle` property to `containerStyle`.
+* **Renamed** `viewStyle` property to `style`.
+* **Removed** `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
+* **Removed** error when there is more than a child. Also fixed an error where there isn't a child.
+* **Improved** performance and RAM usage due to some general refactorings and improved memoizations.
 * Now using `colord` package instead of `polished` to deal with colors' alpha.
 
 
