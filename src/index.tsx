@@ -26,15 +26,6 @@ export interface ShadowProps {
   /** How far the shadow will go.
    * @default 10 */
   distance?: number;
-  /** The radius of each corner of your child component. Passing a number will apply it to all corners.
-   *
-   * If passing an object, undefined corners will have the radius of the `default` property if it's defined.
-   *
-   * If undefined, it will attempt to get the child radius from the borderRadius related styles.
-   *
-   * Each corner fallbacks to 0. */
-  radius?: number | { default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
-  // TODO getChildSizeStyle?: boolean;
   /** The sides of your content that will have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
@@ -132,7 +123,6 @@ export function Shadow(props: ShadowProps): JSX.Element {
     /** Defaults to true if offset is defined, else defaults to false */
     paintInside = props.offset ? true : false,
     children,
-    radius,
     containerStyle,
     offset,
     shadowViewProps,
@@ -160,8 +150,8 @@ export function Shadow(props: ShadowProps): JSX.Element {
   const width = (sizeProp ? R(sizeProp[0]) : childLayoutWidth) ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
   const height = (sizeProp ? R(sizeProp[1]) : childLayoutHeight) ?? '100%';
 
-  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => getRadii({ width, height, cTopLeft, cTopRight, cBottomLeft, cBottomRight, radius, style }),
-    [width, height, radius, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style],
+  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => getRadii({ width, height, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style }),
+    [width, height, cTopLeft, cTopRight, cBottomLeft, cBottomRight, style],
   );
 
   const offsetX = offset?.[0] ?? 0;
@@ -245,11 +235,10 @@ function getResult({
 
 /** We make some effort for this to be likely memoized */
 function getRadii({
-  width, height, radius, style, cTopLeft, cTopRight, cBottomLeft, cBottomRight,
+  width, height, style, cTopLeft, cTopRight, cBottomLeft, cBottomRight,
 }: {
   width: string | number;
   height: string | number;
-  radius: ShadowProps['radius'];
   style: StyleProp<ViewStyle>;
   cTopLeft: number | undefined;
   cTopRight: number | undefined;
@@ -265,11 +254,6 @@ function getRadii({
 
   /** Not yet treated. May be negative / undefined */
   const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-    if (radius !== undefined)
-      return objFromKeys(cornersArray, typeof radius === 'number'
-        ? () => radius
-        : (k) => radius[k] ?? radius.default);
-
     const mergedStyleProp = StyleSheet.flatten(style ?? {}); // Convert possible array style to a single obj style.
 
     const cornersRadii = objFromKeys(cornersArray, (k) =>
