@@ -59,8 +59,6 @@ export interface ShadowProps {
   style?: StyleProp<ViewStyle>;
   /** The style of the view that contains the shadow and your child component. */
   containerStyle?: StyleProp<ViewStyle>;
-  /** Props for the Shadow view. You shouldn't need to use this. You may pass `style` to this. */
-  shadowViewProps?: ViewProps;
   // /** If the shadow will move to its inner side instead of going out.
   //  *
   //  * @default false */
@@ -82,12 +80,11 @@ export interface ShadowProps {
    * @default false */
   stretch?: boolean;
   children?: React.ReactNode;
+  /** Props for the Shadow view. You shouldn't need to use this. You may pass `style` to this. */
+  shadowViewProps?: ViewProps;
 }
 
-
-// To help memoization.
-const defaultSides: Exclude<ShadowProps['sides'], undefined> = ['left', 'right', 'top', 'bottom'];
-const defaultCorners: Exclude<ShadowProps['corners'], undefined> = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
+// For better memoization
 const emptyObj = {};
 
 export function Shadow(props: ShadowProps): JSX.Element {
@@ -96,8 +93,8 @@ export function Shadow(props: ShadowProps): JSX.Element {
   const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
 
   const {
-    sides: sidesProp = defaultSides,
-    corners: cornersProp = defaultCorners,
+    sides,
+    corners,
     startColor: startColorProp = '#00000020',
     finalColor: finalColorProp = colord(startColorProp).alpha(0).toHex(),
     distance: distanceProp = 10,
@@ -111,6 +108,18 @@ export function Shadow(props: ShadowProps): JSX.Element {
     offset,
     shadowViewProps,
   } = props;
+
+  /** Which sides will have shadow. */
+  const activeSides: Record<Side, boolean> = useMemo(() => objFromKeys(sidesArray, (k) => sides?.includes(k) ?? true),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+    sides,
+  );
+
+  /** Which corners will have shadow. */
+  const activeCorners: Record<Corner, boolean> = useMemo(() => objFromKeys(cornersArray, (k) => corners?.includes(k) ?? true),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+    corners,
+  );
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
    * I believe it can come to be a popular pattern eventually. */
@@ -164,13 +173,12 @@ export function Shadow(props: ShadowProps): JSX.Element {
 
   const shadow = useMemo(() => getShadow({
     topLeft, topRight, bottomLeft, bottomRight, width, height,
-    isRTL, distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp, paintInside,
-    shadowViewProps, offsetX, offsetY, safeRender,
+    isRTL, distanceProp, startColorProp, finalColorProp, paintInside,
+    shadowViewProps, offsetX, offsetY, safeRender, activeSides, activeCorners,
   }), [
     width, height, topLeft, topRight, bottomLeft, bottomRight,
-    distanceProp, startColorProp, finalColorProp, sidesProp, cornersProp,
-    shadowViewProps,
-    offsetX, offsetY, paintInside, isRTL, safeRender,
+    distanceProp, startColorProp, finalColorProp,
+    offsetX, offsetY, paintInside, activeCorners, activeSides, isRTL, safeRender, shadowViewProps,
   ]);
 
   // We won't memo this as children commonly changes.
@@ -273,7 +281,7 @@ function sanitizeRadii({ width, height, radii }: {
 function getShadow({
   safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp,
   topLeft, topRight, bottomLeft, bottomRight,
-  sidesProp, cornersProp, paintInside, offsetX, offsetY, shadowViewProps,
+  activeSides, activeCorners, paintInside, offsetX, offsetY, shadowViewProps,
 }: {
   safeRender: boolean;
   width: string | number;
@@ -286,8 +294,9 @@ function getShadow({
   topRight: number;
   bottomLeft: number;
   bottomRight: number;
-  sidesProp: ('top' | 'left' | 'right' | 'bottom')[];
-  cornersProp: ('topRight' | 'topLeft' | 'bottomLeft' | 'bottomRight')[];
+  activeSides: Record<Side, boolean>;
+  activeCorners: Record<Corner, boolean>;
+
   paintInside: boolean;
   offsetX: number | string;
   offsetY: number | string;
@@ -342,13 +351,6 @@ function getShadow({
   };
 
   const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
-
-  /** Which sides will have shadow. */
-  const activeSides: Record<Side, boolean> = objFromKeys(sidesArray, (k) => sidesProp.includes(k));
-
-  /** Which corners will have shadow. */
-  const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
-
 
   return (
     <View pointerEvents='none' {...shadowViewProps} style={[
