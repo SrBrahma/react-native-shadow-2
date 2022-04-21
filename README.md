@@ -18,11 +18,16 @@ The [ethercreative/react-native-shadow-generator](https://ethercreative.github.i
 
 Compatible with Android, iOS and Web. **And Expo!**
 
-### [Read the FAQ below!](#️-faq)
+### [❗ Read the FAQ below!](#️-faq)
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+> Give it a quick try!
 
-## 📰 [Changelog](./CHANGELOG.md)
+## [📰 Changelog 7.0.0](./CHANGELOG.md)
+> There are important breaking changes! Read this if upgrading!
+
+## [↪️ < 7.0.0 Readme](https://github.com/SrBrahma/react-native-shadow-2/blob/4b58bedca1a417fe9760c1a22bf1208f9ff181ad/README.md)
+> Previous Readme, in case you are still using versions < 7.0.0.
 
 ## 💿 Installation
 
@@ -76,12 +81,10 @@ import { Shadow } from 'react-native-shadow-2';
 | **paintInside** | If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
 | **sides** | The sides that will have their shadows drawn. Doesn't include corners. | `("left" \| "right" \| "top" \| "bottom")[]` | `['left', 'right', 'top', 'bottom']`
 | **corners** | The corners that will have their shadows drawn. | `("topLeft" \| "topRight" \| "bottomLeft" \| "bottomRight")[]` | `['topLeft', 'topRight', 'bottomLeft', 'bottomRight']`
-| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the 1st render but only on the 2nd render and beyond with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes, to avoid visual artifacts on the first render.<br/><br/>When `true`, the shadow only appears after the first render, where it's invisible. | `boolean` | `false`
 | **style** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | If your children shall ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
-| **getChildRadius** | If it should try to get the radii from the child's view `style` if our `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `style` have priority over child's view style, if **`getStyleRadius`**. | `boolean` | `true`
-| **getStyleRadius** | If it should try to get the radii from the `style` if `radius` property is `undefined`. It gets the values of each corner, like `borderTopLeftRadius` and `borderRadius` as fallback for all corners.<br/><br/>The corners defined in `style` have priority over child's view style, if **`getStyleRadius`**. | `boolean` | `true`
+| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the 1st render but only on the 2nd render and beyond with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes, to avoid visual artifacts on the first render.<br/><br/>When `true`, the shadow only appears after the first render, where it's invisible. | `boolean` | `false`
 <!--/$shadowProperties-->
 
 ## ⁉️ FAQ
@@ -93,7 +96,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 **Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
 
-**A**: Use `style={{alignSelf: 'stretch'}}` in your Shadow component. Explanation in link above!
+**A**: Use the `stretch` property or `style={{alignSelf: 'stretch'}}` in your Shadow component. Explanation in link above!
 
 
 **Q**: I want a preset for my Shadows, so I don't have to type the same props among them and I want to quickly change them all if I want to!
