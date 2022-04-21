@@ -1,5 +1,5 @@
 # 7.0.0 - 2022-03-21
-> Many major changes to simplify the library and improve the Shadow performance!
+> Major changes to simplify the library, improve the Developer experience and improve the performance!
 * **Removed** `radius` property. If desired, you shall now define the radius in `style`'s `borderRadius` related properties, as `borderTopLeftRadius` / `borderTopStartRadius`.
 * **Removed** `size` property. If desired, you shall now define the size in `style`'s `width` and `height`.
 * **Added** `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)

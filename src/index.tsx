@@ -125,47 +125,58 @@ export function Shadow(props: ShadowProps): JSX.Element {
    * I believe it can come to be a popular pattern eventually. */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  /** Children's style. */
-  const cStyle = useMemo(() => {
-    return StyleSheet.flatten([childProps.style, childProps.s]);
-  }, [childProps.s, childProps.style]);
+  const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? {}), [childProps.style]);
+  const childSStr = useMemo(() => JSON.stringify(childProps.s ?? {}), [childProps.s]);
 
-  const { cTopLeft, cTopRight, cBottomLeft, cBottomRight } = useMemo(() => {
+  /** Child's style. */
+  const cStyle = useMemo<ViewStyle>(() => {
+    return StyleSheet.flatten([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
+  }, [childSStr, childStyleStr]);
+
+  /** Child's Radii */
+  const cRadii = useMemo(() => {
     return {
-      cTopLeft: cStyle.borderTopLeftRadius ?? cStyle.borderTopStartRadius ?? cStyle.borderRadius,
-      cTopRight: cStyle.borderTopRightRadius ?? cStyle.borderTopEndRadius ?? cStyle.borderRadius,
-      cBottomLeft: cStyle.borderBottomLeftRadius ?? cStyle.borderBottomStartRadius ?? cStyle.borderRadius,
-      cBottomRight: cStyle.borderBottomRightRadius ?? cStyle.borderBottomEndRadius ?? cStyle.borderRadius,
+      topLeft: cStyle.borderTopLeftRadius ?? cStyle.borderTopStartRadius ?? cStyle.borderRadius,
+      topRight: cStyle.borderTopRightRadius ?? cStyle.borderTopEndRadius ?? cStyle.borderRadius,
+      bottomLeft: cStyle.borderBottomLeftRadius ?? cStyle.borderBottomStartRadius ?? cStyle.borderRadius,
+      bottomRight: cStyle.borderBottomRightRadius ?? cStyle.borderBottomEndRadius ?? cStyle.borderRadius,
     };
   }, [cStyle.borderTopLeftRadius, cStyle.borderTopStartRadius, cStyle.borderRadius, cStyle.borderTopRightRadius, cStyle.borderTopEndRadius, cStyle.borderBottomLeftRadius, cStyle.borderBottomStartRadius, cStyle.borderBottomRightRadius, cStyle.borderBottomEndRadius]);
 
+  const styleStr = useMemo(() => JSON.stringify(styleProp ?? {}), [styleProp]);
+
   /** Flattened style. */
-  const style = useMemo(() => {
-    const style = StyleSheet.flatten(styleProp ?? {}); // TODO do we need to flat copy styleProp?
+  const { style, sRadii } = useMemo(() => {
+    const style = StyleSheet.flatten(JSON.parse(styleStr));
     if (typeof style.width === 'number')
       style.width = R(style.width);
     if (typeof style.height === 'number')
       style.height = R(style.height);
-    style.borderTopLeftRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
-    style.borderTopRightRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
-    style.borderTopLeftRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
-    style.borderTopLeftRadius = style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius;
-    return style;
-
-  }, [styleProp]);
+    return {
+      style,
+      sRadii: {
+        topLeft: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
+        topRight: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
+        bottomLeft: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
+        bottomRight: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
+      },
+    };
+  }, [styleStr]);
 
   const width = style.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
   const height = style.height ?? childLayoutHeight ?? '100%';
 
   const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => sanitizeRadii({
     width, height, radii: {
-      topLeft: style.borderTopLeftRadius ?? cTopLeft,
-      topRight: style.borderTopRightRadius ?? cTopRight,
-      bottomLeft: style.borderBottomLeftRadius ?? cBottomLeft,
-      bottomRight: style.borderBottomRightRadius ?? cBottomRight,
+      topLeft: sRadii.topLeft ?? cRadii.topLeft,
+      topRight: sRadii.topRight ?? cRadii.topRight,
+      bottomLeft: sRadii.bottomLeft ?? cRadii.bottomLeft,
+      bottomRight: sRadii.bottomRight ?? cRadii.bottomRight,
     },
   }), [
-    width, height, style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomLeftRadius, style.borderBottomRightRadius, cTopLeft, cTopRight, cBottomLeft, cBottomRight,
+    width, height,
+    sRadii.topLeft, sRadii.topRight, sRadii.bottomLeft, sRadii.bottomRight,
+    cRadii.topLeft, cRadii.topRight, cRadii.bottomLeft, cRadii.bottomRight,
   ]);
 
   const offsetX = offset?.[0] ?? 0;
@@ -228,7 +239,7 @@ function getResult({
           style, // FIXME problematic radius? would topStart overwrite topLeft?
         ]}
         onLayout={(e) => {
-          // For some really strange reason, attaching conditionally the onLayout wasn't working on condition change,
+          // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
           // so we do the check before the state change.
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
@@ -296,7 +307,6 @@ function getShadow({
   bottomRight: number;
   activeSides: Record<Side, boolean>;
   activeCorners: Record<Corner, boolean>;
-
   paintInside: boolean;
   offsetX: number | string;
   offsetY: number | string;
