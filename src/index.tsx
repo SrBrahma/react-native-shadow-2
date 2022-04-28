@@ -411,6 +411,7 @@ function getShadow({
       {/* Corners */}
       {/* The anchor for the svgs path is the top left point in the corner square.
               The starting point is the clockwise external arc init point. */}
+      {/* Checking topLeftShadowEtc > 0 due to https://github.com/SrBrahma/react-native-shadow-2/issues/47. */}
       {activeCorners.topLeft && topLeftShadow > 0 && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
         style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
       >
