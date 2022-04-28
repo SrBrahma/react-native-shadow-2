@@ -316,13 +316,18 @@ function getShadow({
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
     return null;
 
+  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
+
+  // Quick return if not going to show up anything
+  if (!distance && !paintInside)
+    return null;
+
+  const distanceWithAdditional = distance + additional;
+
   /** To be used inside Svg style */
   const rtlStyle = isRTL && { transform: [{ scaleX: -1 }] };
   /** To be used inside Svg style.transform */
   const rtlTransform = isRTL ? [{ scaleX: -1 }] : [];
-
-  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
-  const distanceWithAdditional = distance + additional;
 
   /** Will (+ additional), only if its value isn't '100%'. [*4] */
   const widthWithAdditional = typeof width === 'string' ? width : width + additional;
@@ -367,43 +372,46 @@ function getShadow({
       StyleSheet.absoluteFillObject, { left: offsetX, top: offsetY }, shadowViewProps?.style,
     ]}
     >
-      {/* Sides */}
-      {activeSides.left && <Svg
-        width={distanceWithAdditional} height={heightWithAdditional}
-        style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-        {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
+      {/* Skip sides if we don't have a distance. */}
+      {distance > 0 && <>
+        {/* Sides */}
+        {activeSides.left && <Svg
+          width={distanceWithAdditional} height={heightWithAdditional}
+          style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
+        >
+          <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
                   just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-        <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
-      </Svg>}
-      {activeSides.right && <Svg
-        width={distanceWithAdditional} height={heightWithAdditional}
-        style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-        <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
-      </Svg>}
-      {activeSides.bottom && <Svg
-        width={widthWithAdditional} height={distanceWithAdditional}
-        style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-        <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
-      </Svg>}
-      {activeSides.top && <Svg
-        width={widthWithAdditional} height={distanceWithAdditional}
-        style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
-      >
-        <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-        <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
-      </Svg>}
+          <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
+        </Svg>}
+        {activeSides.right && <Svg
+          width={distanceWithAdditional} height={heightWithAdditional}
+          style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
+        >
+          <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
+        </Svg>}
+        {activeSides.bottom && <Svg
+          width={widthWithAdditional} height={distanceWithAdditional}
+          style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
+        >
+          <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
+        </Svg>}
+        {activeSides.top && <Svg
+          width={widthWithAdditional} height={distanceWithAdditional}
+          style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
+        >
+          <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
+        </Svg>}
+      </>}
 
 
       {/* Corners */}
       {/* The anchor for the svgs path is the top left point in the corner square.
               The starting point is the clockwise external arc init point. */}
-      {activeCorners.topLeft && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
+      {activeCorners.topLeft && topLeftShadow > 0 && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
         style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
       >
         <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
@@ -411,7 +419,7 @@ function getShadow({
           ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
           : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`} h${-distance} Z`}/>
       </Svg>}
-      {activeCorners.topRight && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+      {activeCorners.topRight && topRightShadow > 0 && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
         style={{
           position: 'absolute', top: -distance, left: width,
           transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
@@ -423,7 +431,7 @@ function getShadow({
           : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
         {/*  */}
       </Svg>}
-      {activeCorners.bottomLeft && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
+      {activeCorners.bottomLeft && bottomLeftShadow > 0 && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
         style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
       >
         <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
@@ -431,7 +439,7 @@ function getShadow({
           ? `h${bottomLeft} v${bottomLeft}`
           : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`} v${distance} Z`}/>
       </Svg>}
-      {activeCorners.bottomRight && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+      {activeCorners.bottomRight && bottomRightShadow > 0 && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
         style={{
           position: 'absolute', top: height, left: width,
           transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...rtlTransform],
