@@ -1,9 +1,0 @@
-{
-  "entryPoints": "src/index.tsx",
-  "hideGenerator": true,
-  "hideBreadcrumbs": true,
-  "hideInPageTOC": true,
-  "disableSources": true,
-  "sort": ["source-order"]
-
-}

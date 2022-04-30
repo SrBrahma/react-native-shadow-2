@@ -56,8 +56,6 @@
     "react-native": "*",
     "react-native-svg": "^12.3.0",
     "rimraf": "^3.0.2",
-    "typedoc": "^0.22.10",
-    "typedoc-plugin-markdown": "^3.11.7",
     "typescript": "^4.6.2"
   },
   "peerDependencies": {
