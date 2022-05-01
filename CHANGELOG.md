@@ -1,3 +1,6 @@
+## 6.0.5 - 2022-05-01
+* Fixed Android crash when `distance` and a radius are both 0. [#47](https://github.com/SrBrahma/react-native-shadow-2/issues/47). Many thanks, [@Czino](https://github.com/Czino)!
+
 ## 6.0.4 - 2022-04-12
 * Fixed missed children type when using the new @types/react 18. [#44](https://github.com/SrBrahma/react-native-shadow-2/issues/44). Thanks [@Czino](https://github.com/Czino) and [@hcharley](https://github.com/hcharley)!
 
