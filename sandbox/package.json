@@ -11,12 +11,12 @@
     "expo": "~44.0.6",
     "pagescrollview": "1.3.2",
     "polished": "4.1.4",
-    "react": "16.13.1",
-    "react-dom": "16.13.1",
-    "react-native": "0.63.4",
+    "react": "17.0.1",
+    "react-dom": "17.0.1",
+    "react-native": "0.64.3",
     "react-native-safe-area-context": "3.2.0",
     "react-native-svg": "12.1.1",
-    "react-native-web": "~0.13.12",
+    "react-native-web": "0.17.1",
     "tinycolor2": "1.4.2"
   },
   "devDependencies": {

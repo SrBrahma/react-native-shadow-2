@@ -26,7 +26,9 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      // https://github.com/akveo/react-native-ui-kitten/issues/996#issuecomment-790975093
+      "build": { "babel": { "include": [ "pagescrollview" ] } }
     }
   }
 }
