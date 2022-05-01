@@ -28,11 +28,8 @@ export const App: React.FC = () => {
   const [offsetY, setOffsetY] = useState(0);
   const [paintInside, setPaintInside] = useState<boolean | undefined>(undefined);
 
-  const [getChildRadius, setGetChildRadius] = useState(true);
-  const [getStyleRadius, setGetViewStyleRadius] = useState(true);
-
   const [size, setSize] = useState([defaults.width, defaults.height] as [number, number]);
-  const [doUseSizeProp, setDoUseSizeProp] = useState(true);
+  const [doUseSizeStyle, setDoUseSizeProp] = useState(true);
 
   const [childWidth, setChildWidth] = useState(defaults.width);
   const [childHeight, setChildHeight] = useState(defaults.height);
@@ -42,8 +39,6 @@ export const App: React.FC = () => {
   const [childColor, setChildColor] = useState(defaults.childColor);
 
   const [rtl, setRtl] = useState(false);
-
-  // const [inset, setInset] = useState(true);
 
   return (
     <SafeAreaProvider>
@@ -59,11 +54,11 @@ export const App: React.FC = () => {
             <View style={styles.settings}>
               {/** View necessary so the settings won't grow too large in width */}
               <View>
-                <MySlider name='Size Width Prop' step={0.1} range={[0, 200]} value={size[0]} onValueChange={(v)=>setSize([v, size[1]])}/>
-                <MySlider name='Size Height Prop' step={0.1} range={[0, 200]} value={size[1]} onValueChange={(v)=>setSize([size[0], v])}/>
+                <MySlider name='Style Width' step={0.1} range={[0, 200]} value={size[0]} onValueChange={(v)=>setSize([v, size[1]])}/>
+                <MySlider name='Style Height' step={0.1} range={[0, 200]} value={size[1]} onValueChange={(v)=>setSize([size[0], v])}/>
                 <MySwitch
-                  name='Use Size Prop' value={doUseSizeProp} onValueChange={setDoUseSizeProp}
-                  description={'True uses the size prop (width and\nheight above), else obtains the child size.'}
+                  name='Use Style Sizes' value={doUseSizeStyle} onValueChange={setDoUseSizeProp}
+                  description={'True uses the style\'s sizes (width and\nheight above), else obtains the child\'s size.'}
                 />
                 <MySlider name='Child Width' step={0.1} range={[0, 200]} value={childWidth} onValueChange={setChildWidth}/>
                 <MySlider name='Child Height' step={0.1} range={[0, 200]} value={childHeight} onValueChange={setChildHeight}/>
@@ -99,9 +94,7 @@ export const App: React.FC = () => {
                     setChildColor(color.toHex8String());
                 }}/>
 
-                <MySwitch
-                  name='Use RTL' value={rtl} onValueChange={(v) => {setRtl(v); I18nManager.forceRTL(v);}}
-                />
+                <MySwitch name='Use RTL' value={rtl} onValueChange={(v) => {setRtl(v); I18nManager.forceRTL(v);}}/>
 
                 {/* <NameValue name='Paint Inside' value={paintInside}/> */}
                 {/* <RadioForm // this $%&# added animations to all views.
@@ -123,17 +116,17 @@ export const App: React.FC = () => {
                 finalColor={finalColor}
                 offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
                 paintInside={paintInside}
-                getChildRadius={getChildRadius}
-                getStyleRadius={getStyleRadius}
                 containerStyle={{ margin: 100 }}
-                size={doUseSizeProp ? size : undefined}
-                radius={getChildRadius ? undefined : borderRadius}
+                // radius={getChildRadius ? undefined : borderRadius}
                 // TopEnd to check if it's supporting the Start/End combinations. When uncommenting this, also comment radius prop above.
                 // style={[doUseSizeProp && { backgroundColor: childColor }, { borderTopLeftRadius: 100, borderTopEndRadius: 10 }]}
-                style={[doUseSizeProp && { backgroundColor: childColor }]}
+                style={[
+                  doUseSizeStyle && { backgroundColor: childColor },
+                  doUseSizeStyle && { width: size[0], height: size[1] },
+                ]}
               >
                 <View style={[
-                  !doUseSizeProp && { width: childWidth, height: childHeight }, {
+                  !doUseSizeStyle && { width: childWidth, height: childHeight }, {
                     backgroundColor: childColor,
                     // If borderRadius change from a positive value to a negative one, it won't change the current radius.
                     // This is here just to avoid the slider causing it to happen, for fast movements. You can disable this line
