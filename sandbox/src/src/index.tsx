@@ -79,13 +79,14 @@ export interface ShadowProps {
    *
    * @default false */
   stretch?: boolean;
-  children?: React.ReactNode;
-  /** Props for the Shadow view. You shouldn't need to use this. You may pass `style` to this. */
+  /** Props for the Shadow's View. You shouldn't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
+  children?: React.ReactNode;
 }
 
 // For better memoization
 const emptyObj = {};
+const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
 export function Shadow(props: ShadowProps): JSX.Element {
   const isRTL = I18nManager.isRTL;
@@ -105,7 +106,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
     paintInside = props.offset ? true : false,
     children,
     containerStyle,
-    offset,
+    offset = defaultOffset,
     shadowViewProps,
   } = props;
 
@@ -166,7 +167,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
   const width = style.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
   const height = style.height ?? childLayoutHeight ?? '100%';
 
-  const { topLeft, topRight, bottomLeft, bottomRight }: CornerRadius = useMemo(() => sanitizeRadii({
+  const radii: CornerRadius = useMemo(() => sanitizeRadii({
     width, height, radii: {
       topLeft: sRadii.topLeft ?? cRadii.topLeft,
       topRight: sRadii.topRight ?? cRadii.topRight,
@@ -179,8 +180,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
     cRadii.topLeft, cRadii.topRight, cRadii.bottomLeft, cRadii.bottomRight,
   ]);
 
-  const offsetX = offset?.[0] ?? 0;
-  const offsetY = offset?.[1] ?? 0;
+  const { topLeft, topRight, bottomLeft, bottomRight } = radii;
 
   const shadow = useMemo(() => getShadow({
     topLeft, topRight, bottomLeft, bottomRight, width, height,
@@ -192,12 +192,12 @@ export function Shadow(props: ShadowProps): JSX.Element {
     paintInside, activeCorners, activeSides, isRTL, safeRender,
   ]);
 
-  // We won't memo this as children commonly changes.
+  // Not yet sure if we should memo this.
   return getResult({
-    shadow, stretch, topLeft, topRight, bottomLeft, bottomRight,
-    children, containerStyle, style,
+    shadow, children,
+    stretch, offset, radii,
+    containerStyle, style, shadowViewProps,
     setChildLayoutWidth, setChildLayoutHeight,
-    shadowViewProps, offsetX, offsetY,
   });
 }
 
@@ -206,13 +206,9 @@ export function Shadow(props: ShadowProps): JSX.Element {
 function getResult({
   shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, style,
-  topLeft, topRight, bottomLeft, bottomRight,
-  offsetX, offsetY, shadowViewProps,
+  radii, offset, shadowViewProps,
 }: {
-  topLeft: number;
-  topRight: number;
-  bottomLeft: number;
-  bottomRight: number;
+  radii: CornerRadius;
   containerStyle: StyleProp<ViewStyle>;
   shadow: JSX.Element | null;
   children: any;
@@ -220,15 +216,14 @@ function getResult({
   stretch: boolean;
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
-  offsetX: number | string;
-  offsetY: number | string;
+  offset: [x: number | string, y: number | string];
   shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element {
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none'>
       <View pointerEvents='none' {...shadowViewProps} style={[
-        StyleSheet.absoluteFillObject, { left: offsetX, top: offsetY }, shadowViewProps?.style,
+        StyleSheet.absoluteFillObject, { left: offset[0], top: offset[1] }, shadowViewProps?.style,
       ]}
       >
         {shadow}
@@ -241,10 +236,10 @@ function getResult({
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
             alignSelf: stretch ? 'stretch' : 'flex-start',
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
-            borderTopLeftRadius: topLeft,
-            borderTopRightRadius: topRight,
-            borderBottomLeftRadius: bottomLeft,
-            borderBottomRightRadius: bottomRight,
+            borderTopLeftRadius: radii.topLeft,
+            borderTopRightRadius: radii.topRight,
+            borderBottomLeftRadius: radii.bottomLeft,
+            borderBottomRightRadius: radii.bottomRight,
           },
           style, // FIXME problematic radius? would topStart overwrite topLeft?
         ]}
