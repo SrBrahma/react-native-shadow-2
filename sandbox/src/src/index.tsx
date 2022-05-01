@@ -111,14 +111,14 @@ export function Shadow(props: ShadowProps): JSX.Element {
 
   /** Which sides will have shadow. */
   const activeSides: Record<Side, boolean> = useMemo(() => objFromKeys(sidesArray, (k) => sides?.includes(k) ?? true),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-    sides,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    sides ? [...sides] : [],
   );
 
   /** Which corners will have shadow. */
   const activeCorners: Record<Corner, boolean> = useMemo(() => objFromKeys(cornersArray, (k) => corners?.includes(k) ?? true),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-    corners,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    corners ? [...corners] : [],
   );
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
@@ -185,11 +185,11 @@ export function Shadow(props: ShadowProps): JSX.Element {
   const shadow = useMemo(() => getShadow({
     topLeft, topRight, bottomLeft, bottomRight, width, height,
     isRTL, distanceProp, startColorProp, finalColorProp, paintInside,
-    shadowViewProps, offsetX, offsetY, safeRender, activeSides, activeCorners,
+    safeRender, activeSides, activeCorners,
   }), [
     width, height, topLeft, topRight, bottomLeft, bottomRight,
     distanceProp, startColorProp, finalColorProp,
-    offsetX, offsetY, paintInside, activeCorners, activeSides, isRTL, safeRender, shadowViewProps,
+    paintInside, activeCorners, activeSides, isRTL, safeRender,
   ]);
 
   // We won't memo this as children commonly changes.
@@ -197,6 +197,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
     shadow, stretch, topLeft, topRight, bottomLeft, bottomRight,
     children, containerStyle, style,
     setChildLayoutWidth, setChildLayoutHeight,
+    shadowViewProps, offsetX, offsetY,
   });
 }
 
@@ -206,6 +207,7 @@ function getResult({
   shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, style,
   topLeft, topRight, bottomLeft, bottomRight,
+  offsetX, offsetY, shadowViewProps,
 }: {
   topLeft: number;
   topRight: number;
@@ -218,11 +220,19 @@ function getResult({
   stretch: boolean;
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
+  offsetX: number | string;
+  offsetY: number | string;
+  shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element {
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none'>
-      {shadow}
+      <View pointerEvents='none' {...shadowViewProps} style={[
+        StyleSheet.absoluteFillObject, { left: offsetX, top: offsetY }, shadowViewProps?.style,
+      ]}
+      >
+        {shadow}
+      </View>
       <View
         pointerEvents='box-none'
         style={[
@@ -268,6 +278,7 @@ function sanitizeRadii({ width, height, radii }: {
     bottomRight: number | undefined;
   };
 }): CornerRadius {
+  console.log('sanitizeRadii');
   /** Round and zero negative radius values */
   let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(radii[k] ?? 0, 0)));
 
@@ -292,7 +303,7 @@ function sanitizeRadii({ width, height, radii }: {
 function getShadow({
   safeRender, width, height, isRTL, distanceProp, startColorProp, finalColorProp,
   topLeft, topRight, bottomLeft, bottomRight,
-  activeSides, activeCorners, paintInside, offsetX, offsetY, shadowViewProps,
+  activeSides, activeCorners, paintInside,
 }: {
   safeRender: boolean;
   width: string | number;
@@ -308,10 +319,8 @@ function getShadow({
   activeSides: Record<Side, boolean>;
   activeCorners: Record<Corner, boolean>;
   paintInside: boolean;
-  offsetX: number | string;
-  offsetY: number | string;
-  shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element | null {
+  console.log('getShadow');
   // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
     return null;
@@ -368,10 +377,7 @@ function getShadow({
   const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
 
   return (
-    <View pointerEvents='none' {...shadowViewProps} style={[
-      StyleSheet.absoluteFillObject, { left: offsetX, top: offsetY }, shadowViewProps?.style,
-    ]}
-    >
+    <>
       {/* Skip sides if we don't have a distance. */}
       {distance > 0 && <>
         {/* Sides */}
@@ -476,6 +482,6 @@ function getShadow({
             <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
           </>)}
       </Svg>}
-    </View>
+    </>
   );
 }
