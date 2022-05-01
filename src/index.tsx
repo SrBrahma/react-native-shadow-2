@@ -429,7 +429,7 @@ function getShadow({
       >
         <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
         <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-          ? `h${-topRight} v${-topLeft}`
+          ? `h${-topRight} v${-topRight}`
           : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
         {/*  */}
       </Svg>}
@@ -461,7 +461,11 @@ function getShadow({
         {(typeof width === 'number' && typeof height === 'number')
         // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
         // We use Path as workaround to it.
-          ? (<Path fill={startColord.toHex()} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
+          ? (
+            <Path
+              fill={startColorWoOpacity} fillOpacity={startColorOpacity}
+              d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}
+            />)
           : (<>
             <Defs>
               <Mask id='maskPaintBelow'>
