@@ -39,7 +39,6 @@ yarn add react-native-shadow-2
 
 ## 📖 Usage
 
-### Basic
 ```tsx
 import { Shadow } from 'react-native-shadow-2';
 
@@ -50,7 +49,8 @@ import { Shadow } from 'react-native-shadow-2';
 
 ![Example 1](./resources/README/react-native-shadow-2-ex-1.png)
 
-### Advanced
+<br/>
+
 ```tsx
 <Shadow distance={15} startColor={'#eb9066d8'} finalColor={'#ff00ff10'} offset={[3, 4]}>
   <View style={{ borderTopLeftRadius: 24, borderBottomRightRadius: 0, borderRadius: 10, backgroundColor: '#c454f0dd' }}>
