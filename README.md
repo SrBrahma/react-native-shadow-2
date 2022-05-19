@@ -22,7 +22,7 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
-## 📰 [Changelog](./CHANGELOG.md)
+## [📜 Changelog](./CHANGELOG.md)
 
 ## 💿 Installation
 
@@ -122,6 +122,6 @@ and then in your Shadow component:
 * [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15)
 **Update v5:** The radius is now properly limited on the 2nd render and beyond! You may use the safeRender to don't render the shadow until this 2nd render, when the onLayout happens and we get the exact sizes to apply this limit.
 
-## Popularly seen on:
+## 📰 Popularly seen on:
 ### [LogRocket - Applying box shadows in React Native](https://blog.logrocket.com/applying-box-shadows-in-react-native/)
 ### [V. Petrachin - Top 10 Libraries You Should Know for React Native in 2022](https://viniciuspetrachin.medium.com/top-10-libraries-you-should-know-for-react-native-d435e5209c96)
