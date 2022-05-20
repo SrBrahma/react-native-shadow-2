@@ -1,14 +1,13 @@
 import { Children, useMemo, useState } from 'react';
 import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
 import { I18nManager, StyleSheet, View } from 'react-native';
-import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
+import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg, Circle } from 'react-native-svg';
 import { colord } from 'colord';
 import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
   additional, cornersArray, objFromKeys,
   R, radialGradient, sidesArray, sumDps,
 } from './utils';
-
 
 
 export interface ShadowProps {
@@ -23,15 +22,15 @@ export interface ShadowProps {
    *
    * @default Transparent startColor */
   finalColor?: string;
-  /** How far the shadow will go.
+  /** How far the shadow goes.
    * @default 10 */
   distance?: number;
-  /** The sides of your content that will have the shadows drawn. Doesn't include corners.
+  /** The sides that have the shadows drawn. Doesn't include corners.
    *
    * @default ['left', 'right', 'top', 'bottom'] */
   // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users, won't be just `Side`.
   sides?: ('left' | 'right' | 'top' | 'bottom')[];
-  /** The corners that will have the shadows drawn.
+  /** The corners that have the shadows drawn.
    *
    * @default ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] */
   corners?: ('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[];
@@ -39,7 +38,7 @@ export interface ShadowProps {
    *
    * Accepts `'x%'` values, in relation to the child's size.
    *
-   * Setting an offset will default `paintInside` to true, as it is the usual desired behaviour.
+   * Setting an offset will default `paintInside` to true.
    *
    * @default [0, 0] */
   offset?: [x: number | string, y: number | string];
@@ -51,27 +50,21 @@ export interface ShadowProps {
    *
    * @default false */
   paintInside?: boolean;
-  /** The style of the view that wraps your child component.
+  /** Style of the view that wraps your child component.
    *
-   * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
-   * radiuses from the `radius` property or from the child, if `getChildRadius`. You may overwrite those defaults
-   * by undefine'ing the changed styles in this property. */
+   * You may set here the corners radii (e.g. borderTopLeftRadius) and the width/height. */
   style?: StyleProp<ViewStyle>;
-  /** The style of the view that contains the shadow and your child component. */
+  /** Style of the view that wraps the shadow and your child component. */
   containerStyle?: StyleProp<ViewStyle>;
-  // /** If the shadow will move to its inner side instead of going out.
-  //  *
-  //  * @default false */
-  // inset?: boolean;
   /** If you don't want the relative sizing and positioning of the shadow on the first render, but only on the second render and
    * beyond with the exact onLayout sizes. This is useful if dealing with radius greater than the sizes, to assure
    * the fully round corners when the sides sizes are unknown and to avoid weird and overflowing shadows on the first render.
    *
-   * Note that when true, the shadow will only appear on the second render and beyond, when the sizes are known with onLayout.
+   * Note that when true, the shadow will only appear on the second render and beyond.
    *
    * @default false */
   safeRender?: boolean;
-  /** Use this when you want your children to ocuppy all available horizontal space.
+  /** Use this when you want your children to ocuppy all available cross-axis/horizontal space.
    *
    * Shortcut to `style={{alignSelf: 'stretch'}}.
    *
@@ -81,6 +74,7 @@ export interface ShadowProps {
   stretch?: boolean;
   /** Props for the Shadow's View. You shouldn't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
+  /** Your child component. */
   children?: React.ReactNode;
 }
 
@@ -100,8 +94,8 @@ export function Shadow(props: ShadowProps): JSX.Element {
     finalColor: finalColorProp = colord(startColorProp).alpha(0).toHex(),
     distance: distanceProp = 10,
     style: styleProp,
-    safeRender = false,
-    stretch = false,
+    safeRender,
+    stretch,
     /** Defaults to true if offset is defined, else defaults to false */
     paintInside = props.offset ? true : false,
     children,
@@ -123,7 +117,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
   );
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
-   * I believe it can come to be a popular pattern eventually. */
+   * I believe it may come to be a popular pattern eventually :) */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
   const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? {}), [childProps.style]);
@@ -213,7 +207,7 @@ function getResult({
   shadow: JSX.Element | null;
   children: any;
   style: ViewStyle; // Already flattened
-  stretch: boolean;
+  stretch: boolean | undefined;
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
   offset: [x: number | string, y: number | string];
@@ -300,7 +294,7 @@ function getShadow({
   topLeft, topRight, bottomLeft, bottomRight,
   activeSides, activeCorners, paintInside,
 }: {
-  safeRender: boolean;
+  safeRender: boolean | undefined;
   width: string | number;
   height: string | number;
   isRTL: boolean;
@@ -320,11 +314,12 @@ function getShadow({
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
     return null;
 
+
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
 
   // Quick return if not going to show up anything
   if (!distance && !paintInside)
-    return null;
+  return null;
 
   const distanceWithAdditional = distance + additional;
 
@@ -359,7 +354,7 @@ function getShadow({
   ];
 
   const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
-    ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity,
+    ...p, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity, paintInside
   });
 
   const cornerShadowRadius: CornerRadiusShadow = {
@@ -417,9 +412,7 @@ function getShadow({
         style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
       >
         <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
-        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`} h${-distance} Z`}/>
+        <Rect fill='url(#topLeft)' width={topLeftShadow} height={topLeftShadow}/>
       </Svg>}
       {activeCorners.topRight && topRightShadow > 0 && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
         style={{
@@ -428,18 +421,13 @@ function getShadow({
         }}
       >
         <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
-        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-          ? `h${-topRight} v${-topRight}`
-          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`} v${-distance} Z`}/>
-        {/*  */}
+        <Rect fill='url(#topRight)' width={topRightShadow} height={topRightShadow}/>
       </Svg>}
       {activeCorners.bottomLeft && bottomLeftShadow > 0 && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
         style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
       >
         <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
-        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
-          ? `h${bottomLeft} v${bottomLeft}`
-          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`} v${distance} Z`}/>
+        <Rect fill='url(#bottomLeft)' width={bottomLeftShadow} height={bottomLeftShadow}/>
       </Svg>}
       {activeCorners.bottomRight && bottomRightShadow > 0 && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
         style={{
@@ -448,9 +436,7 @@ function getShadow({
         }}
       >
         <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
-        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
-          ? `v${-bottomRight} h${bottomRight}`
-          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`} h${distance} Z`}/>
+        <Rect fill='url(#bottomRight)' width={bottomRightShadow} height={bottomRightShadow}/>
       </Svg>}
 
       {/* Paint the inner area, so we can offset it.
