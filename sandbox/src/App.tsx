@@ -38,6 +38,8 @@ export const App: React.FC = () => {
   const [finalColor, setFinalColor] = useState(defaults.finalColor);
   const [childColor, setChildColor] = useState(defaults.childColor);
 
+  const [disabled, setDisabled] = useState(false);
+
   const [rtl, setRtl] = useState(false);
 
   return (
@@ -96,6 +98,7 @@ export const App: React.FC = () => {
 
                 <MySwitch name='Use RTL' value={rtl} onValueChange={(v) => {setRtl(v); I18nManager.forceRTL(v);}}/>
 
+                <MySwitch name='Disabled' value={disabled} onValueChange={setDisabled}/>
                 {/* <NameValue name='Paint Inside' value={paintInside}/> */}
                 {/* <RadioForm // this $%&# added animations to all views.
                   initial={undefined}
@@ -120,19 +123,23 @@ export const App: React.FC = () => {
                 // radius={getChildRadius ? undefined : borderRadius}
                 // TopEnd to check if it's supporting the Start/End combinations. When uncommenting this, also comment radius prop above.
                 // style={[doUseSizeProp && { backgroundColor: childColor }, { borderTopLeftRadius: 100, borderTopEndRadius: 10 }]}
+                disabled={disabled}
                 style={[
-                  doUseSizeStyle && { backgroundColor: childColor },
-                  doUseSizeStyle && { width: size[0], height: size[1] },
+                  !doUseSizeStyle && {
+                    backgroundColor: childColor,
+                    width: size[0],
+                    height: size[1],
+                    borderRadius: Math.max(borderRadius, 0)
+                  },
                 ]}
               >
-                <View style={[
-                  !doUseSizeStyle && { width: childWidth, height: childHeight }, {
+                <View style={[{
                     backgroundColor: childColor,
-                    // If borderRadius change from a positive value to a negative one, it won't change the current radius.
-                    // This is here just to avoid the slider causing it to happen, for fast movements. You can disable this line
-                    // to see what I mean. Nothing to worry about in prod envs.
-                    borderRadius: Math.max(borderRadius, 0),
+                    // If borderRadius's Slider changes from a positive value to a negative one, it won't change the current radius.
+                    // This is here just to avoid the slider causing it to happen, for fast movements.
+                    borderRadius: Math.max(borderRadius, 0)
                   },
+                  doUseSizeStyle && { width: childWidth, height: childHeight },
                 ]}/>
               </Shadow>
             </View>

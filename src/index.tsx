@@ -73,6 +73,13 @@ export interface ShadowProps {
    *
    * @default false */
   stretch?: boolean;
+  /** If true, won't render the Shadow. Useful for reusing components, as sometimes you may not want shadows.
+   *
+   * Your children will just be wrapped by two Views, and `containerStyle` and `style` are still applied. Performatic!
+   *
+   * Note: for performance, contrary to "enabled", we won't set the children's corners radii to the `style` property.
+   * This is done in "enabled" to limit Pressable's ripple as we already get those values anyway. */
+  disabled?: boolean;
   /** Props for the Shadow's View. You shouldn't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
   /** Your child component. */
@@ -84,6 +91,12 @@ const emptyObj = {};
 const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
 export function Shadow(props: ShadowProps): JSX.Element {
+  return props.disabled
+    ? <DisabledShadow {...props}/>
+    : <ShadowInner {...props}/>;
+}
+
+function ShadowInner(props: ShadowProps): JSX.Element {
   const isRTL = I18nManager.isRTL;
   const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
   const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
@@ -137,7 +150,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
       bottomLeft: cStyle.borderBottomLeftRadius ?? cStyle.borderBottomStartRadius ?? cStyle.borderRadius,
       bottomRight: cStyle.borderBottomRightRadius ?? cStyle.borderBottomEndRadius ?? cStyle.borderRadius,
     };
-  }, [cStyle.borderTopLeftRadius, cStyle.borderTopStartRadius, cStyle.borderRadius, cStyle.borderTopRightRadius, cStyle.borderTopEndRadius, cStyle.borderBottomLeftRadius, cStyle.borderBottomStartRadius, cStyle.borderBottomRightRadius, cStyle.borderBottomEndRadius]);
+  }, [cStyle]);
 
   const styleStr = useMemo(() => JSON.stringify(styleProp ?? {}), [styleProp]);
 
@@ -198,64 +211,6 @@ export function Shadow(props: ShadowProps): JSX.Element {
 
 
 
-function getResult({
-  shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
-  containerStyle, children, style,
-  radii, offset, shadowViewProps,
-}: {
-  radii: CornerRadius;
-  containerStyle: StyleProp<ViewStyle>;
-  shadow: JSX.Element | null;
-  children: any;
-  style: ViewStyle; // Already flattened
-  stretch: boolean | undefined;
-  setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
-  setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
-  offset: [x: number | string, y: number | string];
-  shadowViewProps: ShadowProps['shadowViewProps'];
-}): JSX.Element {
-  return (
-    // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-    <View style={containerStyle} pointerEvents='box-none'>
-      <View pointerEvents='none' {...shadowViewProps} style={[
-        StyleSheet.absoluteFillObject, { left: offset[0], top: offset[1] }, shadowViewProps?.style,
-      ]}
-      >
-        {shadow}
-      </View>
-      <View
-        pointerEvents='box-none'
-        style={[
-          {
-            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
-            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            alignSelf: stretch ? 'stretch' : 'flex-start',
-            // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
-            borderTopLeftRadius: radii.topLeft,
-            borderTopRightRadius: radii.topRight,
-            borderBottomLeftRadius: radii.bottomLeft,
-            borderBottomRightRadius: radii.bottomRight,
-          },
-          style, // FIXME problematic radius? would topStart overwrite topLeft?
-        ]}
-        onLayout={(e) => {
-          // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
-          // so we do the check before the state change.
-          // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
-          // inspector is decimal. It will round up if (>= .5), else, down.
-          const layout = e.nativeEvent.layout;
-          if (style.width === undefined) // Is this check good?
-            setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded. (?)
-          if (style.height === undefined)
-            setChildLayoutHeight(layout.height);
-        }}
-      >
-        {children}
-      </View>
-    </View>
-  );
-}
-
 /** We make some effort for this to be likely memoized */
 function sanitizeRadii({ width, height, radii }: {
   width: string | number;
@@ -314,7 +269,6 @@ function getShadow({
   // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
     return null;
-
 
   const distance = R(Math.max(distanceProp, 0)); // Min val as 0
 
@@ -469,5 +423,86 @@ function getShadow({
           </>)}
       </Svg>}
     </>
+  );
+}
+
+
+function getResult({
+  shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
+  containerStyle, children, style,
+  radii, offset, shadowViewProps,
+}: {
+  radii: CornerRadius;
+  containerStyle: StyleProp<ViewStyle>;
+  shadow: JSX.Element | null;
+  children: any;
+  style: ViewStyle; // Already flattened
+  stretch: boolean | undefined;
+  setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
+  offset: [x: number | string, y: number | string];
+  shadowViewProps: ShadowProps['shadowViewProps'];
+}): JSX.Element {
+  return (
+    // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
+    <View style={containerStyle} pointerEvents='box-none'>
+      <View pointerEvents='none' {...shadowViewProps} style={[
+        StyleSheet.absoluteFillObject, { left: offset[0], top: offset[1] }, shadowViewProps?.style,
+      ]}
+      >
+        {shadow}
+      </View>
+      <View
+        pointerEvents='box-none'
+        style={[
+          {
+            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+            alignSelf: stretch ? 'stretch' : 'flex-start',
+            // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
+            borderTopLeftRadius: radii.topLeft,
+            borderTopRightRadius: radii.topRight,
+            borderBottomLeftRadius: radii.bottomLeft,
+            borderBottomRightRadius: radii.bottomRight,
+          },
+          style, // FIXME problematic radius? would topStart overwrite topLeft?
+        ]}
+        onLayout={(e) => {
+          // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
+          // so we do the check before the state change.
+          // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
+          // inspector is decimal. It will round up if (>= .5), else, down.
+          const layout = e.nativeEvent.layout;
+          if (style.width === undefined) // Is this check good?
+            setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded. (?)
+          if (style.height === undefined)
+            setChildLayoutHeight(layout.height);
+        }}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
+
+
+function DisabledShadow({ stretch, containerStyle, children, style }: {
+  containerStyle?: StyleProp<ViewStyle>;
+  children?: any;
+  style?: StyleProp<ViewStyle>;
+  stretch?: boolean;
+}): JSX.Element {
+  return (
+    <View style={containerStyle} pointerEvents='box-none'>
+      <View
+        pointerEvents='box-none'
+        style={[{
+          alignSelf: stretch ? 'stretch' : 'flex-start',
+        },
+        style]}
+      >
+        {children}
+      </View>
+    </View>
   );
 }
