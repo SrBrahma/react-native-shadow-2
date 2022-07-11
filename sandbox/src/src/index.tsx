@@ -51,7 +51,14 @@ const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as con
 // const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
 const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
 
-
+/** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions. */
+const generateGradientIdSuffix = (() => {
+  let shadowGradientIdCounter = 0;
+  return () => {
+    shadowGradientIdCounter = (shadowGradientIdCounter + 1) % Number.MAX_SAFE_INTEGER;
+    return new String(shadowGradientIdCounter);
+  };
+})();
 
 
 export interface ShadowProps {
@@ -179,6 +186,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
+  const [gradientIdSuffix] = useState<String>(generateGradientIdSuffix());
 
   /** Defaults to true if offset is defined, else defaults to false */
   const paintInside = paintInsideProp ?? (offset ? true : false);
@@ -333,34 +341,34 @@ export const Shadow: React.FC<ShadowProps> = ({
           width={distanceWithAdditional} height={heightWithAdditional}
           style={{ position: 'absolute', left: -distance, top: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
         >
-          <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Defs><LinearGradient id={`left.${gradientIdSuffix}`} x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
           {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
           just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-          <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
+          <Rect width={distance} height={height} fill={`url(#left.${gradientIdSuffix})`} y={-sumDps(topLeft, bottomLeft)}/>
         </Svg>
         }
         {activeSides.right && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
           style={{ position: 'absolute', left: width, top: topRight, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
         >
-          <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
+          <Defs><LinearGradient id={`right.${gradientIdSuffix}`} x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={distance} height={height} fill={`url(#right.${gradientIdSuffix})`} y={-sumDps(topRight, bottomRight)}/>
         </Svg>
         }
         {activeSides.bottom && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
           style={{ position: 'absolute', top: height, left: bottomLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
         >
-          <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
+          <Defs><LinearGradient id={`bottom.${gradientIdSuffix}`} x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill={`url(#bottom.${gradientIdSuffix})`} x={-sumDps(bottomLeft, bottomRight)}/>
         </Svg>
         }
         {activeSides.top && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
           style={{ position: 'absolute', top: -distance, left: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
         >
-          <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
+          <Defs><LinearGradient id={`top.${gradientIdSuffix}`} x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill={`url(#top.${gradientIdSuffix})`} x={-sumDps(topLeft, topRight)}/>
         </Svg>
         }
       </>}
@@ -374,8 +382,8 @@ export const Shadow: React.FC<ShadowProps> = ({
       {activeCorners.topLeft && topLeftShadow > 0 && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
         style={{ position: 'absolute', top: -distance, left: -distance, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
       >
-        <Defs>{radialGradient('topLeft', true, true, topLeft, topLeftShadow)}</Defs>
-        <Path fill='url(#topLeft)' d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
+        <Defs>{radialGradient(`topLeft.${gradientIdSuffix}`, true, true, topLeft, topLeftShadow)}</Defs>
+        <Path fill={`url(#topLeft.${gradientIdSuffix})`} d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
           ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
           : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
         } h${-distance} Z`}/>
@@ -388,8 +396,8 @@ export const Shadow: React.FC<ShadowProps> = ({
           transform: [{ translateX: isRTL ? topRight : -topRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
         }}
       >
-        <Defs>{radialGradient('topRight', true, false, topRight, topRightShadow)}</Defs>
-        <Path fill='url(#topRight)' d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
+        <Defs>{radialGradient(`topRight.${gradientIdSuffix}`, true, false, topRight, topRightShadow)}</Defs>
+        <Path fill={`url(#topRight.${gradientIdSuffix})`} d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
           ? `h${-topRight} v${-topRight}`
           : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
         } v${-distance} Z`}/>
@@ -399,8 +407,8 @@ export const Shadow: React.FC<ShadowProps> = ({
       {activeCorners.bottomLeft && bottomLeftShadow > 0 && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
         style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...(isRTL ? [{ scaleX: -1 }] : [])] }}
       >
-        <Defs>{radialGradient('bottomLeft', false, true, bottomLeft, bottomLeftShadow)}</Defs>
-        <Path fill='url(#bottomLeft)' d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
+        <Defs>{radialGradient(`bottomLeft.${gradientIdSuffix}`, false, true, bottomLeft, bottomLeftShadow)}</Defs>
+        <Path fill={`url(#bottomLeft.${gradientIdSuffix})`} d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
           ? `h${bottomLeft} v${bottomLeft}`
           : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
         } v${distance} Z`}/>
@@ -412,8 +420,8 @@ export const Shadow: React.FC<ShadowProps> = ({
           transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
         }}
       >
-        <Defs>{radialGradient('bottomRight', false, false, bottomRight, bottomRightShadow)}</Defs>
-        <Path fill='url(#bottomRight)' d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
+        <Defs>{radialGradient(`bottomRight.${gradientIdSuffix}`, false, false, bottomRight, bottomRightShadow)}</Defs>
+        <Path fill={`url(#bottomRight.${gradientIdSuffix})`} d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
           ? `v${-bottomRight} h${bottomRight}`
           : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
         } h${distance} Z`}/>
@@ -434,7 +442,7 @@ export const Shadow: React.FC<ShadowProps> = ({
           ? (<Path fill={startColorWoOpacity} fillOpacity={startColorOpacity} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
           : (<>
             <Defs>
-              <Mask id='maskPaintBelow'>
+              <Mask id={`maskPaintBelow.${gradientIdSuffix}`}>
                 {/* Paint all white, then black on border external areas to erase them */}
                 <Rect width={width} height={height} fill='#fff'/>
                 {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
@@ -444,7 +452,7 @@ export const Shadow: React.FC<ShadowProps> = ({
                 <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
               </Mask>
             </Defs>
-            <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+            <Rect width={width} height={height} mask={`url(#maskPaintBelow.${gradientIdSuffix})`} fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
           </>)
         }
       </Svg>
