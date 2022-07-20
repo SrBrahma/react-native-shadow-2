@@ -183,7 +183,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
-  const [gradientIdSuffix] = useState<String>(generateGradientIdSuffix());
+  const [gradientIdSuffix] = useState<string>(generateGradientIdSuffix);
 
   /** Defaults to true if offset is defined, else defaults to false */
   const paintInside = paintInsideProp ?? (offset ? true : false);
