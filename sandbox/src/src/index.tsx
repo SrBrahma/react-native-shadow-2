@@ -54,10 +54,7 @@ const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
 /** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions. */
 const generateGradientIdSuffix = (() => {
   let shadowGradientIdCounter = 0;
-  return () => {
-    shadowGradientIdCounter = (shadowGradientIdCounter + 1) % Number.MAX_SAFE_INTEGER;
-    return new String(shadowGradientIdCounter);
-  };
+  return () => String(shadowGradientIdCounter++)
 })();
 
 
@@ -186,7 +183,7 @@ export const Shadow: React.FC<ShadowProps> = ({
 
   const [childWidth, setChildWidth] = useState<number | undefined>();
   const [childHeight, setChildHeight] = useState<number | undefined>();
-  const [gradientIdSuffix] = useState<String>(generateGradientIdSuffix());
+  const [gradientIdSuffix] = useState<string>(generateGradientIdSuffix);
 
   /** Defaults to true if offset is defined, else defaults to false */
   const paintInside = paintInsideProp ?? (offset ? true : false);
