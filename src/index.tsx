@@ -10,7 +10,7 @@ import { cornerToStyle, objFromKeys } from './utils';
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
  * and somehow may be useful to you. */
-export const version = '6.0.5';
+export const version = '6.0.6';
 
 const isWeb = Platform.OS === 'web';
 
@@ -54,7 +54,7 @@ const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
 /** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions. */
 const generateGradientIdSuffix = (() => {
   let shadowGradientIdCounter = 0;
-  return () => String(shadowGradientIdCounter++)
+  return () => String(shadowGradientIdCounter++);
 })();
 
 
@@ -456,10 +456,7 @@ export const Shadow: React.FC<ShadowProps> = ({
       }
 
     </>);
-  }, [
-    safeRender, width, height, startColorProp, finalColorProp, radii, distance, distanceWithAdditional, heightWithAdditional,
-    widthWithAdditional, paintInside, sidesProp, cornersProp, isRTL,
-  ]);
+  }, [distance, paintInside, safeRender, width, height, startColorProp, finalColorProp, radii, distanceWithAdditional, heightWithAdditional, isRTL, gradientIdSuffix, widthWithAdditional, sidesProp, cornersProp]);
 
   const result = useMemo(() => {
     return (

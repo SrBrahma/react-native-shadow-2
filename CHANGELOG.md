@@ -1,3 +1,6 @@
+## 6.0.6 - 2022-07-21
+* Fixed Web Shadow when there are more than one being rendered. [#53](https://github.com/SrBrahma/react-native-shadow-2/issues/53). Many thanks, [@GreyJohnsonGit](https://github.com/GreyJohnsonGit)!
+
 ## 6.0.5 - 2022-05-01
 * Fixed Android crash when `distance` and a radius are both 0. [#47](https://github.com/SrBrahma/react-native-shadow-2/issues/47). Many thanks, [@Czino](https://github.com/Czino)!
 

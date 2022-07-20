@@ -10,7 +10,7 @@ import { cornerToStyle, objFromKeys } from './utils';
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
  * and somehow may be useful to you. */
-export const version = '6.0.5';
+export const version = '6.0.6';
 
 const isWeb = Platform.OS === 'web';
 
