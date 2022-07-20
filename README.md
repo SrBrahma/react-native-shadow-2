@@ -18,6 +18,8 @@ The [ethercreative/react-native-shadow-generator](https://ethercreative.github.i
 
 Compatible with Android, iOS and Web. **And Expo!**
 
+Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps).
+
 ### [❗ Read the FAQ below!](#️-faq)
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)

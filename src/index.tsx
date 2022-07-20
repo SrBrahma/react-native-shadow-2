@@ -51,17 +51,17 @@ export interface ShadowProps {
    *
    * @default false */
   paintInside?: boolean;
-  /** Style of the view that wraps your child component.
+  /** Style of the View that wraps your child component.
    *
    * You may set here the corners radii (e.g. borderTopLeftRadius) and the width/height. */
   style?: StyleProp<ViewStyle>;
   /** Style of the view that wraps the shadow and your child component. */
   containerStyle?: StyleProp<ViewStyle>;
   /** If you don't want the relative sizing and positioning of the shadow on the first render, but only on the second render and
-   * beyond with the exact onLayout sizes. This is useful if dealing with radius greater than the sizes, to assure
+   * beyond with the exact onLayout's sizes. This is useful if dealing with radius greater than the sizes, to assure
    * the fully round corners when the sides sizes are unknown and to avoid weird and overflowing shadows on the first render.
    *
-   * Note that when true, the shadow will only appear on the second render and beyond.
+   * Note that when true, the shadow won't appear on the first render.
    *
    * @default false */
   safeRender?: boolean;
@@ -73,14 +73,16 @@ export interface ShadowProps {
    *
    * @default false */
   stretch?: boolean;
-  /** If true, won't render the Shadow. Useful for reusing components, as sometimes you may not want shadows.
+  /** Won't render the Shadow. Useful for reusing components as sometimes shadows are not wanted.
    *
-   * Your children will just be wrapped by two Views, and `containerStyle` and `style` are still applied. Performatic!
+   * The children will be wrapped by two Views. `containerStyle` and `style` are still applied.
    *
-   * Note: for performance, contrary to "enabled", we won't set the children's corners radii to the `style` property.
-   * This is done in "enabled" to limit Pressable's ripple as we already get those values anyway. */
+   * For performance, contrary to `disabled={false}`, the children's corners radii aren't set in `style`.
+   * This is done in "enabled" to limit Pressable's ripple as we already obtain those values.
+   *
+   * @default false */
   disabled?: boolean;
-  /** Props for the Shadow's View. You shouldn't need to use this. You may pass `style` to this. */
+  /** Props for the Shadow's wrapping View. You shouldn't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
   /** Your child component. */
   children?: React.ReactNode;
@@ -142,7 +144,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     return StyleSheet.flatten([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
   }, [childSStr, childStyleStr]);
 
-  /** Child's Radii */
+  /** Child's Radii. */
   const cRadii = useMemo(() => {
     return {
       topLeft: cStyle.borderTopLeftRadius ?? cStyle.borderTopStartRadius ?? cStyle.borderRadius,
@@ -194,11 +196,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     topLeft, topRight, bottomLeft, bottomRight, width, height,
     isRTL, distanceProp, startColorProp, finalColorProp, paintInside,
     safeRender, activeSides, activeCorners,
-  }), [
-    width, height, topLeft, topRight, bottomLeft, bottomRight,
-    distanceProp, startColorProp, finalColorProp,
-    paintInside, activeCorners, activeSides, isRTL, safeRender,
-  ]);
+  }), [width, height, topLeft, topRight, bottomLeft, bottomRight, distanceProp, startColorProp, finalColorProp, paintInside, activeCorners, activeSides, isRTL, safeRender]);
 
   // Not yet sure if we should memo this.
   return getResult({
@@ -223,7 +221,6 @@ function sanitizeRadii({ width, height, radii }: {
     bottomRight: number | undefined;
   };
 }): CornerRadius {
-  console.log('sanitizeRadii');
   /** Round and zero negative radius values */
   let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(radii[k] ?? 0, 0)));
 
@@ -265,7 +262,6 @@ function getShadow({
   activeCorners: Record<Corner, boolean>;
   paintInside: boolean;
 }): JSX.Element | null {
-  console.log('getShadow');
   // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
     return null;
@@ -279,9 +275,9 @@ function getShadow({
   const distanceWithAdditional = distance + additional;
 
   /** To be used inside Svg style */
-  const rtlStyle = isRTL && { transform: [{ scaleX: -1 }] };
+  const rtlStyle = {};// isRTL && { transform: [{ scaleX: -1 }] };
   /** To be used inside Svg style.transform */
-  const rtlTransform = isRTL ? [{ scaleX: -1 }] : [];
+  const rtlTransform = [];// isRTL ? [{ scaleX: -1 }] : [];
 
   /** Will (+ additional), only if its value isn't '100%'. [*4] */
   const widthWithAdditional = typeof width === 'string' ? width : width + additional;
@@ -372,7 +368,7 @@ function getShadow({
       {activeCorners.topRight && topRightShadow > 0 && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
         style={{
           position: 'absolute', top: -distance, left: width,
-          transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
+          // transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
         }}
       >
         <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
@@ -443,11 +439,18 @@ function getResult({
   offset: [x: number | string, y: number | string];
   shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element {
+  const isRTL = I18nManager.isRTL;
+
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none'>
       <View pointerEvents='none' {...shadowViewProps} style={[
-        StyleSheet.absoluteFillObject, { left: offset[0], top: offset[1] }, shadowViewProps?.style,
+        StyleSheet.absoluteFillObject,
+        {
+          left: offset[0], top: offset[1],
+          transform: [{ scaleX: -1 }],
+        },
+        shadowViewProps?.style,
       ]}
       >
         {shadow}

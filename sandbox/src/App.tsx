@@ -24,6 +24,19 @@ const defaults = {
 export const App: React.FC = () => {
   const [distance, setDistance] = useState(defaults.distace);
   const [borderRadius, setBorderRadius] = useState(defaults.borderRadius);
+
+  const [borderRadii, setBorderRadii] = useState<{
+    borderBottomLeftRadius: number,
+    borderBottomRightRadius: number,
+    borderTopLeftRadius: number,
+    borderTopRightRadius: number,
+  }>({
+    borderBottomLeftRadius: defaults.borderRadius,
+    borderBottomRightRadius: defaults.borderRadius,
+    borderTopLeftRadius: defaults.borderRadius,
+    borderTopRightRadius: defaults.borderRadius,
+  });
+
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
   const [paintInside, setPaintInside] = useState<boolean | undefined>(undefined);
@@ -67,8 +80,24 @@ export const App: React.FC = () => {
                 <MySlider name='Distance' value={distance} onValueChange={setDistance}
                   range={[-10, 100]} step={0.1} // min -10 to show < 0 won't do anything
                 />
-                <MySlider name='Border Radius' value={borderRadius} onValueChange={setBorderRadius}
+                {/* <MySlider name='Border Radius' value={borderRadius} onValueChange={setBorderRadius}
                   range={[-10, 100]} step={0.1} // min -10 to show < 0 won't do anything
+                /> */}
+                <MySlider name='Top Left' value={borderRadii.borderTopLeftRadius}
+                  onValueChange={(borderTopLeftRadius) => setBorderRadii({...borderRadii, borderTopLeftRadius})}
+                  range={[-10, 100]} step={0.1}
+                />
+                <MySlider name='Top Right' value={borderRadii.borderTopRightRadius}
+                onValueChange={(borderTopRightRadius) => setBorderRadii({...borderRadii, borderTopRightRadius})}
+                  range={[-10, 100]} step={0.1}
+                />
+                <MySlider name='Bottom Left' value={borderRadii.borderBottomLeftRadius}
+                onValueChange={(borderBottomLeftRadius) => setBorderRadii({...borderRadii, borderBottomLeftRadius})}
+                  range={[-10, 100]} step={0.1}
+                />
+                <MySlider name='Bottom Right' value={borderRadii.borderBottomRightRadius}
+                onValueChange={(borderBottomRightRadius) => setBorderRadii({...borderRadii, borderBottomRightRadius})}
+                  range={[-10, 100]} step={0.1}
                 />
                 <MySlider name='Offset X' range={[-20, 20]} value={offsetX} onValueChange={setOffsetX}/>
                 <MySlider name='Offset Y' range={[-20, 20]} value={offsetY} onValueChange={setOffsetY}/>
@@ -117,6 +146,8 @@ export const App: React.FC = () => {
                 distance={distance}
                 startColor={startColor}
                 finalColor={finalColor}
+                sides={['bottom']}
+                corners={['topLeft']}
                 offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
                 paintInside={paintInside}
                 containerStyle={{ margin: 100 }}
@@ -129,7 +160,6 @@ export const App: React.FC = () => {
                     backgroundColor: childColor,
                     width: size[0],
                     height: size[1],
-                    borderRadius: Math.max(borderRadius, 0)
                   },
                 ]}
               >
@@ -137,7 +167,9 @@ export const App: React.FC = () => {
                     backgroundColor: childColor,
                     // If borderRadius's Slider changes from a positive value to a negative one, it won't change the current radius.
                     // This is here just to avoid the slider causing it to happen, for fast movements.
-                    borderRadius: Math.max(borderRadius, 0)
+                    // borderRadius: Math.max(borderRadius, 0)
+                    ...borderRadii,
+
                   },
                   doUseSizeStyle && { width: childWidth, height: childHeight },
                 ]}/>
