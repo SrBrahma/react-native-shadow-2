@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "6.0.3",
+  "version": "7.0.0",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -12,7 +12,6 @@
     "clean": "rimraf lib",
     "build": "npm run clean && tsc",
     "prepare": "npm run build",
-    "updateVersionExport": "sed -i -r \"s/(version = ').*(')/\\1$npm_package_version\\2/\" ./src/index.tsx",
     "prepublishOnly": "npm run test",
     "docs": "typedoc",
     "docsWatch": "typedoc --watch",
