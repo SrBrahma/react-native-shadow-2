@@ -446,11 +446,8 @@ function getResult({
     <View style={containerStyle} pointerEvents='box-none'>
       <View pointerEvents='none' {...shadowViewProps} style={[
         StyleSheet.absoluteFillObject,
-        {
-          left: offset[0], top: offset[1],
-          transform: [{ scaleX: -1 }],
-        },
         shadowViewProps?.style,
+        { left: offset[0], top: offset[1] },
       ]}
       >
         {shadow}
@@ -461,7 +458,6 @@ function getResult({
           {
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            alignSelf: stretch ? 'stretch' : 'flex-start',
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
             borderTopLeftRadius: radii.topLeft,
             borderTopRightRadius: radii.topRight,
@@ -469,6 +465,7 @@ function getResult({
             borderBottomRightRadius: radii.bottomRight,
           },
           style, // FIXME problematic radius? would topStart overwrite topLeft?
+          { alignSelf: stretch ? 'stretch' : 'flex-start' },
         ]}
         onLayout={(e) => {
           // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
@@ -499,10 +496,10 @@ function DisabledShadow({ stretch, containerStyle, children, style }: {
     <View style={containerStyle} pointerEvents='box-none'>
       <View
         pointerEvents='box-none'
-        style={[{
-          alignSelf: stretch ? 'stretch' : 'flex-start',
-        },
-        style]}
+        style={[
+          style,
+          { alignSelf: stretch ? 'stretch' : 'flex-start' },
+        ]}
       >
         {children}
       </View>
