@@ -90,7 +90,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 **Q**: How to set the Shadow opacity?
 
-**A**: The opacity in react-native-shadow-2, differently from the "original" version, is set directly at the `startColor` and `finalColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
+**A**: The opacity is set directly in the `startColor` and `finalColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
 
 
 **Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
@@ -98,9 +98,9 @@ import { Shadow } from 'react-native-shadow-2';
 **A**: Use `viewStyle={{alignSelf: 'stretch'}}` in your Shadow component. Explanation in link above!
 
 
-**Q**: I want a preset for my Shadows, so I don't have to type the same props among them and I want to quickly change them all if I want to!
+**Q**: I want a preset for my Shadows!
 
-**A**: This package exports the `ShadowProps` type, that are the props of the Shadow component. You may do the following:
+**A**: It's exported the `ShadowProps` type, that are the props of the Shadow component. You may do the following:
 ```tsx
 export const ShadowPresets = {
   button: {
