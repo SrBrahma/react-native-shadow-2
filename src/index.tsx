@@ -5,7 +5,8 @@ import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-
 import { colord } from 'colord';
 import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
-  additional, cornersArray, objFromKeys,
+  additional, cornersArray, generateGradientIdSuffix,
+  objFromKeys,
   R, radialGradient, sidesArray, sumDps,
 } from './utils';
 
@@ -102,6 +103,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   const isRTL = I18nManager.isRTL;
   const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
   const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
+  const [idSuffix] = useState<string>(generateGradientIdSuffix);
 
   const {
     sides,
@@ -195,8 +197,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   const shadow = useMemo(() => getShadow({
     topStart, topEnd, bottomStart, bottomEnd, width, height,
     isRTL, distanceProp, startColorProp, endColorProp, paintInside,
-    safeRender, activeSides, activeCorners,
-  }), [width, height, topStart, topEnd, bottomStart, bottomEnd, distanceProp, startColorProp, endColorProp, paintInside, activeCorners, activeSides, isRTL, safeRender]);
+    safeRender, activeSides, activeCorners, idSuffix,
+  }), [topStart, topEnd, bottomStart, bottomEnd, width, height, isRTL, distanceProp, startColorProp, endColorProp, paintInside, safeRender, activeSides, activeCorners, idSuffix]);
 
   // Not yet sure if we should memo this.
   return getResult({
@@ -245,7 +247,7 @@ function sanitizeRadii({ width, height, radii }: {
 function getShadow({
   safeRender, width, height, isRTL, distanceProp, startColorProp, endColorProp,
   topStart, topEnd, bottomStart, bottomEnd,
-  activeSides, activeCorners, paintInside,
+  activeSides, activeCorners, paintInside, idSuffix,
 }: {
   safeRender: boolean | undefined;
   width: string | number;
@@ -261,6 +263,7 @@ function getShadow({
   activeSides: Record<Side, boolean>;
   activeCorners: Record<Corner, boolean>;
   paintInside: boolean;
+  idSuffix: string;
 }): JSX.Element | null {
   // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
   if (safeRender && (typeof width === 'string' || typeof height === 'string'))
@@ -321,31 +324,31 @@ function getShadow({
           width={distanceWithAdditional} height={heightWithAdditional}
           style={{ position: 'absolute', left: -distance, top: topStart }}
         >
-          <Defs><LinearGradient id='left' x1={isRTL ? '0' : '1'} y1='0' x2={isRTL ? '1' : '0'} y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Defs><LinearGradient id={`start.${idSuffix}`} x1={isRTL ? '0' : '1'} y1='0' x2={isRTL ? '1' : '0'} y2='0'>{linearGradient}</LinearGradient></Defs>
           {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
                   just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-          <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topStart, bottomStart)}/>
+          <Rect width={distance} height={height} fill={`url(#start.${idSuffix})`} y={-sumDps(topStart, bottomStart)}/>
         </Svg>}
         {activeSides.end && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
           style={{ position: 'absolute', left: width, top: topEnd }}
         >
-          <Defs><LinearGradient id='right' x1={isRTL ? '1' : '0'} y1='0' x2={isRTL ? '0' : '1'} y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topEnd, bottomEnd)}/>
-        </Svg>}
-        {activeSides.bottom && <Svg
-          width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: height, left: bottomStart }}
-        >
-          <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomStart, bottomEnd)}/>
+          <Defs><LinearGradient id={`end.${idSuffix}`} x1={isRTL ? '1' : '0'} y1='0' x2={isRTL ? '0' : '1'} y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={distance} height={height} fill={`url(#end.${idSuffix})`} y={-sumDps(topEnd, bottomEnd)}/>
         </Svg>}
         {activeSides.top && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
           style={{ position: 'absolute', top: -distance, left: topStart }}
         >
-          <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topStart, topEnd)}/>
+          <Defs><LinearGradient id={`top.${idSuffix}`} x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill={`url(#top.${idSuffix})`} x={-sumDps(topStart, topEnd)}/>
+        </Svg>}
+        {activeSides.bottom && <Svg
+          width={widthWithAdditional} height={distanceWithAdditional}
+          style={{ position: 'absolute', top: height, left: bottomStart }}
+        >
+          <Defs><LinearGradient id={`bottom.${idSuffix}`} x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill={`url(#bottom.${idSuffix})`} x={-sumDps(bottomStart, bottomEnd)}/>
         </Svg>}
       </>}
 
@@ -357,8 +360,8 @@ function getShadow({
       {activeCorners.topStart && topStartShadow > 0 && <Svg width={topStartShadow + additional} height={topStartShadow + additional}
         style={{ position: 'absolute', top: -distance, left: -distance }}
       >
-        <Defs>{radialGradient2({ id: 'topLeft', top: true, left: !isRTL, radius: topStart, shadowRadius: topStartShadow })}</Defs>
-        <Rect fill='url(#topLeft)' width={topStartShadow} height={topStartShadow}/>
+        <Defs>{radialGradient2({ id: `topStart.${idSuffix}`, top: true, left: !isRTL, radius: topStart, shadowRadius: topStartShadow })}</Defs>
+        <Rect fill={`url(#topStart.${idSuffix})`} width={topStartShadow} height={topStartShadow}/>
       </Svg>}
       {activeCorners.topEnd && topEndShadow > 0 && <Svg width={topEndShadow + additional} height={topEndShadow + additional}
         style={{
@@ -366,14 +369,14 @@ function getShadow({
           transform: [{ translateX: isRTL ? topEnd : -topEnd }],
         }}
       >
-        <Defs>{radialGradient2({ id: 'topRight', top: true, left: isRTL, radius: topEnd, shadowRadius: topEndShadow })}</Defs>
-        <Rect fill='url(#topRight)' width={topEndShadow} height={topEndShadow}/>
+        <Defs>{radialGradient2({ id: `topEnd.${idSuffix}`, top: true, left: isRTL, radius: topEnd, shadowRadius: topEndShadow })}</Defs>
+        <Rect fill={`url(#topEnd.${idSuffix})`} width={topEndShadow} height={topEndShadow}/>
       </Svg>}
       {activeCorners.bottomStart && bottomStartShadow > 0 && <Svg width={bottomStartShadow + additional} height={bottomStartShadow + additional}
         style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomStart }] }}
       >
-        <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: !isRTL, radius: bottomStart, shadowRadius: bottomStartShadow })}</Defs>
-        <Rect fill='url(#bottomLeft)' width={bottomStartShadow} height={bottomStartShadow}/>
+        <Defs>{radialGradient2({ id: `bottomStart.${idSuffix}`, top: false, left: !isRTL, radius: bottomStart, shadowRadius: bottomStartShadow })}</Defs>
+        <Rect fill={`url(#bottomStart.${idSuffix})`} width={bottomStartShadow} height={bottomStartShadow}/>
       </Svg>}
       {activeCorners.bottomEnd && bottomEndShadow > 0 && <Svg width={bottomEndShadow + additional} height={bottomEndShadow + additional}
         style={{
@@ -381,8 +384,8 @@ function getShadow({
           transform: [{ translateX: isRTL ? bottomEnd : -bottomEnd }, { translateY: -bottomEnd }],
         }}
       >
-        <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: isRTL, radius: bottomEnd, shadowRadius: bottomEndShadow })}</Defs>
-        <Rect fill='url(#bottomRight)' width={bottomEndShadow} height={bottomEndShadow}/>
+        <Defs>{radialGradient2({ id: `bottomEnd.${idSuffix}`, top: false, left: isRTL, radius: bottomEnd, shadowRadius: bottomEndShadow })}</Defs>
+        <Rect fill={`url(#bottomEnd.${idSuffix})`} width={bottomEndShadow} height={bottomEndShadow}/>
       </Svg>}
 
       {/* Paint the inner area, so we can offset it.
@@ -400,7 +403,7 @@ function getShadow({
             />)
           : (<>
             <Defs>
-              <Mask id='maskPaintBelow'>
+              <Mask id={`maskInside.${idSuffix}`}>
                 {/* Paint all white, then black on border external areas to erase them */}
                 <Rect width={width} height={height} fill='#fff'/>
                 {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
@@ -410,7 +413,7 @@ function getShadow({
                 <Rect width={bottomEnd} height={bottomEnd} x={width} y={height} transform={`translate(${-bottomEnd}, ${-bottomEnd})`} fill='#000'/>
               </Mask>
             </Defs>
-            <Rect width={width} height={height} mask='url(#maskPaintBelow)' fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+            <Rect width={width} height={height} mask={`url(#maskInside.${idSuffix})`} fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
           </>)}
       </Svg>}
     </>

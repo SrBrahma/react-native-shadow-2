@@ -107,3 +107,11 @@ export function radialGradient({
     <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
   </RadialGradient>);
 }
+
+/** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions.
+ *
+ * https://github.com/SrBrahma/react-native-shadow-2/pull/54 */
+export const generateGradientIdSuffix = (() => {
+  let shadowGradientIdCounter = 0;
+  return () => String(shadowGradientIdCounter++);
+})();
