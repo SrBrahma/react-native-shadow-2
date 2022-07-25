@@ -147,10 +147,10 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   /** Child's Radii. */
   const cRadii = useMemo(() => {
     return {
-      topLeft: cStyle.borderTopLeftRadius ?? cStyle.borderTopStartRadius ?? cStyle.borderRadius,
-      topRight: cStyle.borderTopRightRadius ?? cStyle.borderTopEndRadius ?? cStyle.borderRadius,
-      bottomLeft: cStyle.borderBottomLeftRadius ?? cStyle.borderBottomStartRadius ?? cStyle.borderRadius,
-      bottomRight: cStyle.borderBottomRightRadius ?? cStyle.borderBottomEndRadius ?? cStyle.borderRadius,
+      topLeft: cStyle.borderTopStartRadius ?? cStyle.borderTopLeftRadius ?? cStyle.borderRadius,
+      topRight: cStyle.borderTopEndRadius ?? cStyle.borderTopRightRadius ?? cStyle.borderRadius,
+      bottomLeft: cStyle.borderBottomStartRadius ?? cStyle.borderBottomLeftRadius ?? cStyle.borderRadius,
+      bottomRight: cStyle.borderBottomEndRadius ?? cStyle.borderBottomRightRadius ?? cStyle.borderRadius,
     };
   }, [cStyle]);
 
@@ -166,10 +166,10 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     return {
       style,
       sRadii: {
-        topLeft: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
-        topRight: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
-        bottomLeft: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
-        bottomRight: style.borderTopLeftRadius ?? style.borderTopStartRadius ?? style.borderRadius,
+        topLeft: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
+        topRight: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
+        bottomLeft: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
+        bottomRight: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
       },
     };
   }, [styleStr]);
@@ -452,13 +452,16 @@ function getResult({
           {
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
+            // Note that topStart etc has priority over topLeft etc. Maybe we could use topLeft etc here so the user
+            // may overwrite those values with both topLeft and topStart. But would the user want to overwrite those?
             borderTopStartRadius: radii.topStart,
             borderTopEndRadius: radii.topEnd,
             borderBottomStartRadius: radii.bottomStart,
             borderBottomEndRadius: radii.bottomEnd,
           },
-          style, // FIXME problematic radius? would topStart overwrite topLeft?
+          style,
           { alignSelf: stretch ? 'stretch' : 'flex-start' },
         ]}
         onLayout={(e) => {

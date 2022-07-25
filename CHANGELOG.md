@@ -1,13 +1,26 @@
 # 7.0.0 - 2022-03-21
 > Major changes to simplify the library, improve the Developer experience and improve the performance!
-* **Removed** `radius` property. If desired, you shall now define the radius in `style`'s `borderRadius` related properties, as `borderTopLeftRadius` / `borderTopStartRadius`.
-* **Removed** `size` property. If desired, you shall now define the size in `style`'s `width` and `height`.
-* **Added** `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
-* **Renamed** `containerViewStyle` property to `containerStyle`.
-* **Renamed** `viewStyle` property to `style`.
-* **Removed** `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
-* **Removed** error when there is more than a child. Also fixed an error where there isn't a child.
-* **Improved** performance and RAM usage due to some general refactorings and improved memoizations.
+### Features
+* `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
+
+### Renamed
+* `containerViewStyle` property to `containerStyle`.
+* `viewStyle` property to `style`.
+* `finalColor` to `endColor`, to stay similar to the `start/end` pattern of the RTL changes below.
+#### RTL
+> Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties
+* sides: `'left', 'right', 'top', 'bottom'` to `'start', 'end', 'top', 'bottom'`;
+* corners: `'topLeft', 'topRight', 'bottomLeft', 'bottomRight'` to `'topStart', 'topEnd', 'bottomStart', 'bottomEnd'`.
+* Note that you may still use `borderTopLeftRadius` etc.
+
+### Removed
+* `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
+* Error when there is more than a child. Also fixed an error where there isn't a child.
+* `radius` property. If desired, you shall now define the radius in `style`'s `borderRadius` related properties, as `borderTopLeftRadius` / `borderTopStartRadius`.
+* `size` property. If desired, you shall now define the size in `style`'s `width` and `height`.
+
+### Improved
+* performance and RAM usage due to some general refactorings and improved memoizations.
 * Now using `colord` package instead of `polished` to deal with colors' alpha.
 
 
