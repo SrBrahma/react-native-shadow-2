@@ -100,16 +100,14 @@ import { Shadow } from 'react-native-shadow-2';
 
 **Q**: I want a preset for my Shadows!
 
-**A**: It's exported the `ShadowProps` type, that are the props of the Shadow component. You may do the following:
+**A**: It's exported the `ShadowProps` type, the props of the Shadow component. You may do the following:
 ```tsx
-export const ShadowPresets = {
+const ShadowPresets = {
   button: {
     offset: [0, 1], distance: 1, startColor: '#0003',
   } as ShadowProps,
 };
-```
-and then in your Shadow component:
-```tsx
+
 <Shadow {...ShadowPresets.button}>
 ```
 
