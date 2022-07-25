@@ -85,14 +85,14 @@ type RadialGradientProps = {
   shadowRadius: number;
   startColorWoOpacity: string;
   startColorOpacity: number;
-  finalColorWoOpacity: string;
-  finalColorOpacity: number;
+  endColorWoOpacity: string;
+  endColorOpacity: number;
   paintInside: boolean;
 };
-export type RadialGradientPropsOmited = Omit<RadialGradientProps, `${'start' | 'final' | 'paintInside'}${string}`>;
+export type RadialGradientPropsOmited = Omit<RadialGradientProps, `${'start' | 'end' | 'paintInside'}${string}`>;
 
 export function radialGradient({
-  id, left, radius, shadowRadius, top, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity, paintInside,
+  id, left, radius, shadowRadius, top, startColorWoOpacity, startColorOpacity, endColorWoOpacity, endColorOpacity, paintInside,
 }: RadialGradientProps): JSX.Element {
   return (<RadialGradient
     id={id}
@@ -104,6 +104,6 @@ export function radialGradient({
     {!paintInside && <Stop offset={radius / shadowRadius} stopOpacity={0}/>}
     {/* Bad. There would be a tiny gap between the child and the corner shadow. */}
     <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
-    <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity}/>
+    <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
   </RadialGradient>);
 }
