@@ -196,12 +196,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     topLeft, topRight, bottomLeft, bottomRight, width, height,
     isRTL, distanceProp, startColorProp, finalColorProp, paintInside,
     safeRender, activeSides, activeCorners,
-  }), [
-    width, height, topLeft, topRight, bottomLeft, bottomRight,
-    distanceProp, startColorProp, finalColorProp,
-    paintInside, activeCorners, activeSides, isRTL, safeRender,
-    offset
-  ]);
+  }), [width, height, topLeft, topRight, bottomLeft, bottomRight, distanceProp, startColorProp, finalColorProp, paintInside, activeCorners, activeSides, isRTL, safeRender]);
 
   // Not yet sure if we should memo this.
   return getResult({
@@ -279,11 +274,6 @@ function getShadow({
 
   const distanceWithAdditional = distance + additional;
 
-  /** To be used inside Svg style */
-  const rtlStyle = {}//isRTL && { transform: [{ scaleX: -1 }] };
-  /** To be used inside Svg style.transform */
-  const rtlTransform = []//isRTL ? [{ scaleX: -1 }] : [];
-
   /** Will (+ additional), only if its value isn't '100%'. [*4] */
   const widthWithAdditional = typeof width === 'string' ? width : width + additional;
   /** Will (+ additional), only if its value isn't '100%'. [*4] */
@@ -329,30 +319,30 @@ function getShadow({
         {/* Sides */}
         {activeSides.left && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
-          style={{ position: 'absolute', left: -distance, top: topLeft, ...rtlStyle }}
+          style={{ position: 'absolute', left: -distance, top: topLeft }}
         >
-          <Defs><LinearGradient id='left' x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Defs><LinearGradient id='left' x1={isRTL ? '0' : '1'} y1='0' x2={isRTL ? '1' : '0'} y2='0'>{linearGradient}</LinearGradient></Defs>
           {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
                   just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
           <Rect width={distance} height={height} fill='url(#left)' y={-sumDps(topLeft, bottomLeft)}/>
         </Svg>}
         {activeSides.right && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
-          style={{ position: 'absolute', left: width, top: topRight, ...rtlStyle }}
+          style={{ position: 'absolute', left: width, top: topRight }}
         >
-          <Defs><LinearGradient id='right' x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Defs><LinearGradient id='right' x1={isRTL ? '1' : '0'} y1='0' x2={isRTL ? '0' : '1'} y2='0'>{linearGradient}</LinearGradient></Defs>
           <Rect width={distance} height={height} fill='url(#right)' y={-sumDps(topRight, bottomRight)}/>
         </Svg>}
         {activeSides.bottom && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: height, left: bottomLeft, ...rtlStyle }}
+          style={{ position: 'absolute', top: height, left: bottomLeft }}
         >
           <Defs><LinearGradient id='bottom' x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
           <Rect width={width} height={distance} fill='url(#bottom)' x={-sumDps(bottomLeft, bottomRight)}/>
         </Svg>}
         {activeSides.top && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: -distance, left: topLeft, ...rtlStyle }}
+          style={{ position: 'absolute', top: -distance, left: topLeft }}
         >
           <Defs><LinearGradient id='top' x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
           <Rect width={width} height={distance} fill='url(#top)' x={-sumDps(topLeft, topRight)}/>
@@ -365,33 +355,33 @@ function getShadow({
               The starting point is the clockwise external arc init point. */}
       {/* Checking topLeftShadowEtc > 0 due to https://github.com/SrBrahma/react-native-shadow-2/issues/47. */}
       {activeCorners.topLeft && topLeftShadow > 0 && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: -distance, ...rtlStyle }}
+        style={{ position: 'absolute', top: -distance, left: -distance }}
       >
-        <Defs>{radialGradient2({ id: 'topLeft', top: true, left: true, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
+        <Defs>{radialGradient2({ id: 'topLeft', top: true, left: !isRTL, radius: topLeft, shadowRadius: topLeftShadow })}</Defs>
         <Rect fill='url(#topLeft)' width={topLeftShadow} height={topLeftShadow}/>
       </Svg>}
       {activeCorners.topRight && topRightShadow > 0 && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
         style={{
           position: 'absolute', top: -distance, left: width,
-          // transform: [{ translateX: isRTL ? topRight : -topRight }, ...rtlTransform],
+          transform: [{ translateX: isRTL ? topRight : -topRight }],
         }}
       >
-        <Defs>{radialGradient2({ id: 'topRight', top: true, left: false, radius: topRight, shadowRadius: topRightShadow })}</Defs>
+        <Defs>{radialGradient2({ id: 'topRight', top: true, left: isRTL, radius: topRight, shadowRadius: topRightShadow })}</Defs>
         <Rect fill='url(#topRight)' width={topRightShadow} height={topRightShadow}/>
       </Svg>}
       {activeCorners.bottomLeft && bottomLeftShadow > 0 && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...rtlTransform] }}
+        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }] }}
       >
-        <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: true, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
+        <Defs>{radialGradient2({ id: 'bottomLeft', top: false, left: !isRTL, radius: bottomLeft, shadowRadius: bottomLeftShadow })}</Defs>
         <Rect fill='url(#bottomLeft)' width={bottomLeftShadow} height={bottomLeftShadow}/>
       </Svg>}
       {activeCorners.bottomRight && bottomRightShadow > 0 && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
         style={{
           position: 'absolute', top: height, left: width,
-          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...rtlTransform],
+          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }],
         }}
       >
-        <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: false, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
+        <Defs>{radialGradient2({ id: 'bottomRight', top: false, left: isRTL, radius: bottomRight, shadowRadius: bottomRightShadow })}</Defs>
         <Rect fill='url(#bottomRight)' width={bottomRightShadow} height={bottomRightShadow}/>
       </Svg>}
 
@@ -399,7 +389,7 @@ function getShadow({
       [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
       and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
       paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute', ...rtlStyle }}>
+      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute' }}>
         {(typeof width === 'number' && typeof height === 'number')
         // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
         // We use Path as workaround to it.
@@ -444,18 +434,14 @@ function getResult({
   offset: [x: number | string, y: number | string];
   shadowViewProps: ShadowProps['shadowViewProps'];
 }): JSX.Element {
-  const isRTL = I18nManager.isRTL;
 
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none'>
       <View pointerEvents='none' {...shadowViewProps} style={[
         StyleSheet.absoluteFillObject,
-        {
-          left: offset[0], top: offset[1],
-          transform: [{scaleX: -1}]
-        },
         shadowViewProps?.style,
+        { left: offset[0], top: offset[1] },
       ]}
       >
         {shadow}
@@ -466,7 +452,6 @@ function getResult({
           {
             // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
             // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            alignSelf: stretch ? 'stretch' : 'flex-start',
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
             borderTopLeftRadius: radii.topLeft,
             borderTopRightRadius: radii.topRight,
@@ -474,6 +459,7 @@ function getResult({
             borderBottomRightRadius: radii.bottomRight,
           },
           style, // FIXME problematic radius? would topStart overwrite topLeft?
+          { alignSelf: stretch ? 'stretch' : 'flex-start' },
         ]}
         onLayout={(e) => {
           // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
@@ -504,10 +490,10 @@ function DisabledShadow({ stretch, containerStyle, children, style }: {
     <View style={containerStyle} pointerEvents='box-none'>
       <View
         pointerEvents='box-none'
-        style={[{
-          alignSelf: stretch ? 'stretch' : 'flex-start',
-        },
-        style]}
+        style={[
+          style,
+          { alignSelf: stretch ? 'stretch' : 'flex-start' },
+        ]}
       >
         {children}
       </View>

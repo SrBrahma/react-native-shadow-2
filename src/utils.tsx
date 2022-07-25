@@ -11,8 +11,8 @@ export const version = '7.0.0';
 /** Util type to prettify the given type. */
 type Id<T> = unknown & { [P in keyof T]: T[P] };
 
-export type Side = 'left' | 'right' | 'top' | 'bottom';
-export type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+export type Side = 'start' | 'end' | 'top' | 'bottom';
+export type Corner = 'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd';
 export type CornerRadius = Record<Corner, number>;
 
 // Add Shadow to the corner names
@@ -21,9 +21,8 @@ export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 /** Type of `radius` property. */
 export type RadiusProp = number | Id<Partial<CornerRadius> & {default?: number}>;
 
-export const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
-// const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
-export const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
+export const sidesArray = ['start', 'end', 'top', 'bottom'] as const;
+export const cornersArray = ['topStart', 'topEnd', 'bottomStart', 'bottomEnd'] as const;
 
 
 
