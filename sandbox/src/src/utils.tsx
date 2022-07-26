@@ -11,8 +11,8 @@ export const version = '7.0.0';
 /** Util type to prettify the given type. */
 type Id<T> = unknown & { [P in keyof T]: T[P] };
 
-export type Side = 'left' | 'right' | 'top' | 'bottom';
-export type Corner = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+export type Side = 'start' | 'end' | 'top' | 'bottom';
+export type Corner = 'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd';
 export type CornerRadius = Record<Corner, number>;
 
 // Add Shadow to the corner names
@@ -21,9 +21,8 @@ export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 /** Type of `radius` property. */
 export type RadiusProp = number | Id<Partial<CornerRadius> & {default?: number}>;
 
-export const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
-// const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
-export const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
+export const sidesArray = ['start', 'end', 'top', 'bottom'] as const;
+export const cornersArray = ['topStart', 'topEnd', 'bottomStart', 'bottomEnd'] as const;
 
 
 
@@ -86,14 +85,14 @@ type RadialGradientProps = {
   shadowRadius: number;
   startColorWoOpacity: string;
   startColorOpacity: number;
-  finalColorWoOpacity: string;
-  finalColorOpacity: number;
+  endColorWoOpacity: string;
+  endColorOpacity: number;
   paintInside: boolean;
 };
-export type RadialGradientPropsOmited = Omit<RadialGradientProps, `${'start' | 'final' | 'paintInside'}${string}`>;
+export type RadialGradientPropsOmited = Omit<RadialGradientProps, `${'start' | 'end' | 'paintInside'}${string}`>;
 
 export function radialGradient({
-  id, left, radius, shadowRadius, top, startColorWoOpacity, startColorOpacity, finalColorWoOpacity, finalColorOpacity, paintInside
+  id, left, radius, shadowRadius, top, startColorWoOpacity, startColorOpacity, endColorWoOpacity, endColorOpacity, paintInside,
 }: RadialGradientProps): JSX.Element {
   return (<RadialGradient
     id={id}
@@ -105,6 +104,16 @@ export function radialGradient({
     {!paintInside && <Stop offset={radius / shadowRadius} stopOpacity={0}/>}
     {/* Bad. There would be a tiny gap between the child and the corner shadow. */}
     <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
-    <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity}/>
+    <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
   </RadialGradient>);
 }
+
+/** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions.
+ *
+ * https://github.com/SrBrahma/react-native-shadow-2/pull/54 */
+export const generateGradientIdSuffix = (() => {
+  let shadowGradientIdCounter = 0;
+  return () => String(shadowGradientIdCounter++);
+})();
+
+export const rtlScaleX = { transform: [{ scaleX: -1 }] }

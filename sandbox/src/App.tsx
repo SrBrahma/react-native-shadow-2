@@ -1,6 +1,6 @@
 // Sandbox to test the library. I tried using the symlink npx workaround but it's somewhat bugged.
 // Using a copy of the lib code here.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { I18nManager, Platform, Pressable, StatusBar, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Slider } from '@sharcoux/slider';
@@ -15,7 +15,7 @@ const defaults = {
   borderRadius: 30,
   width: 200,
   height: 200,
-  startColor: tinycolor('#00000020').toHex8String(),
+  startColor: tinycolor('#00000090').toHex8String(),
   finalColor: tinycolor('#0000').toHex8String(),
   childColor: tinycolor('#fff').toHex8String(), // tinycolor('#fff').toHex8String(),
 };
@@ -55,6 +55,8 @@ export const App: React.FC = () => {
 
   const [rtl, setRtl] = useState(false);
 
+  useEffect(() => I18nManager.forceRTL(rtl), [rtl])
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }}>
@@ -83,19 +85,19 @@ export const App: React.FC = () => {
                 {/* <MySlider name='Border Radius' value={borderRadius} onValueChange={setBorderRadius}
                   range={[-10, 100]} step={0.1} // min -10 to show < 0 won't do anything
                 /> */}
-                <MySlider name='Top Left' value={borderRadii.borderTopLeftRadius}
+                <MySlider name='Top Start' value={borderRadii.borderTopLeftRadius}
                   onValueChange={(borderTopLeftRadius) => setBorderRadii({...borderRadii, borderTopLeftRadius})}
                   range={[-10, 100]} step={0.1}
                 />
-                <MySlider name='Top Right' value={borderRadii.borderTopRightRadius}
+                <MySlider name='Top End' value={borderRadii.borderTopRightRadius}
                 onValueChange={(borderTopRightRadius) => setBorderRadii({...borderRadii, borderTopRightRadius})}
                   range={[-10, 100]} step={0.1}
                 />
-                <MySlider name='Bottom Left' value={borderRadii.borderBottomLeftRadius}
+                <MySlider name='Bottom Start' value={borderRadii.borderBottomLeftRadius}
                 onValueChange={(borderBottomLeftRadius) => setBorderRadii({...borderRadii, borderBottomLeftRadius})}
                   range={[-10, 100]} step={0.1}
                 />
-                <MySlider name='Bottom Right' value={borderRadii.borderBottomRightRadius}
+                <MySlider name='Bottom End' value={borderRadii.borderBottomRightRadius}
                 onValueChange={(borderBottomRightRadius) => setBorderRadii({...borderRadii, borderBottomRightRadius})}
                   range={[-10, 100]} step={0.1}
                 />
@@ -125,7 +127,7 @@ export const App: React.FC = () => {
                     setChildColor(color.toHex8String());
                 }}/>
 
-                <MySwitch name='Use RTL' value={rtl} onValueChange={(v) => {setRtl(v); I18nManager.forceRTL(v);}}/>
+                <MySwitch name='Use RTL' value={rtl} onValueChange={setRtl}/>
 
                 <MySwitch name='Disabled' value={disabled} onValueChange={setDisabled}/>
                 {/* <NameValue name='Paint Inside' value={paintInside}/> */}
@@ -139,15 +141,16 @@ export const App: React.FC = () => {
 
               </View>
             </View>
-
+            {/* Just to test if svg ids aren't colliding */}
+            <Shadow />
             {/* Max child width is 200 and max dist is 100. Total max is 400. */}
             <View style={{ width: 420, height: 420, justifyContent: 'center', alignItems: 'center' }}>
               <Shadow
                 distance={distance}
                 startColor={startColor}
-                finalColor={finalColor}
-                sides={['bottom']}
-                corners={['topLeft']}
+                endColor={finalColor}
+                // sides={['bottom']}
+                // corners={['topLeft']}
                 offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
                 paintInside={paintInside}
                 containerStyle={{ margin: 100 }}

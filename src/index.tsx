@@ -7,7 +7,8 @@ import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmite
 import {
   additional, cornersArray, generateGradientIdSuffix,
   objFromKeys,
-  R, radialGradient, sidesArray, sumDps,
+  R, radialGradient, rtlScaleX,
+  sidesArray, sumDps,
 } from './utils';
 
 
@@ -100,7 +101,8 @@ export function Shadow(props: ShadowProps): JSX.Element {
 }
 
 function ShadowInner(props: ShadowProps): JSX.Element {
-  const isRTL = I18nManager.isRTL;
+  /** getConstants().isRTL instead of just isRTL due to Web https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853 */
+  const isRTL = I18nManager.getConstants().isRTL;
   const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
   const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
   const [idSuffix] = useState<string>(generateGradientIdSuffix);
@@ -322,7 +324,7 @@ function getShadow({
         {/* Sides */}
         {activeSides.start && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
-          style={{ position: 'absolute', left: -distance, top: topStart }}
+          style={{ position: 'absolute', start: -distance, top: topStart }}
         >
           <Defs><LinearGradient id={`start.${idSuffix}`} x1={isRTL ? '0' : '1'} y1='0' x2={isRTL ? '1' : '0'} y2='0'>{linearGradient}</LinearGradient></Defs>
           {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
@@ -331,21 +333,21 @@ function getShadow({
         </Svg>}
         {activeSides.end && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
-          style={{ position: 'absolute', left: width, top: topEnd }}
+          style={{ position: 'absolute', start: width, top: topEnd }}
         >
           <Defs><LinearGradient id={`end.${idSuffix}`} x1={isRTL ? '1' : '0'} y1='0' x2={isRTL ? '0' : '1'} y2='0'>{linearGradient}</LinearGradient></Defs>
           <Rect width={distance} height={height} fill={`url(#end.${idSuffix})`} y={-sumDps(topEnd, bottomEnd)}/>
         </Svg>}
         {activeSides.top && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: -distance, left: topStart }}
+          style={{ position: 'absolute', top: -distance, start: topStart, ...(isRTL && rtlScaleX) }}
         >
           <Defs><LinearGradient id={`top.${idSuffix}`} x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
           <Rect width={width} height={distance} fill={`url(#top.${idSuffix})`} x={-sumDps(topStart, topEnd)}/>
         </Svg>}
         {activeSides.bottom && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: height, left: bottomStart }}
+          style={{ position: 'absolute', top: height, start: bottomStart, ...(isRTL && rtlScaleX) }}
         >
           <Defs><LinearGradient id={`bottom.${idSuffix}`} x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
           <Rect width={width} height={distance} fill={`url(#bottom.${idSuffix})`} x={-sumDps(bottomStart, bottomEnd)}/>
@@ -358,14 +360,14 @@ function getShadow({
               The starting point is the clockwise external arc init point. */}
       {/* Checking topLeftShadowEtc > 0 due to https://github.com/SrBrahma/react-native-shadow-2/issues/47. */}
       {activeCorners.topStart && topStartShadow > 0 && <Svg width={topStartShadow + additional} height={topStartShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: -distance }}
+        style={{ position: 'absolute', top: -distance, start: -distance }}
       >
         <Defs>{radialGradient2({ id: `topStart.${idSuffix}`, top: true, left: !isRTL, radius: topStart, shadowRadius: topStartShadow })}</Defs>
         <Rect fill={`url(#topStart.${idSuffix})`} width={topStartShadow} height={topStartShadow}/>
       </Svg>}
       {activeCorners.topEnd && topEndShadow > 0 && <Svg width={topEndShadow + additional} height={topEndShadow + additional}
         style={{
-          position: 'absolute', top: -distance, left: width,
+          position: 'absolute', top: -distance, start: width,
           transform: [{ translateX: isRTL ? topEnd : -topEnd }],
         }}
       >
@@ -373,14 +375,14 @@ function getShadow({
         <Rect fill={`url(#topEnd.${idSuffix})`} width={topEndShadow} height={topEndShadow}/>
       </Svg>}
       {activeCorners.bottomStart && bottomStartShadow > 0 && <Svg width={bottomStartShadow + additional} height={bottomStartShadow + additional}
-        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomStart }] }}
+        style={{ position: 'absolute', top: height, start: -distance, transform: [{ translateY: -bottomStart }] }}
       >
         <Defs>{radialGradient2({ id: `bottomStart.${idSuffix}`, top: false, left: !isRTL, radius: bottomStart, shadowRadius: bottomStartShadow })}</Defs>
         <Rect fill={`url(#bottomStart.${idSuffix})`} width={bottomStartShadow} height={bottomStartShadow}/>
       </Svg>}
       {activeCorners.bottomEnd && bottomEndShadow > 0 && <Svg width={bottomEndShadow + additional} height={bottomEndShadow + additional}
         style={{
-          position: 'absolute', top: height, left: width,
+          position: 'absolute', top: height, start: width,
           transform: [{ translateX: isRTL ? bottomEnd : -bottomEnd }, { translateY: -bottomEnd }],
         }}
       >
@@ -392,7 +394,7 @@ function getShadow({
       [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
       and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
       paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute' }}>
+      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute', ...(isRTL && rtlScaleX) }}>
         {(typeof width === 'number' && typeof height === 'number')
         // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
         // We use Path as workaround to it.
@@ -444,7 +446,7 @@ function getResult({
       <View pointerEvents='none' {...shadowViewProps} style={[
         StyleSheet.absoluteFillObject,
         shadowViewProps?.style,
-        { left: offset[0], top: offset[1] },
+        { start: offset[0], top: offset[1] },
       ]}
       >
         {shadow}

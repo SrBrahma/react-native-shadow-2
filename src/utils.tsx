@@ -115,3 +115,5 @@ export const generateGradientIdSuffix = (() => {
   let shadowGradientIdCounter = 0;
   return () => String(shadowGradientIdCounter++);
 })();
+
+export const rtlScaleX = { transform: [{ scaleX: -1 }] };
