@@ -20,6 +20,8 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 ### [Read the FAQ below!](#️-faq)
 
+## [😍 Soon v7 will be released!](https://github.com/SrBrahma/react-native-shadow-2/blob/ec5c8f6907e98b40566f394fff74169d4421ea24/CHANGELOG.md)
+
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 
 ## [📜 Changelog](https://github.com/SrBrahma/react-native-shadow-2/blob/main/CHANGELOG.md)
