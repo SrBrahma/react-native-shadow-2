@@ -1,32 +1,41 @@
-# 7.0.0 - 2022-03-21
-> Major changes to simplify the library, improve the Developer experience and improve the performance!
+# 7.0.0 - 2022-07-26
+> Major changes to simplify the library, improve the performance and improve the Developer Experience!
+
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
 
 ### Renamed
-* `containerViewStyle` property to `containerStyle`.
-* `viewStyle` property to `style`.
-* `finalColor` to `endColor`, to stay similar to the `start/end` pattern of the RTL changes below.
-#### RTL
-> Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties
+* `containerViewStyle` to `containerStyle`.
+* `viewStyle` to `style`.
+* `finalColor` to `endColor`, to follow the `start/end` pattern of the RTL changes below.
+##### [RTL Related](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
+> Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties.
 * sides: `'left', 'right', 'top', 'bottom'` to `'start', 'end', 'top', 'bottom'`;
 * corners: `'topLeft', 'topRight', 'bottomLeft', 'bottomRight'` to `'topStart', 'topEnd', 'bottomStart', 'bottomEnd'`.
-* Note that you may still use `borderTopLeftRadius` etc.
+
+  > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
 
 ### Removed
-* `getChildRadius` and `getViewStyleRadius` for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and need them, open an issue about it showing your use case. They are always active now.
-* Error when there is more than a child. Also fixed an error where there isn't a child.
-* `radius` property. If desired, you shall now define the radius in `style`'s `borderRadius` related properties, as `borderTopLeftRadius` / `borderTopStartRadius`.
-* `size` property. If desired, you shall now define the size in `style`'s `width` and `height`.
+<ul>
+<li>
+<details>
+<summary><code>getChildRadius</code> and <code>getViewStyleRadius</code>.</summary>
+For the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now.
+</details>
+</li>
+<li><code>radius</code> property. If desired, you shall now define the radii in <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code>.
+<li><code>size</code> property. If desired, you shall now define the size in <code>style</code>'s <code>width</code> and <code>height</code>.
+</ul>
 
 ### Improved
-* performance and RAM usage due to some general refactorings and improved memoizations.
+* Significant performance and RAM usage due to some general refactorings and improved memoizations.
 * Now using `colord` package instead of `polished` to deal with colors' alpha.
 
+### Fixed
+* [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
+* Error where there isn't a child.
+* Error when there is more than a child.
 
-### TODO
-* Added `distanceOffset` property - [#31](https://github.com/SrBrahma/react-native-shadow-2/issues/31)
-* Smart stretch? check for width/height etc?
 
 ## 6.0.3 - 2022-02-11
 * Fixed paintInside gaps on iOS. [#36](https://github.com/SrBrahma/react-native-shadow-2/issues/36). Thanks, [@walterholohan](https://github.com/walterholohan)!
