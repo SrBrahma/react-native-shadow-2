@@ -33,7 +33,7 @@ For the sake of simplicity of this package. Probably no one used them anyway. If
 
 ### Fixed
 * [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
-* Error where there isn't a child.
+* Error when there isn't a child.
 * Error when there is more than a child.
 
 
