@@ -10,7 +10,7 @@
 
 # react-native-shadow-2
 
-[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch. Also, it doesn't require the usage of the `size` property: the shadow is smartly applied on the first render and then precisely reapplied on the following renders.
+[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch. It doesn't require the usage of the `size` property: the shadow is smartly applied on the first render and then precisely reapplied on the following renders.
 
 It solves the old React Native issue of not having the same shadow appearence and usage for Android, iOS and Web.
 
