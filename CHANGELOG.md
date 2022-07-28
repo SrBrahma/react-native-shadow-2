@@ -1,5 +1,5 @@
 # 7.0.0 - 2022-07-26
-> Major changes to simplify the library, improve the performance and improve the Developer Experience!
+> Major changes to improve the performance, simplify the library and improve the Developer Experience.
 
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
