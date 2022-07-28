@@ -10,8 +10,8 @@
 * `finalColor` to `endColor`, to follow the `start/end` pattern of the RTL changes below.
 ##### [RTL Related](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
 > Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties.
-* sides: `'left', 'right', 'top', 'bottom'` to `'start', 'end', 'top', 'bottom'`;
-* corners: `'topLeft', 'topRight', 'bottomLeft', 'bottomRight'` to `'topStart', 'topEnd', 'bottomStart', 'bottomEnd'`.
+* `sides` type: `('left' | 'right' | 'top' | 'bottom')[]` to `('start' | 'end' | 'top' | 'bottom')[]`;
+* `corners` type: `('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[]` to `('topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd')[]`.
 
   > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
 
@@ -33,7 +33,7 @@ For the sake of simplicity of this package. Probably no one used them anyway. If
 
 ### Fixed
 * [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
-* Error where there isn't a child.
+* Error when there isn't a child.
 * Error when there is more than a child.
 
 
