@@ -1,5 +1,5 @@
 # 7.0.0 - 2022-07-26
-> Major changes to improve the performance, simplify the library and improve the Developer Experience.
+> Major changes to improve the performance, simplify the library usage and improve the Developer Experience. An update that consolidates the maturity of this library.
 
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
@@ -23,8 +23,8 @@
 For the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now.
 </details>
 </li>
-<li><code>radius</code> property. If desired, you shall now define the radii in <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code>.
-<li><code>size</code> property. If desired, you shall now define the size in <code>style</code>'s <code>width</code> and <code>height</code>.
+<li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code>.
+<li><code>size</code> property. The size now can only be defined in the Shadow's or child's <code>style</code>'s <code>width</code> and <code>height</code> properties.
 </ul>
 
 ### Improved
@@ -33,9 +33,10 @@ For the sake of simplicity of this package. Probably no one used them anyway. If
 
 ### Fixed
 * [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
-* Error when there isn't a child.
-* Error when there is more than a child.
+* Error when there is more than a child. [#38](https://github.com/SrBrahma/react-native-shadow-2/issues/38)
+* Error when there isn't a child. [#38 (comment)(https://github.com/SrBrahma/react-native-shadow-2/issues/38#issuecomment-1059716569)
 
+<hr/>
 
 ## 6.0.3 - 2022-02-11
 * Fixed paintInside gaps on iOS. [#36](https://github.com/SrBrahma/react-native-shadow-2/issues/36). Thanks, [@walterholohan](https://github.com/walterholohan)!
