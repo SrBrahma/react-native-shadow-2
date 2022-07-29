@@ -23,17 +23,17 @@ Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for
 ### [❗ Read the FAQ below!](#️-faq)
 
 ## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
-> Give it a quick try!
+> Give the library a quick try!
 
-## [📰 Changelog 7.0.0](./CHANGELOG.md)
-> There are important breaking changes! Read this if upgrading!
+## [📰 7.0.0 Changelog - 2022-07-30](./CHANGELOG.md)
+> **There are important breaking changes! Read the Changelog if upgrading!**
 
 ## [↪️ < 7.0.0 Readme](https://github.com/SrBrahma/react-native-shadow-2/blob/4b58bedca1a417fe9760c1a22bf1208f9ff181ad/README.md)
-> Previous Readme, in case you are still using versions < 7.0.0.
+> Previous Readme, in case you are still using previous versions.
 
 ## 💿 Installation
 
-### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg#installation).
+### 1. Install [react-native-svg](https://github.com/react-native-svg/react-native-svg#installation).
 
 ### 2. Then install react-native-shadow-2:
 
@@ -59,8 +59,8 @@ import { Shadow } from 'react-native-shadow-2';
 
 ### Advanced
 ```tsx
-<Shadow distance={15} startColor={'#eb9066d8'} finalColor={'#ff00ff10'} offset={[3, 4]}>
-  <View style={{ borderTopLeftRadius: 24, borderBottomRightRadius: 0, borderRadius: 10, backgroundColor: '#c454f0dd' }}>
+<Shadow distance={15} startColor={'#eb9066d8'} endColor={'#ff00ff10'} offset={[3, 4]}>
+  <View style={{ borderTopStartRadius: 24, borderBottomEndRadius: 0, borderRadius: 10, backgroundColor: '#c454f0dd' }}>
     <Text style={{ margin: 20, fontSize: 20 }}>🤯</Text>
   </View>
 </Shadow>
@@ -77,12 +77,12 @@ import { Shadow } from 'react-native-shadow-2';
 | Property | Description | Type | Default
 | --- | --- | --- | ---
 | **startColor** | The color of the shadow when it's right next to the given content, leaving it. Accepts alpha channel. | `string` | `'#00000020'`
-| **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | Transparent color of startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
+| **endColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | Transparent color of startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
 | **distance** | How far the shadow goes. | `number` | `10`
 | **offset** | Moves the shadow. Negative `x` moves it left, negative `y` moves it up.<br/><br/>Accepts `'x%'` values, in relation to the child's size.<br/><br/>Setting an offset will default `paintInside` to true, as it's usually the desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
 | **paintInside** | If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
 | **sides** | The sides that will have their shadows drawn. Doesn't include corners. | `("left" \| "right" \| "top" \| "bottom")[]` | `['left', 'right', 'top', 'bottom']`
-| **corners** | The corners that will have their shadows drawn. | `("topLeft" \| "topRight" \| "bottomLeft" \| "bottomRight")[]` | `['topLeft', 'topRight', 'bottomLeft', 'bottomRight']`
+| **corners** | The corners that will have their shadows drawn. | `("topStart" \| "topEnd" \| "bottomStart" \| "bottomEnd")[]` | `['topStart', 'topEnd', 'bottomStart', 'bottomEnd']`
 | **style** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | If your children shall ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
