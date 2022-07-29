@@ -34,7 +34,7 @@ Properties removed for the sake of simplicity of this package. Probably no one u
 ### Fixed
 * [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
 * Error when there is more than a child. [#38](https://github.com/SrBrahma/react-native-shadow-2/issues/38)
-* Error when there isn't a child. [#38 (comment)(https://github.com/SrBrahma/react-native-shadow-2/issues/38#issuecomment-1059716569)
+* Error when there isn't a child. [#38 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/38#issuecomment-1059716569)
 
 <hr/>
 
