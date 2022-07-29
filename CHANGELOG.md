@@ -28,7 +28,7 @@ Properties removed for the sake of simplicity of this package. Probably no one u
 </ul>
 
 ### Improved
-* Significant performance and RAM usage due to some general refactorings and improved memoizations.
+* Significant performance and RAM usage due to some general refactorings, simplified the SVGs' code (with the same appearence) and improved memoizations.
 * Now using `colord` package instead of `polished` to deal with colors' alpha.
 
 ### Fixed
