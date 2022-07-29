@@ -2,7 +2,7 @@
 > Major changes to improve the performance, simplify the library usage and improve the Developer Experience. An important update that consolidates this library's maturity.
 
 ### Features
-* `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
+* `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537).
 
 ### Renamed
 * `containerViewStyle` to `containerStyle`.
@@ -10,7 +10,7 @@
 * `finalColor` to `endColor`, to follow the `start/end` pattern of the RTL changes below.
 ##### [RTL Related](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
 > Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties.
-* `sides` type: `('left' | 'right' | 'top' | 'bottom')[]` to `('start' | 'end' | 'top' | 'bottom')[]`;
+* `sides` type: `('left' | 'right' | 'top' | 'bottom')[]` to `('start' | 'end' | 'top' | 'bottom')[]`.
 * `corners` type: `('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[]` to `('topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd')[]`.
 
   > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
@@ -20,7 +20,7 @@
 <li>
 <details>
 <summary><code>getChildRadius</code> and <code>getViewStyleRadius</code>.</summary>
-For the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now.
+Properties removed for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now. Before, they were active by default.
 </details>
 </li>
 <li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code>.
