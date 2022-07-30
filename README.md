@@ -72,7 +72,7 @@ import { Shadow } from 'react-native-shadow-2';
 | Property | Description | Type | Default
 | --- | --- | --- | ---
 | **startColor** | The color of the shadow when it's right next to the given content, leaving it. Accepts alpha channel. | `string` | `'#00000020'`
-| **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | Transparent color of startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
+| **finalColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | Transparent startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
 | **distance** | How far the shadow goes. | `number` | `10`
 | **radius** | The radius of each corner of your child component. Passing a number will apply it to all corners.<br/><br/>If passing an object, `undefined` corners will have the radius of the `default` property if defined.<br/><br/>If `undefined`, it will try to get `viewStyle` radii if **`getViewStyleRadius`**, and then child's view style radii if **`getChildRadius`**, both true as default.<br/><br/>Each corner fallbacks to 0. | `number \| { default?: number ; topLeft?: number ; topRight?: number ; bottomLeft?: number ; bottomRight?: number  }` | `undefined`
 | **offset** | Moves the shadow. Negative `x` moves it left, negative `y` moves it up.<br/><br/>Accepts `'x%'` values, in relation to the child's size.<br/><br/>Setting an offset will default `paintInside` to true, as it's usually the desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
