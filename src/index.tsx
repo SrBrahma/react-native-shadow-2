@@ -462,10 +462,10 @@ function getResult({
             borderBottomLeftRadius: radii.bottomStart,
             borderBottomRightRadius: radii.bottomEnd,
           },
+          style,
           // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
           // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-          { alignSelf: stretch ? 'stretch' : 'flex-start' },
-          style,
+          { ...(stretch && { alignSelf: 'stretch' }) },
         ]}
         onLayout={(e) => {
           // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
@@ -497,8 +497,8 @@ function DisabledShadow({ stretch, containerStyle, children, style }: {
       <View
         pointerEvents='box-none'
         style={[
-          { alignSelf: stretch ? 'stretch' : 'flex-start' },
           style,
+          { ...(stretch && { alignSelf: 'stretch' }) },
         ]}
       >
         {children}
