@@ -456,12 +456,11 @@ function getResult({
         style={[
           {
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
-            // Note that topStart etc has priority over topLeft etc. Maybe we could use topLeft etc here so the user
-            // may overwrite those values with both topLeft and topStart. But would the user want to overwrite those?
-            borderTopStartRadius: radii.topStart,
-            borderTopEndRadius: radii.topEnd,
-            borderBottomStartRadius: radii.bottomStart,
-            borderBottomEndRadius: radii.bottomEnd,
+            // Note that topStart/etc has priority over topLeft/etc. We use topLeft so the user may overwrite it with topLeft or topStart styles.
+            borderTopLeftRadius: radii.topStart,
+            borderTopRightRadius: radii.topEnd,
+            borderBottomLeftRadius: radii.bottomStart,
+            borderBottomRightRadius: radii.bottomEnd,
           },
           // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
           // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
