@@ -455,9 +455,6 @@ function getResult({
         pointerEvents='box-none'
         style={[
           {
-            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
-            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
             // Note that topStart etc has priority over topLeft etc. Maybe we could use topLeft etc here so the user
             // may overwrite those values with both topLeft and topStart. But would the user want to overwrite those?
@@ -466,8 +463,10 @@ function getResult({
             borderBottomStartRadius: radii.bottomStart,
             borderBottomEndRadius: radii.bottomEnd,
           },
-          style,
+          // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+          // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
           { alignSelf: stretch ? 'stretch' : 'flex-start' },
+          style,
         ]}
         onLayout={(e) => {
           // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
@@ -499,8 +498,8 @@ function DisabledShadow({ stretch, containerStyle, children, style }: {
       <View
         pointerEvents='box-none'
         style={[
-          style,
           { alignSelf: stretch ? 'stretch' : 'flex-start' },
+          style,
         ]}
       >
         {children}
