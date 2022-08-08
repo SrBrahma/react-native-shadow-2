@@ -1,15 +1,14 @@
-import { Children, useMemo, useState } from 'react';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import React, { Children, useMemo, useState } from 'react';
 import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
 import { I18nManager, StyleSheet, View } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
 import { colord } from 'colord';
-import { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, rtlScaleX, Side } from './utils';
+import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
-  additional, cornersArray, generateGradientIdSuffix,
-  objFromKeys,
-  R, radialGradient, sidesArray, sumDps,
+  additional, cornersArray, divDps, generateGradientIdSuffix, objFromKeys,
+  P, R, radialGradient, rtlScaleX, scale, sidesArray, sumDps,
 } from './utils';
-
 
 
 export interface ShadowProps {
@@ -89,8 +88,9 @@ export interface ShadowProps {
   children?: React.ReactNode;
 }
 
-// For better memoization
-const emptyObj = {};
+// For better memoization and performance.
+const emptyObj: Record<string, unknown> = {};
+const emptyArray: any[] = [];
 const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
 export function Shadow(props: ShadowProps): JSX.Element {
@@ -100,6 +100,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
 }
 
 function ShadowInner(props: ShadowProps): JSX.Element {
+  /** getConstants().isRTL instead of just isRTL due to Web https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853 */
   const isRTL = I18nManager.getConstants().isRTL;
   const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
   const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
@@ -125,25 +126,25 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   /** Which sides will have shadow. */
   const activeSides: Record<Side, boolean> = useMemo(() => objFromKeys(sidesArray, (k) => sides?.includes(k) ?? true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    sides ? [...sides] : [],
+    (sides ?? emptyArray).slice(4),
   );
 
   /** Which corners will have shadow. */
   const activeCorners: Record<Corner, boolean> = useMemo(() => objFromKeys(cornersArray, (k) => corners?.includes(k) ?? true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    corners ? [...corners] : [],
+    (corners ?? emptyArray).slice(4),
   );
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
    * I believe it may come to be a popular pattern eventually :) */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? {}), [childProps.style]);
-  const childSStr = useMemo(() => JSON.stringify(childProps.s ?? {}), [childProps.s]);
+  const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? emptyObj), [childProps.style]);
+  const childSStr = useMemo(() => JSON.stringify(childProps.s ?? emptyObj), [childProps.s]);
 
   /** Child's style. */
-  const cStyle = useMemo<ViewStyle>(() => {
-    return StyleSheet.flatten([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
+  const cStyle = useMemo(() => {
+    return StyleSheet.flatten<ViewStyle>([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
   }, [childSStr, childStyleStr]);
 
   /** Child's Radii. */
@@ -156,11 +157,11 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [cStyle]);
 
-  const styleStr = useMemo(() => JSON.stringify(styleProp ?? {}), [styleProp]);
+  const styleStr = useMemo(() => JSON.stringify(styleProp ?? emptyObj), [styleProp]);
 
   /** Flattened style. */
   const { style, sRadii } = useMemo(() => {
-    const style = StyleSheet.flatten(JSON.parse(styleStr));
+    const style = StyleSheet.flatten<ViewStyle>(JSON.parse(styleStr));
     if (typeof style.width === 'number')
       style.width = R(style.width);
     if (typeof style.height === 'number')
@@ -210,7 +211,6 @@ function ShadowInner(props: ShadowProps): JSX.Element {
 }
 
 
-
 /** We make some effort for this to be likely memoized */
 function sanitizeRadii({ width, height, radii }: {
   width: string | number;
@@ -230,13 +230,17 @@ function sanitizeRadii({ width, height, radii }: {
     // https://css-tricks.com/what-happens-when-border-radii-overlap/
     // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
     const minRatio = Math.min(
-      width / (radiiSanitized.topStart + radiiSanitized.topEnd),
-      height / (radiiSanitized.topEnd + radiiSanitized.bottomEnd),
-      width / (radiiSanitized.bottomStart + radiiSanitized.bottomEnd),
-      height / (radiiSanitized.topStart + radiiSanitized.bottomStart),
+      divDps(width, sumDps(radiiSanitized.topStart, radiiSanitized.topEnd)),
+      divDps(height, sumDps(radiiSanitized.topEnd, radiiSanitized.bottomEnd)),
+      divDps(width, sumDps(radiiSanitized.bottomStart, radiiSanitized.bottomEnd)),
+      divDps(height, sumDps(radiiSanitized.topStart, radiiSanitized.bottomStart)),
     );
+
     if (minRatio < 1)
-      radiiSanitized = objFromKeys(cornersArray, (k) => R(radiiSanitized[k] * minRatio));
+      // We ensure to use the .floor instead of the R else we could have the following case:
+      // A topStart=3, topEnd=3 and width=5. This would cause a pixel overlap between those 2 corners.
+      // The .floor ensures that the radii sum will be below the adjacent border length.
+      radiiSanitized = objFromKeys(cornersArray, (k) => (Math.floor(P(radiiSanitized[k]) * minRatio)) / scale);
   }
 
   return radiiSanitized;
@@ -453,19 +457,17 @@ function getResult({
         pointerEvents='box-none'
         style={[
           {
-            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
-            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
-            // Note that topStart etc has priority over topLeft etc. Maybe we could use topLeft etc here so the user
-            // may overwrite those values with both topLeft and topStart. But would the user want to overwrite those?
-            borderTopStartRadius: radii.topStart,
-            borderTopEndRadius: radii.topEnd,
-            borderBottomStartRadius: radii.bottomStart,
-            borderBottomEndRadius: radii.bottomEnd,
+            // Note that topStart/etc has priority over topLeft/etc. We use topLeft so the user may overwrite it with topLeft or topStart styles.
+            borderTopLeftRadius: radii.topStart,
+            borderTopRightRadius: radii.topEnd,
+            borderBottomLeftRadius: radii.bottomStart,
+            borderBottomRightRadius: radii.bottomEnd,
           },
           style,
-          { alignSelf: stretch ? 'stretch' : 'flex-start' },
+          // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+          // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+          { ...(stretch && { alignSelf: 'stretch' }) },
         ]}
         onLayout={(e) => {
           // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
@@ -498,7 +500,7 @@ function DisabledShadow({ stretch, containerStyle, children, style }: {
         pointerEvents='box-none'
         style={[
           style,
-          { alignSelf: stretch ? 'stretch' : 'flex-start' },
+          { ...(stretch && { alignSelf: 'stretch' }) },
         ]}
       >
         {children}

@@ -2,15 +2,6 @@ import { PixelRatio, Platform } from 'react-native';
 import { RadialGradient, Stop } from 'react-native-svg';
 
 
-
-/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
- * and somehow may be useful to you. */
-export const version = '7.0.0';
-
-
-/** Util type to prettify the given type. */
-type Id<T> = unknown & { [P in keyof T]: T[P] };
-
 export type Side = 'start' | 'end' | 'top' | 'bottom';
 export type Corner = 'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd';
 export type CornerRadius = Record<Corner, number>;
@@ -18,40 +9,42 @@ export type CornerRadius = Record<Corner, number>;
 // Add Shadow to the corner names
 export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 
-/** Type of `radius` property. */
-export type RadiusProp = number | Id<Partial<CornerRadius> & {default?: number}>;
+
+/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
+ * and somehow may be useful to you. */
+export const version = '7.0.0';
 
 export const sidesArray = ['start', 'end', 'top', 'bottom'] as const;
 export const cornersArray = ['topStart', 'topEnd', 'bottomStart', 'bottomEnd'] as const;
 
-
-
 const isWeb = Platform.OS === 'web';
 
 /** Rounds the given size to a pixel perfect size. */
-export function R(value: number): number {
+export const R: (value: number) => number = isWeb
   // In Web, 1dp=1px. But it accepts decimal sizes, and it's somewhat problematic.
   // The size rounding is browser-dependent, so we do the decimal rounding for web by ourselves to have a
   // consistent behavior. We floor it, because it's better for the child to overlap by a pixel the right/bottom shadow part
   // than to have a pixel wide gap between them.
-  if (isWeb)
-    return Math.floor(value);
+  ? Math.floor
+  : PixelRatio.roundToNearestPixel;
 
-  return PixelRatio.roundToNearestPixel(value);
-}
 /** Converts dp to pixels. */
-export function P(value: number): number {
-  if (isWeb) return value;
-  return PixelRatio.getPixelSizeForLayoutSize(value);
-}
-/** How many pixels for each dp. scale = pixels/dp */
-const scale = isWeb ? 1 : PixelRatio.get();
+export const P: (value: number) => number = isWeb
+  ? (v) => v
+  : PixelRatio.getPixelSizeForLayoutSize;
 
-/** Converts two sizes to pixel for perfect math, sum them and converts the result back to dp. */
-export function sumDps(a: number, b: number): number {
-  if (isWeb) return a + b;
-  return R((P(a) + P(b)) / scale);
-}
+/** How many pixels for each dp. scale = pixels/dp */
+export const scale = isWeb ? 1 : PixelRatio.get();
+
+/** Converts two sizes to pixel for perfect math, sums them and converts the result back to dp. */
+export const sumDps: (a: number, b: number) => number = isWeb
+  ? (a, b) => a + b
+  : (a, b) => R((P(a) + P(b)) / scale);
+
+/** Converts two sizes to pixel for perfect math, divides them and converts the result back to dp. */
+export const divDps: (a: number, b: number) => number = isWeb
+  ? (a, b) => a / b
+  : (a, b) => (P(a) / P(b));
 
 
 /** [Android/ios?] [*4] A small safe margin for the svg sizes.

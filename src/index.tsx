@@ -1,16 +1,14 @@
-import { Children, useMemo, useState } from 'react';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import React, { Children, useMemo, useState } from 'react';
 import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
 import { I18nManager, StyleSheet, View } from 'react-native';
 import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
 import { colord } from 'colord';
 import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
-  additional, cornersArray, generateGradientIdSuffix,
-  objFromKeys,
-  R, radialGradient, rtlScaleX,
-  sidesArray, sumDps,
+  additional, cornersArray, divDps, generateGradientIdSuffix, objFromKeys,
+  P, R, radialGradient, rtlScaleX, scale, sidesArray, sumDps,
 } from './utils';
-
 
 
 export interface ShadowProps {
@@ -201,9 +199,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     topStart, topEnd, bottomStart, bottomEnd, width, height,
     isRTL, distanceProp, startColorProp, endColorProp, paintInside,
     safeRender, activeSides, activeCorners, idSuffix,
-  }), [
-    topStart, topEnd, bottomStart, bottomEnd, width, height, isRTL, distanceProp, startColorProp, endColorProp, paintInside, safeRender, activeSides, activeCorners, idSuffix,
-  ]);
+  }), [topStart, topEnd, bottomStart, bottomEnd, width, height, isRTL, distanceProp, startColorProp, endColorProp, paintInside, safeRender, activeSides, activeCorners, idSuffix]);
 
   // Not yet sure if we should memo this.
   return getResult({
@@ -213,7 +209,6 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     setChildLayoutWidth, setChildLayoutHeight,
   });
 }
-
 
 
 /** We make some effort for this to be likely memoized */
@@ -235,13 +230,17 @@ function sanitizeRadii({ width, height, radii }: {
     // https://css-tricks.com/what-happens-when-border-radii-overlap/
     // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
     const minRatio = Math.min(
-      width / (radiiSanitized.topStart + radiiSanitized.topEnd),
-      height / (radiiSanitized.topEnd + radiiSanitized.bottomEnd),
-      width / (radiiSanitized.bottomStart + radiiSanitized.bottomEnd),
-      height / (radiiSanitized.topStart + radiiSanitized.bottomStart),
+      divDps(width, sumDps(radiiSanitized.topStart, radiiSanitized.topEnd)),
+      divDps(height, sumDps(radiiSanitized.topEnd, radiiSanitized.bottomEnd)),
+      divDps(width, sumDps(radiiSanitized.bottomStart, radiiSanitized.bottomEnd)),
+      divDps(height, sumDps(radiiSanitized.topStart, radiiSanitized.bottomStart)),
     );
+
     if (minRatio < 1)
-      radiiSanitized = objFromKeys(cornersArray, (k) => R(radiiSanitized[k] * minRatio));
+      // We ensure to use the .floor instead of the R else we could have the following case:
+      // A topStart=3, topEnd=3 and width=5. This would cause a pixel overlap between those 2 corners.
+      // The .floor ensures that the radii sum will be below the adjacent border length.
+      radiiSanitized = objFromKeys(cornersArray, (k) => (Math.floor(P(radiiSanitized[k]) * minRatio)) / scale);
   }
 
   return radiiSanitized;
