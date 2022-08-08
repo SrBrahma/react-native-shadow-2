@@ -90,8 +90,7 @@ export interface ShadowProps {
   children?: React.ReactNode;
 }
 
-// For better memoization
-const emptyObj = {};
+const emptyArray: any[] = [];
 const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
 export function Shadow(props: ShadowProps): JSX.Element {
@@ -127,13 +126,13 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   /** Which sides will have shadow. */
   const activeSides: Record<Side, boolean> = useMemo(() => objFromKeys(sidesArray, (k) => sides?.includes(k) ?? true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    sides ? [...sides] : [],
+    (sides ?? emptyArray).slice(4),
   );
 
   /** Which corners will have shadow. */
   const activeCorners: Record<Corner, boolean> = useMemo(() => objFromKeys(cornersArray, (k) => corners?.includes(k) ?? true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    corners ? [...corners] : [],
+    (corners ?? emptyArray).slice(4),
   );
 
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
