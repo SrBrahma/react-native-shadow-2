@@ -10,33 +10,36 @@
 
 # react-native-shadow-2
 
-[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This one is an improved version with more functionalities, Typescript support and written from scratch. It doesn't require the usage of the `size` property: the shadow is smartly applied on the first render and then precisely reapplied on the following renders.
+[react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This is an improved version with more functionalities, Typescript support and written from scratch. It's not required to define its size: the shadow is smartly applied on the first render and then precisely reapplied on the following ones.
 
 It solves the old React Native issue of not having the same shadow appearence and usage for Android, iOS and Web.
 
-The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722), when I started to think more seriously about this shadow issue.
+The [ethercreative/react-native-shadow-generator](https://ethercreative.github.io/react-native-shadow-generator) website won't give you very similar results between the two platforms, for the reasons I described [here](https://github.com/ethercreative/react-native-shadow-generator/issues/2#issuecomment-738130722). It's also not as customizable as this library.
 
 Compatible with Android, iOS and Web. **And Expo!**
 
 Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps).
 
+
+
+### [🍟 Demo - Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+> Give this library a quick try!
+
+### [📰 7.0.0 Changelog - 2022-08-08](./CHANGELOG.md)
+> **There are important breaking changes! Read it if upgrading!**
+
+### [↪️ Pre v7 Readme](https://github.com/SrBrahma/react-native-shadow-2/blob/36d123db4cf816d15ac5e3f9c9df8cff3e96bd2e/README.md)
+> Old Readme, if you are still using previous versions.
+
 ### [❗ Read the FAQ below!](#️-faq)
 
-## [😍 Soon v7 will be released!](https://github.com/SrBrahma/react-native-shadow-2/blob/v7/CHANGELOG.md)
-
-## [🍟 Demo / Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
-> Give the library a quick try!
-
-## [📰 7.0.0 Changelog - 2022-07-30](./CHANGELOG.md)
-> **There are important breaking changes! Read the Changelog if upgrading!**
-
-## [↪️ < 7.0.0 Readme](https://github.com/SrBrahma/react-native-shadow-2/blob/4b58bedca1a417fe9760c1a22bf1208f9ff181ad/README.md)
-> Previous Readme, in case you are still using previous versions.
 ## 💿 Installation
 
-### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg#installation).
+#### 1. First install [react-native-svg](https://github.com/react-native-svg/react-native-svg#installation).
 
-### 2. Then install react-native-shadow-2:
+> The latest `react-native-svg` version is recommended, including if using Expo.
+
+#### 2. Then install react-native-shadow-2:
 
 ```bash
 npm i react-native-shadow-2
@@ -74,23 +77,35 @@ import { Shadow } from 'react-native-shadow-2';
 #### All properties are optional.
 | Property | Description | Type | Default
 | --- | --- | --- | ---
-| **startColor** | The color of the shadow when it's right next to the given content, leaving it. Accepts alpha channel. | `string` | `'#00000020'`
-| **endColor** | The color of the shadow at the maximum distance from the content. Accepts alpha channel. | `string` | Transparent startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
+| **startColor** | The initial gradient color of the shadow. | `string` | `'#00000020'`
+| **endColor** | The final gradient color of the shadow. | `string` | Transparent startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
 | **distance** | How far the shadow goes. | `number` | `10`
-| **offset** | Moves the shadow. Negative `x` moves it left, negative `y` moves it up.<br/><br/>Accepts `'x%'` values, in relation to the child's size.<br/><br/>Setting an offset will default `paintInside` to true, as it's usually the desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
-| **paintInside** | If the shadow should be applied inside the external shadows, below the child. `startColor` is used as fill color.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
+| **offset** | Moves the shadow. Negative `x` moves it left/start, negative `y` moves it up.<br/><br/>Accepts `'x%'` values.<br/><br/>Defining this will default `paintInside` to **true**, as it's the usual desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
+| **paintInside** | Apply the shadow below/inside the content. `startColor` is used as fill color, without a gradient.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
 | **sides** | The sides that will have their shadows drawn. Doesn't include corners. | `("left" \| "right" \| "top" \| "bottom")[]` | `['left', 'right', 'top', 'bottom']`
 | **corners** | The corners that will have their shadows drawn. | `("topStart" \| "topEnd" \| "bottomStart" \| "bottomEnd")[]` | `['topStart', 'topEnd', 'bottomStart', 'bottomEnd']`
-| **style** | The style of the view that wraps your child component.<br/><br/>If using the `size` property, this wrapping view will automatically receive as style the `size` values and the radiuses from the `radius` property or from the child, if `getChildRadius`. | `StyleProp<ViewStyle>` | `undefined`
-| **containerStyle** | The style of the view that contains the shadow and your child component. | `StyleProp<ViewStyle>` | `undefined`
-| **stretch** | If your children shall ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
-| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the 1st render but only on the 2nd render and beyond with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes, to avoid visual artifacts on the first render.<br/><br/>When `true`, the shadow only appears after the first render, where it's invisible. | `boolean` | `false`
+| **style** | The style of the View that wraps your children. Read the note at the end. | `StyleProp<ViewStyle>` | `undefined`
+| **containerStyle** | The style of the View that wraps the Shadow and your children. Useful for margins. | `StyleProp<ViewStyle>` | `undefined`
+| **stretch** | Make your children ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
+| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the 1st render but only on the 2nd render and beyond with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes (like a circle), to avoid visual artifacts on the first render.<br/><br/>If `true`, the Shadow doesn't appear on the first render. | `boolean` | `false`
+
+## Notes
+
+* If the Shadow has a single child, it will get the `width`, `height` and all of the `borderRadius` properties from the children's `style` property, if defined. *(It's so easy to use this!)*
+
+* You may also define those properties in the Shadow's `style`. The defined properties here will have priority over the ones defined in the Child's `style`.
+
+* If the `width` and `height` is defined in any of those, there will be only a single render, as the first automatic sizing won't happen, only the precise render.
+
+* You can use either the `'borderTopLeftRadius'` or `'borderTopStartRadius'` and their variations to define the corners radii, although I recommend the latter as it's the RTL standard.
 
 ## ⁉️ FAQ
 
 **Q**: How to set the Shadow opacity?
 
 **A**: The opacity is set directly in the `startColor` and `endColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
+
+You may also use the `opacity` style to change both.
 
 
 **Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
