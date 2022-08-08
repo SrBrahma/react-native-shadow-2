@@ -75,7 +75,7 @@ export const App: React.FC = () => {
                 <MySlider name='Style Height' step={0.1} range={[0, 200]} value={size[1]} onValueChange={(v)=>setSize([size[0], v])}/>
                 <MySwitch
                   name='Use Style Sizes' value={doUseSizeStyle} onValueChange={setDoUseSizeProp}
-                  description={'True uses the style\'s sizes (width and\nheight above), else obtains the child\'s size.'}
+                  description={'Use the style\'s sizes (width and\nheight above), else obtains the child\'s size.'}
                 />
                 <MySlider name='Child Width' step={0.1} range={[0, 200]} value={childWidth} onValueChange={setChildWidth}/>
                 <MySlider name='Child Height' step={0.1} range={[0, 200]} value={childHeight} onValueChange={setChildHeight}/>
@@ -141,16 +141,14 @@ export const App: React.FC = () => {
 
               </View>
             </View>
-            {/* Just to test if svg ids aren't colliding */}
-            <Shadow />
             {/* Max child width is 200 and max dist is 100. Total max is 400. */}
             <View style={{ width: 420, height: 420, justifyContent: 'center', alignItems: 'center' }}>
               <Shadow
                 distance={distance}
                 startColor={startColor}
                 endColor={finalColor}
-                // sides={['bottom']}
-                // corners={['topLeft']}
+                // sides={['start']}
+                // corners={['topStart']}
                 offset={(offsetX || offsetY) ? [offsetX, offsetY] : undefined} // To test paintInside default
                 paintInside={paintInside}
                 containerStyle={{ margin: 100 }}
@@ -159,7 +157,7 @@ export const App: React.FC = () => {
                 // style={[doUseSizeProp && { backgroundColor: childColor }, { borderTopLeftRadius: 100, borderTopEndRadius: 10 }]}
                 disabled={disabled}
                 style={[
-                  !doUseSizeStyle && {
+                  doUseSizeStyle && {
                     backgroundColor: childColor,
                     width: size[0],
                     height: size[1],
@@ -174,7 +172,7 @@ export const App: React.FC = () => {
                     ...borderRadii,
 
                   },
-                  doUseSizeStyle && { width: childWidth, height: childHeight },
+                  !doUseSizeStyle && { width: childWidth, height: childHeight },
                 ]}/>
               </Shadow>
             </View>
