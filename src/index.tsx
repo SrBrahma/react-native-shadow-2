@@ -90,6 +90,8 @@ export interface ShadowProps {
   children?: React.ReactNode;
 }
 
+// For better memoization and performance.
+const emptyObj: Record<string, unknown> = {};
 const emptyArray: any[] = [];
 const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
@@ -143,8 +145,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   const childSStr = useMemo(() => JSON.stringify(childProps.s ?? {}), [childProps.s]);
 
   /** Child's style. */
-  const cStyle = useMemo<ViewStyle>(() => {
-    return StyleSheet.flatten([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
+  const cStyle = useMemo(() => {
+    return StyleSheet.flatten<ViewStyle>([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
   }, [childSStr, childStyleStr]);
 
   /** Child's Radii. */
@@ -161,7 +163,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
 
   /** Flattened style. */
   const { style, sRadii } = useMemo(() => {
-    const style = StyleSheet.flatten(JSON.parse(styleStr));
+    const style = StyleSheet.flatten<ViewStyle>(JSON.parse(styleStr));
     if (typeof style.width === 'number')
       style.width = R(style.width);
     if (typeof style.height === 'number')
