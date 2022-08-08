@@ -141,8 +141,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
    * I believe it may come to be a popular pattern eventually :) */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? {}), [childProps.style]);
-  const childSStr = useMemo(() => JSON.stringify(childProps.s ?? {}), [childProps.s]);
+  const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? emptyObj), [childProps.style]);
+  const childSStr = useMemo(() => JSON.stringify(childProps.s ?? emptyObj), [childProps.s]);
 
   /** Child's style. */
   const cStyle = useMemo(() => {
@@ -159,7 +159,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [cStyle]);
 
-  const styleStr = useMemo(() => JSON.stringify(styleProp ?? {}), [styleProp]);
+  const styleStr = useMemo(() => JSON.stringify(styleProp ?? emptyObj), [styleProp]);
 
   /** Flattened style. */
   const { style, sRadii } = useMemo(() => {
@@ -201,7 +201,9 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     topStart, topEnd, bottomStart, bottomEnd, width, height,
     isRTL, distanceProp, startColorProp, endColorProp, paintInside,
     safeRender, activeSides, activeCorners, idSuffix,
-  }), [topStart, topEnd, bottomStart, bottomEnd, width, height, isRTL, distanceProp, startColorProp, endColorProp, paintInside, safeRender, activeSides, activeCorners, idSuffix]);
+  }), [
+    topStart, topEnd, bottomStart, bottomEnd, width, height, isRTL, distanceProp, startColorProp, endColorProp, paintInside, safeRender, activeSides, activeCorners, idSuffix,
+  ]);
 
   // Not yet sure if we should memo this.
   return getResult({
