@@ -4,6 +4,8 @@
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537).
 * `disabled` property - Easy and performatic way to disable the shadow component.
+* `containerViewProps` property.
+* `childrenViewProps` property.
 
 ### Renamed
 * `containerViewStyle` to `containerStyle`.
@@ -24,7 +26,7 @@
 Properties removed for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now. Before, they were active by default.
 </details>
 </li>
-<li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code>.
+<li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code> etc.
 <li><code>size</code> property. The size now can only be defined in the Shadow's or child's <code>style</code>'s <code>width</code> and <code>height</code> properties.
 </ul>
 
@@ -36,7 +38,7 @@ Properties removed for the sake of simplicity of this package. Probably no one u
 * [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
 * Error when there is more than a child. [#38](https://github.com/SrBrahma/react-native-shadow-2/issues/38)
 * Error when there isn't a child. [#38 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/38#issuecomment-1059716569)
-* Situational 1-pixel overlap of corners
+* Situational 1-pixel overlap of corners.
 <hr/>
 
 ## 6.0.3 - 2022-02-11
