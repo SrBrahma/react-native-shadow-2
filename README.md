@@ -87,7 +87,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **style** | The style of the View that wraps your children. Read the note at the end. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the View that wraps the Shadow and your children. Useful for margins. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | Make your children ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
-| **safeRender** | If you don't want the relative sizing and positioning of the shadow on the 1st render but only on the 2nd render and beyond with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes (like a circle), to avoid visual artifacts on the first render.<br/><br/>If `true`, the Shadow doesn't appear on the first render. | `boolean` | `false`
+| **safeRender** | Won't use the relative sizing and positioning on the 1st render but on the following renders with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes (like a circle) to avoid visual artifacts on the 1st render.<br/><br/>If `true`, the Shadow doesn't appear on the 1st render. | `boolean` | `false`
 
 ## Notes
 

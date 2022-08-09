@@ -139,28 +139,28 @@ function ShadowInner(props: ShadowProps): JSX.Element {
    * I believe it may come to be a popular pattern eventually :) */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  const childStyleStr = useMemo(() => JSON.stringify(childProps.style ?? emptyObj), [childProps.style]);
-  const childSStr = useMemo(() => JSON.stringify(childProps.s ?? emptyObj), [childProps.s]);
+  const childStyleStr = useMemo(() => (childProps.style ? JSON.stringify(childProps.style) : ''), [childProps.style]);
+  const childSStr = useMemo(() => (childProps.s ? JSON.stringify(childProps.s) : ''), [childProps.s]);
 
   /** Child's style. */
-  const cStyle = useMemo(() => {
+  const cStyle: ViewStyle = useMemo(() => {
     return StyleSheet.flatten<ViewStyle>([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
   }, [childSStr, childStyleStr]);
 
   /** Child's Radii. */
-  const cRadii = useMemo(() => {
+  const cRadii: Record<Corner, number | undefined> = useMemo(() => {
     return {
-      topLeft: cStyle.borderTopStartRadius ?? cStyle.borderTopLeftRadius ?? cStyle.borderRadius,
-      topRight: cStyle.borderTopEndRadius ?? cStyle.borderTopRightRadius ?? cStyle.borderRadius,
-      bottomLeft: cStyle.borderBottomStartRadius ?? cStyle.borderBottomLeftRadius ?? cStyle.borderRadius,
-      bottomRight: cStyle.borderBottomEndRadius ?? cStyle.borderBottomRightRadius ?? cStyle.borderRadius,
+      topStart: cStyle.borderTopStartRadius ?? cStyle.borderTopLeftRadius ?? cStyle.borderRadius,
+      topEnd: cStyle.borderTopEndRadius ?? cStyle.borderTopRightRadius ?? cStyle.borderRadius,
+      bottomStart: cStyle.borderBottomStartRadius ?? cStyle.borderBottomLeftRadius ?? cStyle.borderRadius,
+      bottomEnd: cStyle.borderBottomEndRadius ?? cStyle.borderBottomRightRadius ?? cStyle.borderRadius,
     };
   }, [cStyle]);
 
-  const styleStr = useMemo(() => JSON.stringify(styleProp ?? emptyObj), [styleProp]);
+  const styleStr: string = useMemo(() => (styleProp ? JSON.stringify(styleProp) : ''), [styleProp]);
 
   /** Flattened style. */
-  const { style, sRadii } = useMemo(() => {
+  const { style, sRadii }: { style: ViewStyle; sRadii: Record<Corner, number | undefined> } = useMemo(() => {
     const style = StyleSheet.flatten<ViewStyle>(JSON.parse(styleStr));
     if (typeof style.width === 'number')
       style.width = R(style.width);
@@ -169,10 +169,10 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     return {
       style,
       sRadii: {
-        topLeft: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
-        topRight: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
-        bottomLeft: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
-        bottomRight: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
+        topStart: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
+        topEnd: style.borderTopEndRadius ?? style.borderTopRightRadius ?? style.borderRadius,
+        bottomStart: style.borderBottomStartRadius ?? style.borderBottomLeftRadius ?? style.borderRadius,
+        bottomEnd: style.borderBottomEndRadius ?? style.borderBottomRightRadius ?? style.borderRadius,
       },
     };
   }, [styleStr]);
@@ -182,15 +182,15 @@ function ShadowInner(props: ShadowProps): JSX.Element {
 
   const radii: CornerRadius = useMemo(() => sanitizeRadii({
     width, height, radii: {
-      topStart: sRadii.topLeft ?? cRadii.topLeft,
-      topEnd: sRadii.topRight ?? cRadii.topRight,
-      bottomStart: sRadii.bottomLeft ?? cRadii.bottomLeft,
-      bottomEnd: sRadii.bottomRight ?? cRadii.bottomRight,
+      topStart: sRadii.topStart ?? cRadii.topStart,
+      topEnd: sRadii.topEnd ?? cRadii.topEnd,
+      bottomStart: sRadii.bottomStart ?? cRadii.bottomStart,
+      bottomEnd: sRadii.bottomEnd ?? cRadii.bottomEnd,
     },
   }), [
     width, height,
-    sRadii.topLeft, sRadii.topRight, sRadii.bottomLeft, sRadii.bottomRight,
-    cRadii.topLeft, cRadii.topRight, cRadii.bottomLeft, cRadii.bottomRight,
+    sRadii.topStart, sRadii.topEnd, sRadii.bottomStart, sRadii.bottomEnd,
+    cRadii.topStart, cRadii.topEnd, cRadii.bottomStart, cRadii.bottomEnd,
   ]);
 
   const { topStart, topEnd, bottomStart, bottomEnd } = radii;
