@@ -177,8 +177,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [styleStr]);
 
-  const width = style.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
-  const height = style.height ?? childLayoutHeight ?? '100%';
+  const width = style.width ?? cStyle.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const height = style.height ?? cStyle.height ?? childLayoutHeight ?? '100%';
 
   const radii: CornerRadius = useMemo(() => sanitizeRadii({
     width, height, radii: {
