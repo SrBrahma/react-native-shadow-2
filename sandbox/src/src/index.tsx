@@ -109,17 +109,17 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   const {
     sides,
     corners,
-    startColor: startColorProp = '#00000020',
-    endColor: endColorProp = colord(startColorProp).alpha(0).toHex(),
-    distance: distanceProp = 10,
+    startColor: startColorProp,
+    endColor: endColorProp,
+    distance: distanceProp,
     style: styleProp,
     safeRender,
     stretch,
     /** Defaults to true if offset is defined, else defaults to false */
     paintInside = props.offset ? true : false,
+    offset = defaultOffset,
     children,
     containerStyle,
-    offset = defaultOffset,
     shadowViewProps,
   } = props;
 
@@ -248,8 +248,12 @@ function sanitizeRadii({ width, height, radii }: {
 
 
 /** The SVG parts. */
+// We default the props here for a micro improvement in performance. endColorProp default value was the main reason.
 function getShadow({
-  safeRender, width, height, isRTL, distanceProp, startColorProp, endColorProp,
+  safeRender, width, height, isRTL,
+  distanceProp = 10,
+  startColorProp = '#00000020',
+  endColorProp = colord(startColorProp).alpha(0).toHex(),
   topStart, topEnd, bottomStart, bottomEnd,
   activeSides, activeCorners, paintInside, idSuffix,
 }: {
@@ -257,9 +261,9 @@ function getShadow({
   width: string | number;
   height: string | number;
   isRTL: boolean;
-  distanceProp: number;
-  startColorProp: string;
-  endColorProp: string;
+  distanceProp?: number;
+  startColorProp?: string;
+  endColorProp?: string;
   topStart: number;
   topEnd: number;
   bottomStart: number;
