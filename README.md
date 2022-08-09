@@ -88,6 +88,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **containerStyle** | The style of the View that wraps the Shadow and your children. Useful for margins. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | Make your children ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
 | **safeRender** | Won't use the relative sizing and positioning on the 1st render but on the following renders with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes (like a circle) to avoid visual artifacts on the 1st render.<br/><br/>If `true`, the Shadow doesn't appear on the 1st render. | `boolean` | `false`
+| **disabled** | Disables the Shadow. Useful for easily reusing components as sometimes shadows are not desired.<br/><br/>`containerStyle` and `style` are still applied. | `boolean` | `false`
 
 ## Notes
 
@@ -98,6 +99,9 @@ import { Shadow } from 'react-native-shadow-2';
 * If the `width` and `height` is defined in any of those, there will be only a single render, as the first automatic sizing won't happen, only the precise render.
 
 * You can use either the `'borderTopLeftRadius'` or `'borderTopStartRadius'` and their variations to define the corners radii, although I recommend the latter as it's the RTL standard.
+
+<!-- Seems hard to understand. Will leave it undoc'ed until I improve it. -->
+<!-- * We automatically set the radii in the `style` property, so it contains the Child's Android Ripple if you are using it. We already get those values, so it isn't an effort to set them. -->
 
 ## ⁉️ FAQ
 

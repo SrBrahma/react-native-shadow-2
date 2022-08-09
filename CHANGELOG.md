@@ -3,6 +3,7 @@
 
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537).
+* `disabled` property - Easy and performatic way to disable the shadow component.
 
 ### Renamed
 * `containerViewStyle` to `containerStyle`.
