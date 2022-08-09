@@ -183,8 +183,10 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [styleStr]);
 
-  const width = style.width ?? cStyle.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
-  const height = style.height ?? cStyle.height ?? childLayoutHeight ?? '100%';
+  const styleWidth = style.width ?? cStyle.width;
+  const width = styleWidth ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const styleHeight = style.height ?? cStyle.height;
+  const height = styleHeight ?? childLayoutHeight ?? '100%';
 
   const radii: CornerRadius = useMemo(() => sanitizeRadii({
     width, height, radii: {
@@ -214,6 +216,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     containerStyle, style, shadowViewProps,
     setChildLayoutWidth, setChildLayoutHeight,
     childrenViewProps, containerViewProps,
+    styleWidth, styleHeight,
   });
 }
 
@@ -439,7 +442,9 @@ function getShadow({
 function getResult({
   shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, style,
+  radii, offset,
   containerViewProps, shadowViewProps, childrenViewProps,
+  styleWidth, styleHeight,
 }: {
   radii: CornerRadius;
   containerStyle: StyleProp<ViewStyle>;
@@ -453,11 +458,15 @@ function getResult({
   containerViewProps?: ViewProps;
   shadowViewProps?: ViewProps;
   childrenViewProps?: ViewProps;
+  /** The style width. Tries to use the style prop then the child's style. */
+  styleWidth?: string | number;
+  /** The style height. Tries to use the style prop then the child's style. */
+  styleHeight?: string | number;
 }): JSX.Element {
 
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-    <View style={containerStyle} pointerEvents='box-none'>
+    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
       <View pointerEvents='none' {...shadowViewProps} style={[
         StyleSheet.absoluteFillObject,
         shadowViewProps?.style,
@@ -488,9 +497,10 @@ function getResult({
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
           const layout = e.nativeEvent.layout;
-          if (style.width === undefined) // Is this check good?
+          // Change layout state if the style width/height is undefined or 'x%'.
+          if (typeof styleWidth !== 'number')
             setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded. (?)
-          if (style.height === undefined)
+          if (typeof styleHeight !== 'number')
             setChildLayoutHeight(layout.height);
         }}
         {...childrenViewProps}
