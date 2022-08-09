@@ -3,13 +3,13 @@
 
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537).
-* `disabled` property - Easy and performatic way to disable the shadow component.
+* `disabled` property - Easy and performatic way to disable the shadow (but to keep rendering the children).
 * `containerViewProps` property.
 * `childrenViewProps` property.
 
 ### Renamed
-* `containerViewStyle` to `containerStyle`.
 * `viewStyle` to `style`.
+* `containerViewStyle` to `containerStyle`.
 * `finalColor` to `endColor`, to follow the `start/end` pattern of the RTL changes below.
 ##### [RTL Related](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
 > Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties.
@@ -20,14 +20,14 @@
 
 ### Removed
 <ul>
+<li><code>size</code> property. The size now can only be defined in the Shadow's or child's <code>style</code>'s <code>width</code> and <code>height</code> properties.</li>
+<li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code> etc.</li>
 <li>
 <details>
 <summary><code>getChildRadius</code> and <code>getViewStyleRadius</code>.</summary>
 Properties removed for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now. Before, they were active by default.
 </details>
 </li>
-<li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code> etc.
-<li><code>size</code> property. The size now can only be defined in the Shadow's or child's <code>style</code>'s <code>width</code> and <code>height</code> properties.
 </ul>
 
 ### Improved
