@@ -82,8 +82,12 @@ export interface ShadowProps {
    *
    * @default false */
   disabled?: boolean;
-  /** Props for the Shadow's wrapping View. You shouldn't need to use this. You may pass `style` to this. */
+  /** Props for the container's wrapping View. You probably don't need to use this. */
+  containerViewProps?: ViewProps;
+  /** Props for the shadow's wrapping View. You probably don't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
+  /** Props for the children's wrapping View. You probably't don't need to use this. */
+  childrenViewProps?: ViewProps;
   /** Your child component. */
   children?: React.ReactNode;
 }
@@ -121,6 +125,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     children,
     containerStyle,
     shadowViewProps,
+    childrenViewProps,
+    containerViewProps,
   } = props;
 
   /** Which sides will have shadow. */
@@ -207,6 +213,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     stretch, offset, radii,
     containerStyle, style, shadowViewProps,
     setChildLayoutWidth, setChildLayoutHeight,
+    childrenViewProps, containerViewProps,
   });
 }
 
@@ -432,7 +439,7 @@ function getShadow({
 function getResult({
   shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, style,
-  radii, offset, shadowViewProps,
+  containerViewProps, shadowViewProps, childrenViewProps,
 }: {
   radii: CornerRadius;
   containerStyle: StyleProp<ViewStyle>;
@@ -443,7 +450,9 @@ function getResult({
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
   offset: [x: number | string, y: number | string];
-  shadowViewProps: ShadowProps['shadowViewProps'];
+  containerViewProps?: ViewProps;
+  shadowViewProps?: ViewProps;
+  childrenViewProps?: ViewProps;
 }): JSX.Element {
 
   return (
@@ -484,6 +493,7 @@ function getResult({
           if (style.height === undefined)
             setChildLayoutHeight(layout.height);
         }}
+        {...childrenViewProps}
       >
         {children}
       </View>
@@ -491,17 +501,22 @@ function getResult({
   );
 }
 
-
-function DisabledShadow({ stretch, containerStyle, children, style }: {
+function DisabledShadow({
+  stretch, containerStyle, children, style,
+  childrenViewProps, containerViewProps,
+}: {
   containerStyle?: StyleProp<ViewStyle>;
   children?: any;
   style?: StyleProp<ViewStyle>;
   stretch?: boolean;
+  containerViewProps?: ViewProps;
+  childrenViewProps?: ViewProps;
 }): JSX.Element {
   return (
-    <View style={containerStyle} pointerEvents='box-none'>
+    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
       <View
         pointerEvents='box-none'
+        {...childrenViewProps}
         style={[
           style,
           { ...(stretch && { alignSelf: 'stretch' }) },
