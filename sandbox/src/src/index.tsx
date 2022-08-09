@@ -82,8 +82,12 @@ export interface ShadowProps {
    *
    * @default false */
   disabled?: boolean;
-  /** Props for the Shadow's wrapping View. You shouldn't need to use this. You may pass `style` to this. */
+  /** Props for the container's wrapping View. You probably don't need to use this. */
+  containerViewProps?: ViewProps;
+  /** Props for the shadow's wrapping View. You probably don't need to use this. You may pass `style` to this. */
   shadowViewProps?: ViewProps;
+  /** Props for the children's wrapping View. You probably't don't need to use this. */
+  childrenViewProps?: ViewProps;
   /** Your child component. */
   children?: React.ReactNode;
 }
@@ -121,6 +125,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     children,
     containerStyle,
     shadowViewProps,
+    childrenViewProps,
+    containerViewProps,
   } = props;
 
   /** Which sides will have shadow. */
@@ -177,8 +183,10 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [styleStr]);
 
-  const width = style.width ?? cStyle.width ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
-  const height = style.height ?? cStyle.height ?? childLayoutHeight ?? '100%';
+  const styleWidth = style.width ?? cStyle.width;
+  const width = styleWidth ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const styleHeight = style.height ?? cStyle.height;
+  const height = styleHeight ?? childLayoutHeight ?? '100%';
 
   const radii: CornerRadius = useMemo(() => sanitizeRadii({
     width, height, radii: {
@@ -207,6 +215,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     stretch, offset, radii,
     containerStyle, style, shadowViewProps,
     setChildLayoutWidth, setChildLayoutHeight,
+    childrenViewProps, containerViewProps,
+    styleWidth, styleHeight,
   });
 }
 
@@ -432,7 +442,9 @@ function getShadow({
 function getResult({
   shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
   containerStyle, children, style,
-  radii, offset, shadowViewProps,
+  radii, offset,
+  containerViewProps, shadowViewProps, childrenViewProps,
+  styleWidth, styleHeight,
 }: {
   radii: CornerRadius;
   containerStyle: StyleProp<ViewStyle>;
@@ -443,12 +455,18 @@ function getResult({
   setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
   setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
   offset: [x: number | string, y: number | string];
-  shadowViewProps: ShadowProps['shadowViewProps'];
+  containerViewProps?: ViewProps;
+  shadowViewProps?: ViewProps;
+  childrenViewProps?: ViewProps;
+  /** The style width. Tries to use the style prop then the child's style. */
+  styleWidth?: string | number;
+  /** The style height. Tries to use the style prop then the child's style. */
+  styleHeight?: string | number;
 }): JSX.Element {
 
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-    <View style={containerStyle} pointerEvents='box-none'>
+    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
       <View pointerEvents='none' {...shadowViewProps} style={[
         StyleSheet.absoluteFillObject,
         shadowViewProps?.style,
@@ -479,11 +497,13 @@ function getResult({
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
           const layout = e.nativeEvent.layout;
-          if (style.width === undefined) // Is this check good?
+          // Change layout state if the style width/height is undefined or 'x%'.
+          if (typeof styleWidth !== 'number')
             setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded. (?)
-          if (style.height === undefined)
+          if (typeof styleHeight !== 'number')
             setChildLayoutHeight(layout.height);
         }}
+        {...childrenViewProps}
       >
         {children}
       </View>
@@ -491,17 +511,22 @@ function getResult({
   );
 }
 
-
-function DisabledShadow({ stretch, containerStyle, children, style }: {
+function DisabledShadow({
+  stretch, containerStyle, children, style,
+  childrenViewProps, containerViewProps,
+}: {
   containerStyle?: StyleProp<ViewStyle>;
   children?: any;
   style?: StyleProp<ViewStyle>;
   stretch?: boolean;
+  containerViewProps?: ViewProps;
+  childrenViewProps?: ViewProps;
 }): JSX.Element {
   return (
-    <View style={containerStyle} pointerEvents='box-none'>
+    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
       <View
         pointerEvents='box-none'
+        {...childrenViewProps}
         style={[
           style,
           { ...(stretch && { alignSelf: 'stretch' }) },
