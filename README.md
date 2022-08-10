@@ -107,7 +107,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 * #### How to set the Shadow opacity?
 
-  The opacity is set directly in the `startColor` and `endColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
+  The opacity is set directly in the `startColor` and `endColor` properties, in the alpha channel. E.g.: `'#0001'` is an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
 
   You may also use the `opacity` style to change both.
 
