@@ -82,8 +82,8 @@ import { Shadow } from 'react-native-shadow-2';
 | **distance** | How far the shadow goes. | `number` | `10`
 | **offset** | Moves the shadow. Negative `x` moves it left/start, negative `y` moves it up.<br/><br/>Accepts `'x%'` values.<br/><br/>Defining this will default `paintInside` to **true**, as it's the usual desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
 | **paintInside** | Apply the shadow below/inside the content. `startColor` is used as fill color, without a gradient.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
-| **sides** | The sides that will have their shadows drawn. Doesn't include corners. | `("left" \| "right" \| "top" \| "bottom")[]` | `['left', 'right', 'top', 'bottom']`
-| **corners** | The corners that will have their shadows drawn. | `("topStart" \| "topEnd" \| "bottomStart" \| "bottomEnd")[]` | `['topStart', 'topEnd', 'bottomStart', 'bottomEnd']`
+| **sides** | The sides that will have their shadows drawn. Doesn't include corners. Undefined sides fallbacks to **true**. | `Record<'left' \| 'right' \| 'top' \| 'bottom', boolean>` | `undefined`
+| **corners** | The corners that will have their shadows drawn. Undefined corners fallbacks to **true**. | `Record<'topStart' \| 'topEnd' \| 'bottomStart' \| 'bottomEnd', boolean>` | `undefined`
 | **style** | The style of the View that wraps your children. Read the note at the end. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the View that wraps the Shadow and your children. Useful for margins. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | Make your children ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
@@ -92,11 +92,11 @@ import { Shadow } from 'react-native-shadow-2';
 
 ## Notes
 
-* If the Shadow has a single child, it will get the `width`, `height` and all of the `borderRadius` properties from the children's `style` property, if defined. *(It's so easy to use this!)*
+* If the Shadow has a single child, it will get the `width`, `height` and all of the `borderRadius` properties from the children's `style` property, if defined.
 
-* You may also define those properties in the Shadow's `style`. The defined properties here will have priority over the ones defined in the Child's `style`.
+* You may also define those properties in the Shadow's `style`. The defined properties here will have priority over the ones defined in the child's `style`.
 
-* If the `width` and `height` is defined in any of those, there will be only a single render, as the first automatic sizing won't happen, only the precise render.
+* If the `width` **and** `height` are defined in any of those, there will be only a single render, as the first automatic sizing won't happen, only the precise render.
 
 * You can use either the `'borderTopLeftRadius'` or `'borderTopStartRadius'` and their variations to define the corners radii, although I recommend the latter as it's the RTL standard.
 
