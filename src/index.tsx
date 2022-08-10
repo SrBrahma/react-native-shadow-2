@@ -272,9 +272,6 @@ function sanitizeRadii({ width, height, radii }: {
   return radiiSanitized;
 }
 
-    // Quick return if nothing to render.
-    if (!distance && !paintInside)
-      return null;
 
 /** The SVG parts. */
 // We default the props here for a micro improvement in performance. endColorProp default value was the main reason.
@@ -409,7 +406,7 @@ function getShadow({
         <Defs>{radialGradient2({ id: `topEnd.${idSuffix}`, top: true, left: isRTL, radius: topEnd, shadowRadius: topEndShadow })}</Defs>
         <Rect fill={`url(#topEnd.${idSuffix})`} width={topEndShadow} height={topEndShadow}/>
       </Svg>}
-      {activeCorners.bottomStart && bottomStartShadow > 0 && bottomLeftShadow > 0 && <Svg width={bottomStartShadow + additional} height={bottomStartShadow + additional}
+      {activeCorners.bottomStart && bottomStartShadow > 0 && <Svg width={bottomStartShadow + additional} height={bottomStartShadow + additional}
         style={{ position: 'absolute', top: height, start: -distance, transform: [{ translateY: -bottomStart }] }}
       >
         <Defs>{radialGradient2({ id: `bottomStart.${idSuffix}`, top: false, left: !isRTL, radius: bottomStart, shadowRadius: bottomStartShadow })}</Defs>
@@ -424,7 +421,6 @@ function getShadow({
         <Defs>{radialGradient2({ id: `bottomEnd.${idSuffix}`, top: false, left: isRTL, radius: bottomEnd, shadowRadius: bottomEndShadow })}</Defs>
         <Rect fill={`url(#bottomEnd.${idSuffix})`} width={bottomEndShadow} height={bottomEndShadow}/>
       </Svg>}
-
 
       {/* Paint the inner area, so we can offset it.
       [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
