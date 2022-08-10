@@ -1,4 +1,7 @@
-## 7.0.1 - 2022-08-10
+### 7.0.2 - 2022-08-10
+* Fixed missing `version` const export in `index.tsx`.
+
+### 7.0.1 - 2022-08-10
 * Added missing `import React from 'react'`.
 
 # 7.0.0 - 2022-08-10

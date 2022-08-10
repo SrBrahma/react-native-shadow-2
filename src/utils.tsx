@@ -11,11 +11,6 @@ export type CornerRadius = Record<Corner, number>;
 // Add Shadow to the corner names
 export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
 
-
-/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
- * and somehow may be useful to you. */
-export const version = '7.0.0';
-
 export const cornersArray = ['topStart', 'topEnd', 'bottomStart', 'bottomEnd'] as const;
 
 const isWeb = Platform.OS === 'web';

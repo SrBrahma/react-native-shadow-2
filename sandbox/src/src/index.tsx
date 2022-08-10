@@ -10,6 +10,8 @@ import {
   P, R, radialGradient, rtlScaleX, scale, sumDps,
 } from './utils';
 
+/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox). */
+export const version = '7.0.2';
 
 export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.
