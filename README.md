@@ -105,34 +105,34 @@ import { Shadow } from 'react-native-shadow-2';
 
 ## ⁉️ FAQ
 
-**Q**: How to set the Shadow opacity?
+* #### How to set the Shadow opacity?
 
-**A**: The opacity is set directly in the `startColor` and `endColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
+  The opacity is set directly in the `startColor` and `endColor` properties, in the alpha channel. E.g.: `'#0001'` would be an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
 
-You may also use the `opacity` style to change both.
-
-
-**Q**: [My component is no longer using the available parent width after applying the Shadow! What to do?](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)
-
-**A**: Use the `stretch` property or `style={{alignSelf: 'stretch'}}` in your Shadow component. Explanation in link above!
+  You may also use the `opacity` style to change both.
 
 
-**Q**: I want a preset for my Shadows!
+* #### My component is no longer using the available parent width after applying the Shadow! What to do?
 
-**A**: It's exported the `ShadowProps` type, the props of the Shadow component. You may do the following:
-```tsx
-const ShadowPresets = {
-  button: {
-    offset: [0, 1], distance: 1, startColor: '#0003',
-  } as ShadowProps,
-};
+  Use the `stretch` property or `style={{alignSelf: 'stretch'}}` in your Shadow component. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882)!
 
-<Shadow {...ShadowPresets.button}>
-```
 
-**Q**: The `offset` and `size` properties are throwing Typescript errors!
+* #### I want a preset for my Shadows!
 
-**A**: Upgrade your Typescript to at least 4.0.0! Those two properties use [**labeled tuples**](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#labeled-tuple-elements). If you don't use Typescript, this won't happen.
+  It's exported the `ShadowProps` type, the props of the Shadow component. You may do the following:
+  ```tsx
+  const ShadowPresets = {
+    button: {
+      offset: [0, 1], distance: 1, startColor: '#0003',
+    } as ShadowProps,
+  };
+
+  <Shadow {...ShadowPresets.button}>
+  ```
+
+* #### The `offset` and `size` properties are throwing Typescript errors!
+
+  Upgrade your Typescript to at least 4.0.0! Those two properties use [**labeled tuples**](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#labeled-tuple-elements). If you don't use Typescript, this won't happen.
 
 
 <!-- Commented until improved ## Performance Guide 
