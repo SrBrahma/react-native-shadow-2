@@ -145,8 +145,8 @@ function ShadowInner(props: ShadowProps): JSX.Element {
    * I believe it may come to be a popular pattern eventually :) */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  const childStyleStr = useMemo(() => (childProps.style ? JSON.stringify(childProps.style) : ''), [childProps.style]);
-  const childSStr = useMemo(() => (childProps.s ? JSON.stringify(childProps.s) : ''), [childProps.s]);
+  const childStyleStr = useMemo(() => (childProps.style ? JSON.stringify(childProps.style) : '{}'), [childProps.style]);
+  const childSStr = useMemo(() => (childProps.s ? JSON.stringify(childProps.s) : '{}'), [childProps.s]);
 
   /** Child's style. */
   const cStyle: ViewStyle = useMemo(() => {
@@ -163,7 +163,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [cStyle]);
 
-  const styleStr: string = useMemo(() => (styleProp ? JSON.stringify(styleProp) : ''), [styleProp]);
+  const styleStr: string = useMemo(() => (styleProp ? JSON.stringify(styleProp) : '{}'), [styleProp]);
 
   /** Flattened style. */
   const { style, sRadii }: { style: ViewStyle; sRadii: Record<Corner, number | undefined> } = useMemo(() => {
