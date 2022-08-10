@@ -4,12 +4,11 @@
 ### 7.0.1 - 2022-08-10
 * Added missing `import React from 'react'`.
 
-# 7.0.0 - 2022-08-10
 > Major changes to improve the performance, simplify the library usage and improve the Developer Experience. An important update that consolidates this library's maturity.
 
 ### Features
 * `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537).
-* `disabled` property - Easy and performatic way to disable the shadow (but to keep rendering the children).
+* `disabled` property - Easy and performance-friendly way to disable the shadow (but to keep rendering the children).
 * `containerViewProps` property.
 * `childrenViewProps` property.
 
@@ -17,8 +16,8 @@
 * Renamed `viewStyle` to `style`.
 * Renamed `containerViewStyle` to `containerStyle`.
 * Renamed `finalColor` to `endColor`, to follow the `start/end` pattern of the following change.
-* `sides` and `corners` properties are now objects instead of arrays.
 * `left` / `right` in `sides` and `corners` were changed to `start` / `end` for [RTL friendliness](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
+* `sides` and `corners` properties are now objects instead of arrays.
 
   > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
 
@@ -35,7 +34,7 @@ Properties removed for the sake of simplicity of this package. Probably no one u
 </ul>
 
 ### Improvements
-* Significant performance and RAM usage due to general refactorings, SVGs' simplification (with the same appearence), improved memoizations and micro performance improvements.
+* Significant performance and RAM usage due to general refactorings, SVGs' simplification (with the same appearance), improved memoizations and micro performance improvements.
 * Now using `colord` package instead of `polished` to deal with colors' alpha.
 
 ### Fixes
