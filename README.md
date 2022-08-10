@@ -22,10 +22,10 @@ Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for
 
 
 
-### [🍟 Demo - Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
+## [🍟 Demo - Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 > Give this library a quick try!
 
-### [📰 7.0.0 Changelog - 2022-08-08](./CHANGELOG.md)
+## [📰 7.0.0 Changelog - 2022-08-08](./CHANGELOG.md)
 > **There are important breaking changes! Read it if upgrading!**
 
 ### [↪️ Pre v7 Readme](https://github.com/SrBrahma/react-native-shadow-2/blob/36d123db4cf816d15ac5e3f9c9df8cff3e96bd2e/README.md)
