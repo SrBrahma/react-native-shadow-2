@@ -7,7 +7,6 @@
 
 </div>
 
-
 # react-native-shadow-2
 
 [react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This is an improved version with more functionalities, Typescript support and written from scratch. It's not required to define its size: the shadow is smartly applied on the first render and then precisely reapplied on the following ones.
@@ -20,7 +19,10 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps).
 
-
+<div align="center">
+  <h3>📣 I AM AVAILABLE FOR HIRE! 📣</h3>
+  <a href="https://www.linkedin.com/in/henrique-bfa">Contact me</a> if you need a remote mid-level React Native developer!
+</div>
 
 ## [🍟 Demo - Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 > Give this library a quick try!
@@ -84,7 +86,7 @@ import { Shadow } from 'react-native-shadow-2';
 | **paintInside** | Apply the shadow below/inside the content. `startColor` is used as fill color, without a gradient.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
 | **sides** | The sides that will have their shadows drawn. Doesn't include corners. Undefined sides fallbacks to **true**. | `Record<'left' \| 'right' \| 'top' \| 'bottom', boolean>` | `undefined`
 | **corners** | The corners that will have their shadows drawn. Undefined corners fallbacks to **true**. | `Record<'topStart' \| 'topEnd' \| 'bottomStart' \| 'bottomEnd', boolean>` | `undefined`
-| **style** | The style of the View that wraps your children. Read the note at the end. | `StyleProp<ViewStyle>` | `undefined`
+| **style** | The style of the View that wraps your children. Read the [Notes](https://github.com/SrBrahma/react-native-shadow-2/edit/main/README.md#notes) below. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the View that wraps the Shadow and your children. Useful for margins. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | Make your children ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
 | **safeRender** | Won't use the relative sizing and positioning on the 1st render but on the following renders with the exact onLayout sizes. Useful if dealing with radii greater than the sides sizes (like a circle) to avoid visual artifacts on the 1st render.<br/><br/>If `true`, the Shadow doesn't appear on the 1st render. | `boolean` | `false`
@@ -143,10 +145,9 @@ import { Shadow } from 'react-native-shadow-2';
 
 -->
 
-## 🐛 Notes / Known Issues
+## 🐛 Known Issues
 
-* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15)
-**Update v5:** The radius is now properly limited on the 2nd render and beyond! You may use the safeRender to don't render the shadow until this 2nd render, when the onLayout happens and we get the exact sizes to apply this limit.
+* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15). **You can use the `safeRender` property** to only show the shadow on the 2nd render and beyond, when we have the exact component size and the radii are properly limited.
 
 ## 📰 Popularly seen on
 ### [LogRocket - Applying box shadows in React Native](https://blog.logrocket.com/applying-box-shadows-in-react-native/)
