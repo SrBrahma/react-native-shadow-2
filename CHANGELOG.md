@@ -1,4 +1,7 @@
-# 7.0.0 - 2022-07-26
+# 7.0.1 - 2022-08-10
+* Added missing `import React from 'react'`.
+
+# 7.0.0 - 2022-08-10
 > Major changes to improve the performance, simplify the library usage and improve the Developer Experience. An important update that consolidates this library's maturity.
 
 ### Features

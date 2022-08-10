@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports
+import React from 'react';
 import { PixelRatio, Platform } from 'react-native';
 import { RadialGradient, Stop } from 'react-native-svg';
 
