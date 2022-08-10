@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "6.0.6",
+  "version": "7.0.0",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -12,7 +12,6 @@
     "clean": "rimraf lib",
     "build": "npm run clean && tsc",
     "prepare": "npm run build",
-    "updateVersionExport": "sed -i -r \"s/(version = ').*(')/\\1$npm_package_version\\2/\" ./src/index.tsx",
     "prepublishOnly": "npm run test",
     "docs": "typedoc",
     "docsWatch": "typedoc --watch",
@@ -47,18 +46,16 @@
   },
   "homepage": "https://github.com/SrBrahma/react-native-shadow-2#readme",
   "dependencies": {
-    "polished": "^4.1.4"
+    "colord": "2.9.2"
   },
   "devDependencies": {
     "@types/react-native": "*",
-    "eslint-config-gev": "^2.27.2",
-    "react": "^17.0.1",
+    "eslint-config-gev": "^2.36.2",
+    "react": "*",
     "react-native": "*",
-    "react-native-svg": "^12.1.1",
-    "rimraf": "^3.0.2",
-    "typedoc": "^0.22.10",
-    "typedoc-plugin-markdown": "^3.11.7",
-    "typescript": "^4.5.5"
+    "react-native-svg": "^12.1.0",
+    "rimraf": "^3.0.0",
+    "typescript": "^4.0.0"
   },
   "peerDependencies": {
     "react-native": "*",

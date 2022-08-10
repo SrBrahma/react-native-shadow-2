@@ -1,61 +1,14 @@
-import React, { useMemo, useState } from 'react';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import React, { Children, useMemo, useState } from 'react';
 import type { StyleProp, ViewProps, ViewStyle } from 'react-native';
-import { I18nManager, PixelRatio, Platform, StyleSheet, View } from 'react-native';
-import { Defs, LinearGradient, Mask, Path, RadialGradient, Rect, Stop, Svg } from 'react-native-svg';
-import { parseToRgb, rgbToColorString, transparentize } from 'polished'; // To extract alpha
-import type { RgbaColor } from 'polished/lib/types/color';
-import type { Corner, CornerRadius, CornerRadiusShadow, Side } from './utils';
-import { cornerToStyle, objFromKeys } from './utils';
-
-
-/** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox)
- * and somehow may be useful to you. */
-export const version = '6.0.6';
-
-const isWeb = Platform.OS === 'web';
-
-/** Rounds the given size to a pixel perfect size. */
-export function R(value: number): number {
-  // In Web, 1dp=1px. But it accepts decimal sizes, and it's somewhat problematic.
-  // The size rounding is browser-dependent, so we do the decimal rounding for web by ourselves to have a
-  // consistent behavior. We floor it, because it's better for the child to overlap by a pixel the right/bottom shadow part
-  // than to have a pixel wide gap between them.
-  if (isWeb)
-    return Math.floor(value);
-
-  return PixelRatio.roundToNearestPixel(value);
-}
-/** Converts dp to pixels. */
-function P(value: number) {
-  if (isWeb) return value;
-  return PixelRatio.getPixelSizeForLayoutSize(value);
-}
-/** How many pixels for each dp. scale = pixels/dp */
-const scale = isWeb ? 1 : PixelRatio.get();
-
-/** Converts two sizes to pixel for perfect math, sum them and converts the result back to dp. */
-function sumDps(a: number, b: number) {
-  if (isWeb) return a + b;
-  return R((P(a) + P(b)) / scale);
-}
-
-/** [Android/ios?] [*4] A small safe margin for the svg sizes.
- *
- * It fixes some gaps that we had, as even that the svg size and the svg rect for example size were the same, this rect
- * would still strangely be cropped/clipped. We give this additional size to the svg so our rect/etc won't be unintendedly clipped.
- *
- * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
-const additional = isWeb ? 0 : 1;
-
-const cornersArray = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
-// const cornersShadowArray = ['topLeftShadow', 'topRightShadow', 'bottomLeftShadow', 'bottomRightShadow'] as const;
-const sidesArray = ['left', 'right', 'top', 'bottom'] as const;
-
-/** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions. */
-const generateGradientIdSuffix = (() => {
-  let shadowGradientIdCounter = 0;
-  return () => String(shadowGradientIdCounter++);
-})();
+import { I18nManager, StyleSheet, View } from 'react-native';
+import { Defs, LinearGradient, Mask, Path, Rect, Stop, Svg } from 'react-native-svg';
+import { colord } from 'colord';
+import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
+import {
+  additional, cornersArray, divDps, generateGradientIdSuffix, objFromKeys,
+  P, R, radialGradient, rtlScaleX, scale, sumDps,
+} from './utils';
 
 
 export interface ShadowProps {
@@ -69,46 +22,28 @@ export interface ShadowProps {
    * It defaults to a transparent color of `startColor`. E.g.: `startColor` is `#f00`, so it defaults to `#f000`. [Reason here](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972).
    *
    * @default Transparent startColor */
-  finalColor?: string;
-  /** How far the shadow will go.
+  endColor?: string;
+  /** How far the shadow goes.
    * @default 10 */
   distance?: number;
-  /** The radius of each corner of your child component. Passing a number will apply it to all corners.
+  /** The sides that have the shadows drawn. Doesn't include corners.
    *
-   * If passing an object, undefined corners will have the radius of the `default` property if it's defined.
+   * Undefined sides fallbacks to true.
    *
-   * If undefined and if getChildRadius, it will attempt to get the child radius from the borderRadius style.
-   *
-   * Each corner fallbacks to 0. */
-  radius?: number | { default?: number; topLeft?: number; topRight?: number; bottomLeft?: number; bottomRight?: number};
-  /** If it should try to get the radius from the child view **`style`** if `radius` property is undefined. It will get the values for each
-   * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
-   *
-   * If **`getViewStyleRadius`**, the corners defined in viewStyle will have priority over child's style.
-   *
-   * @default true */
-  getChildRadius?: boolean;
-  /** If it should try to get the radius from the **`viewStyle`** property if `radius` property is undefined. It will get the values for each
-   * corner, like `borderTopLeftRadius`, and also `borderRadius`. If a specific corner isn't defined, `borderRadius` value is used.
-   *
-   * If **`getChildRadius`**, the corners defined in viewStyle will have priority over child's style.
-   * @default true */
-  getViewStyleRadius?: boolean;
-  // TODO getChildSizeStyle?: boolean;
-  /** The sides of your content that will have the shadows drawn. Doesn't include corners.
-   *
-   * @default ['left', 'right', 'top', 'bottom'] */
+   * @default undefined */
   // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users, won't be just `Side`.
-  sides?: ('left' | 'right' | 'top' | 'bottom')[];
-  /** The corners that will have the shadows drawn.
+  sides?: Record<'start' | 'end' | 'top' | 'bottom', boolean>;
+  /** The corners that have the shadows drawn.
    *
-   * @default ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] */
-  corners?: ('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[];
+   * Undefined corners fallbacks to true.
+   *
+   * @default undefined */
+  corners?: Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>;
   /** Moves the shadow. Negative x moves it to the left, negative y moves it up.
    *
    * Accepts `'x%'` values, in relation to the child's size.
    *
-   * Setting an offset will default `paintInside` to true, as it is the usual desired behaviour.
+   * Setting an offset will default `paintInside` to true.
    *
    * @default [0, 0] */
   offset?: [x: number | string, y: number | string];
@@ -120,381 +55,505 @@ export interface ShadowProps {
    *
    * @default false */
   paintInside?: boolean;
-  /** The style of the view that wraps your child component.
+  /** Style of the View that wraps your child component.
    *
-   * If using the `size` property, this wrapping view will automatically receive as style the `size` values and the
-   * radiuses from the `radius` property or from the child, if `getChildRadius`. You may overwrite those defaults
-   * by undefine'ing the changed styles in this property. */
-  viewStyle?: StyleProp<ViewStyle>;
-  /** The style of the view that contains the shadow and your child component. */
-  containerViewStyle?: StyleProp<ViewStyle>;
-  /** Props for the Shadow view. You shouldn't need to use this. You may pass style to this. */
-  shadowViewProps?: ViewProps;
-  /** If it should try to get the `width` and `height` from the child **style** if `size` prop is undefined.
-   *
-   * If the size style is found, it won't use the onLayout strategy to get the child style after its render.
-   * @default true */
-  /** If you don't want the 2 renders of the shadow (first applies the relative positioning and sizing that may contain a quick pixel gap, second uses exact pixel size from onLayout) or you are having noticeable gaps/overlaps on the first render,
-   * you can use this property. Using this won't trigger the onLayout, so only 1 render is made.
-   *
-   * It will apply the corresponding `width` and `height` styles to the `viewStyle` property.
-   *
-   * You may want to set `backgroundColor` in the `viewStyle` property for your child background color.
-   *
-   * It's also good if you want an animated view.
-   *
-   * The values will be properly rounded using our R() function. */
-  size?: [width: number, height: number];
-  // /** If the shadow will move to its inner side instead of going out.
-  //  *
-  //  * @default false */
-  // inset?: boolean;
+   * You may set here the corners radii (e.g. borderTopLeftRadius) and the width/height. */
+  style?: StyleProp<ViewStyle>;
+  /** Style of the view that wraps the shadow and your child component. */
+  containerStyle?: StyleProp<ViewStyle>;
   /** If you don't want the relative sizing and positioning of the shadow on the first render, but only on the second render and
-   * beyond with the exact onLayout sizes. This is useful if dealing with radius greater than the sizes, to assure
+   * beyond with the exact onLayout's sizes. This is useful if dealing with radius greater than the sizes, to assure
    * the fully round corners when the sides sizes are unknown and to avoid weird and overflowing shadows on the first render.
    *
-   * Note that when true, the shadow will only appear on the second render and beyond, when the sizes are known with onLayout.
+   * Note that when true, the shadow won't appear on the first render.
    *
    * @default false */
   safeRender?: boolean;
+  /** Use this when you want your children to ocuppy all available cross-axis/horizontal space.
+   *
+   * Shortcut to `style={{alignSelf: 'stretch'}}.
+   *
+   * [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537)
+   *
+   * @default false */
+  stretch?: boolean;
+  /** Won't render the Shadow. Useful for reusing components as sometimes shadows are not wanted.
+   *
+   * The children will be wrapped by two Views. `containerStyle` and `style` are still applied.
+   *
+   * For performance, contrary to `disabled={false}`, the children's corners radii aren't set in `style`.
+   * This is done in "enabled" to limit Pressable's ripple as we already obtain those values.
+   *
+   * @default false */
+  disabled?: boolean;
+  /** Props for the container's wrapping View. You probably don't need to use this. */
+  containerViewProps?: ViewProps;
+  /** Props for the shadow's wrapping View. You probably don't need to use this. You may pass `style` to this. */
+  shadowViewProps?: ViewProps;
+  /** Props for the children's wrapping View. You probably't don't need to use this. */
+  childrenViewProps?: ViewProps;
+  /** Your child component. */
   children?: React.ReactNode;
 }
 
+// For better memoization and performance.
+const emptyObj: Record<string, unknown> = {};
+const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
-export const Shadow: React.FC<ShadowProps> = ({
-  radius: radiusProp,
-  sides: sidesProp = ['left', 'right', 'top', 'bottom'],
-  corners: cornersProp = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
-  containerViewStyle,
-  shadowViewProps,
-  startColor: startColorProp = '#00000020',
-  finalColor: finalColorProp = transparentize(1, startColorProp),
-  distance: distanceProp = 10,
-  children,
-  size: sizeProp, // Do not default here. We do `if (sizeProp)` on onLayout.
-  offset,
-  getChildRadius = true,
-  getViewStyleRadius = true,
-  paintInside: paintInsideProp,
-  viewStyle,
-  safeRender = false,
-}) => {
-  const isRTL = I18nManager.isRTL;
+export function Shadow(props: ShadowProps): JSX.Element {
+  return props.disabled
+    ? <DisabledShadow {...props}/>
+    : <ShadowInner {...props}/>;
+}
 
-  const [childWidth, setChildWidth] = useState<number | undefined>();
-  const [childHeight, setChildHeight] = useState<number | undefined>();
-  const [gradientIdSuffix] = useState<string>(generateGradientIdSuffix);
+function ShadowInner(props: ShadowProps): JSX.Element {
+  /** getConstants().isRTL instead of just isRTL due to Web https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853 */
+  const isRTL = I18nManager.getConstants().isRTL;
+  const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
+  const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
+  const [idSuffix] = useState<string>(generateGradientIdSuffix);
 
-  /** Defaults to true if offset is defined, else defaults to false */
-  const paintInside = paintInsideProp ?? (offset ? true : false);
-  const [offsetX, offsetY] = offset ?? [0, 0];
+  const {
+    sides,
+    corners,
+    startColor: startColorProp,
+    endColor: endColorProp,
+    distance: distanceProp,
+    style: styleProp,
+    safeRender,
+    stretch,
+    /** Defaults to true if offset is defined, else defaults to false */
+    paintInside = props.offset ? true : false,
+    offset = defaultOffset,
+    children,
+    containerStyle,
+    shadowViewProps,
+    childrenViewProps,
+    containerViewProps,
+  } = props;
 
-  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
-  /** Read {@link additional}, [*4] */
-  const distanceWithAdditional = distance + additional;
-  const width = (sizeProp ? R(sizeProp[0]) : childWidth) ?? '100%'; // '100%' sometimes will lead to gaps. child size don't lie.
-  const height = (sizeProp ? R(sizeProp[1]) : childHeight) ?? '100%';
-  /** Will (+ additional), only if its value isn't '100%'. */
-  const widthWithAdditional = typeof width === 'string' ? width : width + additional;
-  /** Will (+ additional), only if its value isn't '100%'. */
-  const heightWithAdditional = typeof height === 'string' ? height : height + additional;
+  /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
+   * I believe it may come to be a popular pattern eventually :) */
+  const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
+
+  const childStyleStr: string | null = useMemo(() => (childProps.style ? JSON.stringify(childProps.style) : null), [childProps.style]);
+  const childSStr: string | null = useMemo(() => (childProps.s ? JSON.stringify(childProps.s) : null), [childProps.s]);
+
+  /** Child's style. */
+  const cStyle: ViewStyle = useMemo(() => {
+    const cStyle = StyleSheet.flatten<ViewStyle>([childStyleStr && JSON.parse(childStyleStr), childSStr && JSON.parse(childSStr)]);
+    if (typeof cStyle.width === 'number')
+      cStyle.width = R(cStyle.width);
+    if (typeof cStyle.height === 'number')
+      cStyle.height = R(cStyle.height);
+    return cStyle;
+  }, [childSStr, childStyleStr]);
+
+  /** Child's Radii. */
+  const cRadii: Record<Corner, number | undefined> = useMemo(() => {
+    return {
+      topStart: cStyle.borderTopStartRadius ?? cStyle.borderTopLeftRadius ?? cStyle.borderRadius,
+      topEnd: cStyle.borderTopEndRadius ?? cStyle.borderTopRightRadius ?? cStyle.borderRadius,
+      bottomStart: cStyle.borderBottomStartRadius ?? cStyle.borderBottomLeftRadius ?? cStyle.borderRadius,
+      bottomEnd: cStyle.borderBottomEndRadius ?? cStyle.borderBottomRightRadius ?? cStyle.borderRadius,
+    };
+  }, [cStyle]);
+
+  const styleStr: string | null = useMemo(() => (styleProp ? JSON.stringify(styleProp) : null), [styleProp]);
+
+  /** Flattened style. */
+  const { style, sRadii }: { style: ViewStyle; sRadii: Record<Corner, number | undefined> } = useMemo(() => {
+    const style = StyleSheet.flatten<ViewStyle>(styleStr && JSON.parse(styleStr));
+    if (typeof style.width === 'number')
+      style.width = R(style.width);
+    if (typeof style.height === 'number')
+      style.height = R(style.height);
+    return {
+      style,
+      sRadii: {
+        topStart: style.borderTopStartRadius ?? style.borderTopLeftRadius ?? style.borderRadius,
+        topEnd: style.borderTopEndRadius ?? style.borderTopRightRadius ?? style.borderRadius,
+        bottomStart: style.borderBottomStartRadius ?? style.borderBottomLeftRadius ?? style.borderRadius,
+        bottomEnd: style.borderBottomEndRadius ?? style.borderBottomRightRadius ?? style.borderRadius,
+      },
+    };
+  }, [styleStr]);
+
+  const styleWidth = style.width ?? cStyle.width;
+  const width = styleWidth ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const styleHeight = style.height ?? cStyle.height;
+  const height = styleHeight ?? childLayoutHeight ?? '100%';
+
+  const radii: CornerRadius = useMemo(() => sanitizeRadii({
+    width, height, radii: {
+      topStart: sRadii.topStart ?? cRadii.topStart,
+      topEnd: sRadii.topEnd ?? cRadii.topEnd,
+      bottomStart: sRadii.bottomStart ?? cRadii.bottomStart,
+      bottomEnd: sRadii.bottomEnd ?? cRadii.bottomEnd,
+    },
+  }), [
+    width, height,
+    sRadii.topStart, sRadii.topEnd, sRadii.bottomStart, sRadii.bottomEnd,
+    cRadii.topStart, cRadii.topEnd, cRadii.bottomStart, cRadii.bottomEnd,
+  ]);
+
+  const { topStart, topEnd, bottomStart, bottomEnd } = radii;
+
+  const shadow = useMemo(() => getShadow({
+    topStart, topEnd, bottomStart, bottomEnd, width, height,
+    isRTL, distanceProp, startColorProp, endColorProp, paintInside,
+    safeRender,
+    activeSides: {
+      bottom: sides?.bottom ?? true,
+      top: sides?.top ?? true,
+      start: sides?.start ?? true,
+      end: sides?.end ?? true,
+    }, activeCorners: {
+      topStart: corners?.topStart ?? true,
+      topEnd: corners?.topEnd ?? true,
+      bottomStart: corners?.bottomStart ?? true,
+      bottomEnd: corners?.bottomEnd ?? true,
+    },
+    idSuffix,
+  }), [
+    width, height, distanceProp,
+    startColorProp, endColorProp,
+    topStart, topEnd, bottomStart, bottomEnd,
+    paintInside,
+    sides?.bottom, sides?.top, sides?.start, sides?.end,
+    corners?.topStart, corners?.topEnd, corners?.bottomStart, corners?.bottomEnd,
+    safeRender, isRTL, idSuffix,
+  ]);
+
+  // Not yet sure if we should memo this.
+  return getResult({
+    shadow, children,
+    stretch, offset, radii,
+    containerStyle, style, shadowViewProps,
+    setChildLayoutWidth, setChildLayoutHeight,
+    childrenViewProps, containerViewProps,
+    styleWidth, styleHeight,
+  });
+}
 
 
-  const radii: CornerRadius = useMemo(() => {
+/** We make some effort for this to be likely memoized */
+function sanitizeRadii({ width, height, radii }: {
+  width: string | number;
+  height: string | number;
+  /** Not yet treated. May be negative / undefined */
+  radii: {
+    topStart: number | undefined;
+    topEnd: number | undefined;
+    bottomStart: number | undefined;
+    bottomEnd: number | undefined;
+  };
+}): CornerRadius {
+  /** Round and zero negative radius values */
+  let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(radii[k] ?? 0, 0)));
 
-    /** Not yet treated. May be negative / undefined */
-    const cornerRadiusPartial: Partial<CornerRadius> = (() => {
-      if (radiusProp !== undefined) {
-        if (typeof radiusProp === 'number')
-          return objFromKeys(cornersArray, () => radiusProp);
-        else
-          return objFromKeys(cornersArray, (k) => radiusProp[k] ?? radiusProp.default);
-      }
+  if (typeof width === 'number' && typeof height === 'number') {
+    // https://css-tricks.com/what-happens-when-border-radii-overlap/
+    // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
+    const minRatio = Math.min(
+      divDps(width, sumDps(radiiSanitized.topStart, radiiSanitized.topEnd)),
+      divDps(height, sumDps(radiiSanitized.topEnd, radiiSanitized.bottomEnd)),
+      divDps(width, sumDps(radiiSanitized.bottomStart, radiiSanitized.bottomEnd)),
+      divDps(height, sumDps(radiiSanitized.topStart, radiiSanitized.bottomStart)),
+    );
 
-      /** We have to merge both viewStyle and childStyle with care. A bottomLeftBorderRadius in childStyle for eg shall not replace
-       * borderRadius in viewStyle.
-       *
-       * Props inits as undefined so in getChildRadius we can Object.values check for undefined. */
-      // Map type to undefined union instead of Partial as Object.values don't treat optional as | undefined. Keeps this type-safe.
-      let mergedStyle: Record<Corner, number | undefined> = { bottomLeft: undefined, bottomRight: undefined, topLeft: undefined, topRight: undefined };
+    if (minRatio < 1)
+      // We ensure to use the .floor instead of the R else we could have the following case:
+      // A topStart=3, topEnd=3 and width=5. This would cause a pixel overlap between those 2 corners.
+      // The .floor ensures that the radii sum will be below the adjacent border length.
+      radiiSanitized = objFromKeys(cornersArray, (k) => (Math.floor(P(radiiSanitized[k]) * minRatio)) / scale);
+  }
 
-      if (getViewStyleRadius) {
-        const mergedViewStyle = StyleSheet.flatten(viewStyle ?? {}); // Convert possible array style to a single obj style.
-        mergedStyle = objFromKeys(cornersArray, (k) => mergedViewStyle[cornerToStyle(k, false)] ?? mergedViewStyle[cornerToStyle(k, true)] ?? mergedViewStyle.borderRadius) as Record<Corner, number | undefined>;
-      }
+  return radiiSanitized;
+}
 
-      // Only enter block if there is a undefined corner that may now be defined;
-      if (getChildRadius && Object.values(mergedStyle).includes(undefined)) {
-        if (React.Children.count(children) > 1)
-          throw new Error('Only single child is accepted in Shadow component with getChildRadius={true} (default value). You should wrap it in a View or change this property to false and manually enter the borderRadius in the radius property.');
-        /** May be an array of styles. */
-        const childStyleTemp: ViewStyle | undefined = ((React.Children.only(children) as JSX.Element | undefined)?.props?.style);
-        const childStyle = StyleSheet.flatten(childStyleTemp ?? {}); // Convert possible array style to a single obj style.
-        mergedStyle = objFromKeys(cornersArray, (k) =>
-          mergedStyle[k] ?? // Don't overwrite viewStyle already defined radiuses.
-          childStyle[cornerToStyle(k, false)] ?? childStyle[cornerToStyle(k, true)] ?? childStyle.borderRadius) as Record<Corner, number | undefined>;
-      }
-
-      return mergedStyle;
-    })();
-
-
-    /** Round and zero negative radius values */
-    const radiiPreSizeLimit = objFromKeys(cornersArray, (k) => R(Math.max(cornerRadiusPartial[k] ?? 0, 0)));
-
-    let result = radiiPreSizeLimit;
-
-    if (typeof width === 'number' && typeof height === 'number') {
-      // https://css-tricks.com/what-happens-when-border-radii-overlap/
-      // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
-      const minRatio = Math.min( // 'x / 0 = Infinity' is js, not a problem here.
-        width / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.topRight), // top
-        height / (radiiPreSizeLimit.topRight + radiiPreSizeLimit.bottomRight), // right
-        width / (radiiPreSizeLimit.bottomLeft + radiiPreSizeLimit.bottomRight), // bottom
-        height / (radiiPreSizeLimit.topLeft + radiiPreSizeLimit.bottomLeft), // left
-      );
-      if (minRatio < 1)
-        result = objFromKeys(cornersArray, (k) => R(radiiPreSizeLimit[k] * minRatio));
-    }
-
-    return result;
-  }, [children, getChildRadius, getViewStyleRadius, height, radiusProp, viewStyle, width]);
-
-
-  const shadow = useMemo(() => {
     // Quick return if nothing to render.
     if (!distance && !paintInside)
       return null;
 
-    // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
-    if (safeRender && (typeof width === 'string' || typeof height === 'string'))
-      return null;
+/** The SVG parts. */
+// We default the props here for a micro improvement in performance. endColorProp default value was the main reason.
+function getShadow({
+  safeRender, width, height, isRTL,
+  distanceProp = 10,
+  startColorProp = '#00000020',
+  endColorProp = colord(startColorProp).alpha(0).toHex(),
+  topStart, topEnd, bottomStart, bottomEnd,
+  activeSides, activeCorners, paintInside, idSuffix,
+}: {
+  safeRender: boolean | undefined;
+  width: string | number;
+  height: string | number;
+  isRTL: boolean;
+  distanceProp?: number;
+  startColorProp?: string;
+  endColorProp?: string;
+  topStart: number;
+  topEnd: number;
+  bottomStart: number;
+  bottomEnd: number;
+  activeSides: Record<Side, boolean>;
+  activeCorners: Record<Corner, boolean>;
+  paintInside: boolean;
+  idSuffix: string;
+}): JSX.Element | null {
+  // Skip if using safeRender and we still don't have the exact sizes, if we are still on the first render using the relative sizes.
+  if (safeRender && (typeof width === 'string' || typeof height === 'string'))
+    return null;
 
-    // polished vs 'transparent': https://github.com/styled-components/polished/issues/566. Maybe tinycolor2 would allow it.
-    const startColor = startColorProp === 'transparent' ? '#0000' : startColorProp;
-    const finalColor = finalColorProp === 'transparent' ? '#0000' : finalColorProp;
+  const distance = R(Math.max(distanceProp, 0)); // Min val as 0
 
-    const startColorRgb = parseToRgb(startColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
-    const finalColorRgb = parseToRgb(finalColor) as Omit<RgbaColor, 'alpha'> & { alpha?: number };
+  // Quick return if not going to show up anything
+  if (!distance && !paintInside)
+    return null;
 
-    // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile doesn't.
-    // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
-    // it isn't applied twice.
-    const startColorWoOpacity = rgbToColorString({ ...startColorRgb, alpha: undefined }); // overwrite alpha
-    const finalColorWoOpacity = rgbToColorString({ ...finalColorRgb, alpha: undefined });
+  const distanceWithAdditional = distance + additional;
 
-    const startColorOpacity = startColorRgb.alpha ?? 1;
-    const finalColorOpacity = finalColorRgb.alpha ?? 1;
+  /** Will (+ additional), only if its value isn't '100%'. [*4] */
+  const widthWithAdditional = typeof width === 'string' ? width : width + additional;
+  /** Will (+ additional), only if its value isn't '100%'. [*4] */
+  const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
-    const { topLeft, topRight, bottomLeft, bottomRight } = radii;
+  const startColord = colord(startColorProp);
+  const endColord = colord(endColorProp);
 
-    const cornerShadowRadius: CornerRadiusShadow = { // Not using objFromKeys here as the key is different
-      topLeftShadow: sumDps(topLeft, distance),
-      topRightShadow: sumDps(topRight, distance),
-      bottomLeftShadow: sumDps(bottomLeft, distance),
-      bottomRightShadow: sumDps(bottomRight, distance),
-    };
+  // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile gradient doesn't.
+  // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
+  // it isn't applied twice.
+  const startColorWoOpacity = startColord.alpha(1).toHex();
+  const endColorWoOpacity = endColord.alpha(1).toHex();
 
-    const { topLeftShadow, topRightShadow, bottomLeftShadow, bottomRightShadow } = cornerShadowRadius;
+  const startColorOpacity = startColord.alpha();
+  const endColorOpacity = endColord.alpha();
 
-    /** Which sides will have shadow. */
-    const activeSides: Record<Side, boolean> = objFromKeys(sidesArray, (k) => sidesProp.includes(k));
+  // Fragment wasn't working for some reason, so, using array.
+  const linearGradient = [
+    // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
+    // In web, smaller offsets needs to come before, so offset={0} definition comes first.
+    <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
+    <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity} key='2'/>,
+  ];
 
-    /** Which corners will have shadow. */
-    const activeCorners: Record<Corner, boolean> = objFromKeys(cornersArray, (k) => cornersProp.includes(k));
+  const radialGradient2 = (p: RadialGradientPropsOmited) => radialGradient({
+    ...p, startColorWoOpacity, startColorOpacity, endColorWoOpacity, endColorOpacity, paintInside,
+  });
 
-    // Fragment wasn't working for some reason, so, using array.
-    const linearGradient = [
-      // [*1] In mobile, it's required for the alpha to be set in opacity prop to work.
-      // In web, smaller offsets needs to come before, so offset={0} definition comes first.
-      <Stop offset={0} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity} key='1'/>,
-      <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity} key='2'/>,
-    ];
+  const cornerShadowRadius: CornerRadiusShadow = {
+    topStartShadow: sumDps(topStart, distance),
+    topEndShadow: sumDps(topEnd, distance),
+    bottomStartShadow: sumDps(bottomStart, distance),
+    bottomEndShadow: sumDps(bottomEnd, distance),
+  };
 
-    function radialGradient(id: string, top: boolean, left: boolean, radius: number, shadowRadius: number) {
-      return (<RadialGradient
-        id={id}
-        cx={left ? shadowRadius : 0}
-        cy={top ? shadowRadius : 0}
-        r={shadowRadius}
-        gradientUnits='userSpaceOnUse' // won't show if this isn't set
-      >
-        {/* <Stop offset={radius / shadowRadius} stopOpacity={0}/> // Bad. There would be a tiny gap between the child and the corner shadow. */}
-        <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
-        <Stop offset={1} stopColor={finalColorWoOpacity} stopOpacity={finalColorOpacity}/>
-      </RadialGradient>);
-    }
+  const { topStartShadow, topEndShadow, bottomStartShadow, bottomEndShadow } = cornerShadowRadius;
 
-    return (<>
-      {/* Sides */}
-
-      {/* shape-rendering fixes some gaps on web. Not available on Android/iOS, but won't affect them.
-          We use shapeRendering, but React converts it to shape-rendering. Else, it would work but throw some console errors.
-          It don't actually exists in react-native-svg, but the prop is passed anyway. Else, there probably wouldn't be a solution for web for the gaps!
-          We do the {...{shape[...]}} else TS would complain that this prop isn't accepted. */}
-      {/* Don't render sides if no distance. No point to add those Views if they aren't going to show up. */}
-      {(distance > 0) && <>
-        {activeSides.left && <Svg
+  return (
+    <>
+      {/* Skip sides if we don't have a distance. */}
+      {distance > 0 && <>
+        {/* Sides */}
+        {activeSides.start && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
-          style={{ position: 'absolute', left: -distance, top: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
+          style={{ position: 'absolute', start: -distance, top: topStart }}
         >
-          <Defs><LinearGradient id={`left.${gradientIdSuffix}`} x1='1' y1='0' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Defs><LinearGradient id={`start.${idSuffix}`} x1={isRTL ? '0' : '1'} y1='0' x2={isRTL ? '1' : '0'} y2='0'>{linearGradient}</LinearGradient></Defs>
           {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
-          just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-          <Rect width={distance} height={height} fill={`url(#left.${gradientIdSuffix})`} y={-sumDps(topLeft, bottomLeft)}/>
-        </Svg>
-        }
-        {activeSides.right && <Svg
+                  just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
+          <Rect width={distance} height={height} fill={`url(#start.${idSuffix})`} y={-sumDps(topStart, bottomStart)}/>
+        </Svg>}
+        {activeSides.end && <Svg
           width={distanceWithAdditional} height={heightWithAdditional}
-          style={{ position: 'absolute', left: width, top: topRight, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
+          style={{ position: 'absolute', start: width, top: topEnd }}
         >
-          <Defs><LinearGradient id={`right.${gradientIdSuffix}`} x1='0' y1='0' x2='1' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={distance} height={height} fill={`url(#right.${gradientIdSuffix})`} y={-sumDps(topRight, bottomRight)}/>
-        </Svg>
-        }
-        {activeSides.bottom && <Svg
-          width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: height, left: bottomLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
-        >
-          <Defs><LinearGradient id={`bottom.${gradientIdSuffix}`} x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill={`url(#bottom.${gradientIdSuffix})`} x={-sumDps(bottomLeft, bottomRight)}/>
-        </Svg>
-        }
+          <Defs><LinearGradient id={`end.${idSuffix}`} x1={isRTL ? '1' : '0'} y1='0' x2={isRTL ? '0' : '1'} y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={distance} height={height} fill={`url(#end.${idSuffix})`} y={-sumDps(topEnd, bottomEnd)}/>
+        </Svg>}
         {activeSides.top && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: -distance, left: topLeft, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
+          style={{ position: 'absolute', top: -distance, start: topStart, ...(isRTL && rtlScaleX) }}
         >
-          <Defs><LinearGradient id={`top.${gradientIdSuffix}`} x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
-          <Rect width={width} height={distance} fill={`url(#top.${gradientIdSuffix})`} x={-sumDps(topLeft, topRight)}/>
-        </Svg>
-        }
+          <Defs><LinearGradient id={`top.${idSuffix}`} x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill={`url(#top.${idSuffix})`} x={-sumDps(topStart, topEnd)}/>
+        </Svg>}
+        {activeSides.bottom && <Svg
+          width={widthWithAdditional} height={distanceWithAdditional}
+          style={{ position: 'absolute', top: height, start: bottomStart, ...(isRTL && rtlScaleX) }}
+        >
+          <Defs><LinearGradient id={`bottom.${idSuffix}`} x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
+          <Rect width={width} height={distance} fill={`url(#bottom.${idSuffix})`} x={-sumDps(bottomStart, bottomEnd)}/>
+        </Svg>}
       </>}
 
+
       {/* Corners */}
-
       {/* The anchor for the svgs path is the top left point in the corner square.
-        The starting point is the clockwise external arc init point. */}
-
+              The starting point is the clockwise external arc init point. */}
       {/* Checking topLeftShadowEtc > 0 due to https://github.com/SrBrahma/react-native-shadow-2/issues/47. */}
-      {activeCorners.topLeft && topLeftShadow > 0 && <Svg width={topLeftShadow + additional} height={topLeftShadow + additional}
-        style={{ position: 'absolute', top: -distance, left: -distance, ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
+      {activeCorners.topStart && topStartShadow > 0 && <Svg width={topStartShadow + additional} height={topStartShadow + additional}
+        style={{ position: 'absolute', top: -distance, start: -distance }}
       >
-        <Defs>{radialGradient(`topLeft.${gradientIdSuffix}`, true, true, topLeft, topLeftShadow)}</Defs>
-        <Path fill={`url(#topLeft.${gradientIdSuffix})`} d={`M0,${topLeftShadow} a${topLeftShadow},${topLeftShadow} 0 0 1 ${topLeftShadow} ${-topLeftShadow} v${distance} ${paintInside
-          ? `v${topLeft} h${-topLeft}` // read [*2] below for the explanation for this
-          : `a${topLeft},${topLeft} 0 0 0 ${-topLeft},${topLeft}`
-        } h${-distance} Z`}/>
+        <Defs>{radialGradient2({ id: `topStart.${idSuffix}`, top: true, left: !isRTL, radius: topStart, shadowRadius: topStartShadow })}</Defs>
+        <Rect fill={`url(#topStart.${idSuffix})`} width={topStartShadow} height={topStartShadow}/>
       </Svg>}
-
-
-      {activeCorners.topRight && topRightShadow > 0 && <Svg width={topRightShadow + additional} height={topRightShadow + additional}
+      {activeCorners.topEnd && topEndShadow > 0 && <Svg width={topEndShadow + additional} height={topEndShadow + additional}
         style={{
-          position: 'absolute', top: -distance, left: width,
-          transform: [{ translateX: isRTL ? topRight : -topRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
+          position: 'absolute', top: -distance, start: width,
+          transform: [{ translateX: isRTL ? topEnd : -topEnd }],
         }}
       >
-        <Defs>{radialGradient(`topRight.${gradientIdSuffix}`, true, false, topRight, topRightShadow)}</Defs>
-        <Path fill={`url(#topRight.${gradientIdSuffix})`} d={`M0,0 a${topRightShadow},${topRightShadow} 0 0 1 ${topRightShadow},${topRightShadow} h${-distance} ${paintInside
-          ? `h${-topRight} v${-topRight}`
-          : `a${topRight},${topRight} 0 0 0 ${-topRight},${-topRight}`
-        } v${-distance} Z`}/>
-        {/*  */}
+        <Defs>{radialGradient2({ id: `topEnd.${idSuffix}`, top: true, left: isRTL, radius: topEnd, shadowRadius: topEndShadow })}</Defs>
+        <Rect fill={`url(#topEnd.${idSuffix})`} width={topEndShadow} height={topEndShadow}/>
       </Svg>}
-
-      {activeCorners.bottomLeft && bottomLeftShadow > 0 && <Svg width={bottomLeftShadow + additional} height={bottomLeftShadow + additional}
-        style={{ position: 'absolute', top: height, left: -distance, transform: [{ translateY: -bottomLeft }, ...(isRTL ? [{ scaleX: -1 }] : [])] }}
+      {activeCorners.bottomStart && bottomStartShadow > 0 && bottomLeftShadow > 0 && <Svg width={bottomStartShadow + additional} height={bottomStartShadow + additional}
+        style={{ position: 'absolute', top: height, start: -distance, transform: [{ translateY: -bottomStart }] }}
       >
-        <Defs>{radialGradient(`bottomLeft.${gradientIdSuffix}`, false, true, bottomLeft, bottomLeftShadow)}</Defs>
-        <Path fill={`url(#bottomLeft.${gradientIdSuffix})`} d={`M${bottomLeftShadow},${bottomLeftShadow} a${bottomLeftShadow},${bottomLeftShadow} 0 0 1 ${-bottomLeftShadow},${-bottomLeftShadow} h${distance} ${paintInside
-          ? `h${bottomLeft} v${bottomLeft}`
-          : `a${bottomLeft},${bottomLeft} 0 0 0 ${bottomLeft},${bottomLeft}`
-        } v${distance} Z`}/>
+        <Defs>{radialGradient2({ id: `bottomStart.${idSuffix}`, top: false, left: !isRTL, radius: bottomStart, shadowRadius: bottomStartShadow })}</Defs>
+        <Rect fill={`url(#bottomStart.${idSuffix})`} width={bottomStartShadow} height={bottomStartShadow}/>
       </Svg>}
-
-      {activeCorners.bottomRight && bottomRightShadow > 0 && <Svg width={bottomRightShadow + additional} height={bottomRightShadow + additional}
+      {activeCorners.bottomEnd && bottomEndShadow > 0 && <Svg width={bottomEndShadow + additional} height={bottomEndShadow + additional}
         style={{
-          position: 'absolute', top: height, left: width,
-          transform: [{ translateX: isRTL ? bottomRight : -bottomRight }, { translateY: -bottomRight }, ...(isRTL ? [{ scaleX: -1 }] : [])],
+          position: 'absolute', top: height, start: width,
+          transform: [{ translateX: isRTL ? bottomEnd : -bottomEnd }, { translateY: -bottomEnd }],
         }}
       >
-        <Defs>{radialGradient(`bottomRight.${gradientIdSuffix}`, false, false, bottomRight, bottomRightShadow)}</Defs>
-        <Path fill={`url(#bottomRight.${gradientIdSuffix})`} d={`M${bottomRightShadow},0 a${bottomRightShadow},${bottomRightShadow} 0 0 1 ${-bottomRightShadow},${bottomRightShadow} v${-distance} ${paintInside
-          ? `v${-bottomRight} h${bottomRight}`
-          : `a${bottomRight},${bottomRight} 0 0 0 ${bottomRight},${-bottomRight}`
-        } h${distance} Z`}/>
+        <Defs>{radialGradient2({ id: `bottomEnd.${idSuffix}`, top: false, left: isRTL, radius: bottomEnd, shadowRadius: bottomEndShadow })}</Defs>
+        <Rect fill={`url(#bottomEnd.${idSuffix})`} width={bottomEndShadow} height={bottomEndShadow}/>
       </Svg>}
-
 
 
       {/* Paint the inner area, so we can offset it.
-        [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
-        and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
+      [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
+      and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
       paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional}
-        style={{ position: 'absolute', ...(isRTL && { transform: [{ scaleX: -1 }] }) }}
-      >
+      {paintInside && <Svg width={widthWithAdditional} height={heightWithAdditional} style={{ position: 'absolute', ...(isRTL && rtlScaleX) }}>
         {(typeof width === 'number' && typeof height === 'number')
-          // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
-          // We use Path as workaround to it. (TODO check if it still happens on svg 12.3.0)
-          ? (<Path fill={startColorWoOpacity} fillOpacity={startColorOpacity} d={`M0,${topLeft} v${height - bottomLeft - topLeft} h${bottomLeft} v${bottomLeft} h${width - bottomLeft - bottomRight} v${-bottomRight} h${bottomRight} v${-height + bottomRight + topRight} h${-topRight} v${-topRight} h${-width + topLeft + topRight} v${topLeft} Z`}/>)
+        // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
+        // We use Path as workaround to it.
+          ? (
+            <Path
+              fill={startColorWoOpacity} fillOpacity={startColorOpacity}
+              d={`M0,${topStart} v${height - bottomStart - topStart} h${bottomStart} v${bottomStart} h${width - bottomStart - bottomEnd} v${-bottomEnd} h${bottomEnd} v${-height + bottomEnd + topEnd} h${-topEnd} v${-topEnd} h${-width + topStart + topEnd} v${topStart} Z`}
+            />)
           : (<>
             <Defs>
-              <Mask id={`maskPaintBelow.${gradientIdSuffix}`}>
+              <Mask id={`maskInside.${idSuffix}`}>
                 {/* Paint all white, then black on border external areas to erase them */}
                 <Rect width={width} height={height} fill='#fff'/>
-                {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
-                <Rect width={topLeft} height={topLeft} fill='#000'/>
-                <Rect width={topRight} height={topRight} x={width} transform={`translate(${-topRight}, 0)`} fill='#000'/>
-                <Rect width={bottomLeft} height={bottomLeft} y={height} transform={`translate(0, ${-bottomLeft})`} fill='#000'/>
-                <Rect width={bottomRight} height={bottomRight} x={width} y={height} transform={`translate(${-bottomRight}, ${-bottomRight})`} fill='#000'/>
+                {/* Remove the corners */}
+                <Rect width={topStart} height={topStart} fill='#000'/>
+                <Rect width={topEnd} height={topEnd} x={width} transform={`translate(${-topEnd}, 0)`} fill='#000'/>
+                <Rect width={bottomStart} height={bottomStart} y={height} transform={`translate(0, ${-bottomStart})`} fill='#000'/>
+                <Rect width={bottomEnd} height={bottomEnd} x={width} y={height} transform={`translate(${-bottomEnd}, ${-bottomEnd})`} fill='#000'/>
               </Mask>
             </Defs>
-            <Rect width={width} height={height} mask={`url(#maskPaintBelow.${gradientIdSuffix})`} fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
-          </>)
-        }
-      </Svg>
-      }
+            <Rect width={width} height={height} mask={`url(#maskInside.${idSuffix})`} fill={startColorWoOpacity} fillOpacity={startColorOpacity}/>
+          </>)}
+      </Svg>}
+    </>
+  );
+}
 
-    </>);
-  }, [distance, paintInside, safeRender, width, height, startColorProp, finalColorProp, radii, distanceWithAdditional, heightWithAdditional, isRTL, gradientIdSuffix, widthWithAdditional, sidesProp, cornersProp]);
 
-  const result = useMemo(() => {
-    return (
-      // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-      <View style={containerViewStyle} pointerEvents='box-none'>
-        <View pointerEvents='none' {...shadowViewProps} style={[{ ...StyleSheet.absoluteFillObject, left: offsetX, top: offsetY }, shadowViewProps?.style]}>
-          {shadow}
-        </View>
-        <View
-          pointerEvents='box-none'
-          style={[
-            // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
-            // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-            { alignSelf: 'flex-start' },
-            sizeProp && {
-              width, height,
-              borderTopLeftRadius: radii.topLeft, // can't remember why we are passing the radii here.
-              borderTopRightRadius: radii.topRight,
-              borderBottomLeftRadius: radii.bottomLeft,
-              borderBottomRightRadius: radii.bottomRight,
-            }, viewStyle,
-          ]}
+function getResult({
+  shadow, stretch, setChildLayoutWidth, setChildLayoutHeight,
+  containerStyle, children, style,
+  radii, offset,
+  containerViewProps, shadowViewProps, childrenViewProps,
+  styleWidth, styleHeight,
+}: {
+  radii: CornerRadius;
+  containerStyle: StyleProp<ViewStyle>;
+  shadow: JSX.Element | null;
+  children: any;
+  style: ViewStyle; // Already flattened
+  stretch: boolean | undefined;
+  setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
+  offset: [x: number | string, y: number | string];
+  containerViewProps?: ViewProps;
+  shadowViewProps?: ViewProps;
+  childrenViewProps?: ViewProps;
+  /** The style width. Tries to use the style prop then the child's style. */
+  styleWidth?: string | number;
+  /** The style height. Tries to use the style prop then the child's style. */
+  styleHeight?: string | number;
+}): JSX.Element {
 
-          onLayout={(e) => {
-            if (sizeProp) // For some really strange reason, attaching conditionally the onLayout wasn't working
-              return; // on condition change, so we check here inside if the sizeProp is defined.
-              // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
-              // inspector is decimal. It will round up if (>= .5), else, down.
-            const layout = e.nativeEvent.layout;
-            setChildWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded.
-            setChildHeight(layout.height);
-          }}
-        >
-          {children}
-        </View>
+  return (
+    // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
+    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
+      <View pointerEvents='none' {...shadowViewProps} style={[
+        StyleSheet.absoluteFillObject,
+        shadowViewProps?.style,
+        { start: offset[0], top: offset[1] },
+      ]}
+      >
+        {shadow}
       </View>
-    );
-  }, [containerViewStyle, offsetX, offsetY, shadowViewProps, shadow, sizeProp, width, height, radii.topLeft, radii.topRight, radii.bottomLeft, radii.bottomRight, viewStyle, children]);
+      <View
+        pointerEvents='box-none'
+        style={[
+          {
+            // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
+            // Note that topStart/etc has priority over topLeft/etc. We use topLeft so the user may overwrite it with topLeft or topStart styles.
+            borderTopLeftRadius: radii.topStart,
+            borderTopRightRadius: radii.topEnd,
+            borderBottomLeftRadius: radii.bottomStart,
+            borderBottomRightRadius: radii.bottomEnd,
+          },
+          style,
+          // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
+          // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
+          { ...(stretch && { alignSelf: 'stretch' }) },
+        ]}
+        onLayout={(e) => {
+          // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
+          // so we do the check before the state change.
+          // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
+          // inspector is decimal. It will round up if (>= .5), else, down.
+          const layout = e.nativeEvent.layout;
+          // Change layout state if the style width/height is undefined or 'x%'.
+          if (typeof styleWidth !== 'number')
+            setChildLayoutWidth(layout.width); // In web to round decimal values to integers. In mobile it's already rounded. (?)
+          if (typeof styleHeight !== 'number')
+            setChildLayoutHeight(layout.height);
+        }}
+        {...childrenViewProps}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
 
-  return result;
-};
+function DisabledShadow({
+  stretch, containerStyle, children, style,
+  childrenViewProps, containerViewProps,
+}: {
+  containerStyle?: StyleProp<ViewStyle>;
+  children?: any;
+  style?: StyleProp<ViewStyle>;
+  stretch?: boolean;
+  containerViewProps?: ViewProps;
+  childrenViewProps?: ViewProps;
+}): JSX.Element {
+  return (
+    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
+      <View
+        pointerEvents='box-none'
+        {...childrenViewProps}
+        style={[
+          style,
+          { ...(stretch && { alignSelf: 'stretch' }) },
+        ]}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}

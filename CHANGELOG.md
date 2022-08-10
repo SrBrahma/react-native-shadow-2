@@ -1,3 +1,48 @@
+# 7.0.0 - 2022-07-26
+> Major changes to improve the performance, simplify the library usage and improve the Developer Experience. An important update that consolidates this library's maturity.
+
+### Features
+* `stretch` property - [#7](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537).
+* `disabled` property - Easy and performatic way to disable the shadow (but to keep rendering the children).
+* `containerViewProps` property.
+* `childrenViewProps` property.
+
+### Changes
+* Renamed `viewStyle` to `style`.
+* Renamed `containerViewStyle` to `containerStyle`.
+* Renamed `finalColor` to `endColor`, to follow the `start/end` pattern of the following change.
+* `left`/`right` in `sides` and `corners` were changed to `start`/`end` for [RTL friendliness](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
+* `sides` and `corners` properties are now objects instead of arrays.
+  > `sides` new type: `Record<'start' | 'end' | 'top' | 'bottom', boolean>`
+
+  > `corners` new type: `Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>`.
+
+  > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
+
+### Removals
+<ul>
+<li><code>size</code> property. The size now can only be defined in the Shadow's or child's <code>style</code>'s <code>width</code> and <code>height</code> properties.</li>
+<li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code> etc.</li>
+<li>
+<details>
+<summary><code>getChildRadius</code> and <code>getViewStyleRadius</code>.</summary>
+Properties removed for the sake of simplicity of this package. Probably no one used them anyway. If you did use them and want or need them, open an issue about it with your use case. They are always active now. Before, they were active by default.
+</details>
+</li>
+</ul>
+
+### Improvements
+* Significant performance and RAM usage due to general refactorings, SVGs' simplification (with the same appearence), improved memoizations and micro performance improvements.
+* Now using `colord` package instead of `polished` to deal with colors' alpha.
+
+### Fixes
+* [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
+* Error when there is more than a child. [#38](https://github.com/SrBrahma/react-native-shadow-2/issues/38)
+* Error when there isn't a child. [#38 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/38#issuecomment-1059716569)
+* Situational 1-pixel overlap of corners.
+
+<br/><hr/><br/>
+
 ## 6.0.6 - 2022-07-21
 * Fixed Web Shadow when there are more than one being rendered. [#53](https://github.com/SrBrahma/react-native-shadow-2/issues/53). Many thanks, [@GreyJohnsonGit](https://github.com/GreyJohnsonGit)!
 

@@ -8,14 +8,14 @@
   },
   "dependencies": {
     "@sharcoux/slider": "5.6.4",
+    "colord": "2.9.2",
     "expo": "~44.0.6",
-    "pagescrollview": "1.3.2",
-    "polished": "4.1.4",
+    "pagescrollview": "2.0.0-beta.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-native": "0.64.3",
     "react-native-safe-area-context": "3.2.0",
-    "react-native-svg": "12.1.1",
+    "react-native-svg": "12.3.0",
     "react-native-web": "0.17.1",
     "tinycolor2": "1.4.2"
   },
@@ -23,12 +23,11 @@
     "@babel/core": "7.17.2",
     "@types/react": "~17.0.39",
     "@types/react-native": "~0.66.15",
-    "@types/react-native-simple-radio-button": "2.7.1",
+    "@types/react-native-simple-radio-button": "2.7.2",
     "@types/tinycolor2": "1.4.3",
-    "babel-plugin-module-resolver": "4.1.0",
-    "eslint-config-gev": "2.27.2",
-    "metro-with-symlinks": "1.4.0",
-    "typescript": "4.5.5"
+    "eslint-config-gev": "2.33.0",
+    "expo-cli": "^6.0.1",
+    "typescript": "4.6.4"
   },
   "private": true
 }
