@@ -113,8 +113,6 @@ import { Shadow } from 'react-native-shadow-2';
 
   The opacity is set directly in the `startColor` and `endColor` properties, in the alpha channel. E.g.: `'#0001'` is an almost transparent black. You may also use `'#rrggbbaa'`, `'rgba()'`, `'hsla()'` etc. [All patterns in this link, but not int colors, are accepted](https://reactnative.dev/docs/colors).
 
-  You may also use the `opacity` style to change both.
-
 
 * #### My component is no longer using the available parent width after applying the Shadow! What to do?
 
