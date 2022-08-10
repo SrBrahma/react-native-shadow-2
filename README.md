@@ -102,6 +102,8 @@ import { Shadow } from 'react-native-shadow-2';
 
 * You can use either the `'borderTopLeftRadius'` or `'borderTopStartRadius'` and their variations to define the corners radii, although I recommend the latter as it's the RTL standard.
 
+* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow on the 1st render.](https://github.com/SrBrahma/react-native-shadow-2/issues/15), like in a circle. **You can use the `safeRender` property** to only show the shadow on the 2nd render and beyond, when we have the exact component size and the radii are properly limited.
+
 <!-- Seems hard to understand. Will leave it undoc'ed until I improve it. -->
 <!-- * We automatically set the radii in the `style` property, so it contains the Child's Android Ripple if you are using it. We already get those values, so it isn't an effort to set them. -->
 
@@ -144,10 +146,6 @@ import { Shadow } from 'react-native-shadow-2';
 * In `style` and on child's `style`, avoid using inline styles (eg `{{flex: 1}}`). Prefer using styles from `StyleSheet.create`. If you are using arrays for the styles (eg `style={[styles.view, {flex: 1}]}`), have this array creation outside the component or inside an `useMemo`, so it isn't unnecessarily created a new reference at each render and we can better memoize the Shadow.
 
 -->
-
-## 🐛 Known Issues
-
-* [Setting (or obtaining from the child) a too high `radius` (`> size/2`) will mess the shadow.](https://github.com/SrBrahma/react-native-shadow-2/issues/15). **You can use the `safeRender` property** to only show the shadow on the 2nd render and beyond, when we have the exact component size and the radii are properly limited.
 
 ## 📰 Popularly seen on
 ### [LogRocket - Applying box shadows in React Native](https://blog.logrocket.com/applying-box-shadows-in-react-native/)
