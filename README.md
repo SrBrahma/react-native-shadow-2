@@ -148,5 +148,5 @@ import { Shadow } from 'react-native-shadow-2';
 -->
 
 ## 📰 Popularly seen on
-### [LogRocket - Applying box shadows in React Native](https://blog.logrocket.com/applying-box-shadows-in-react-native/)
-### [V. Petrachin - Top 10 Libraries You Should Know for React Native in 2022](https://viniciuspetrachin.medium.com/top-10-libraries-you-should-know-for-react-native-d435e5209c96)
+* ### [LogRocket - Applying box shadows in React Native](https://blog.logrocket.com/applying-box-shadows-in-react-native/)
+* ### [V. Petrachin - Top 10 Libraries You Should Know for React Native in 2022](https://viniciuspetrachin.medium.com/top-10-libraries-you-should-know-for-react-native-d435e5209c96)
