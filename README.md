@@ -135,11 +135,13 @@ const ShadowPresets = {
 **A**: Upgrade your Typescript to at least 4.0.0! Those two properties use [**labeled tuples**](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#labeled-tuple-elements). If you don't use Typescript, this won't happen.
 
 
-## Performance Guide
+<!-- Commented until improved ## Performance Guide 
 
 > While you usually won't have any performance issues by using this, you may have performance issues if you have many Shadows in your screen, like in a FlatList. Those may help you to improve your performance:
 
 * In `style` and on child's `style`, avoid using inline styles (eg `{{flex: 1}}`). Prefer using styles from `StyleSheet.create`. If you are using arrays for the styles (eg `style={[styles.view, {flex: 1}]}`), have this array creation outside the component or inside an `useMemo`, so it isn't unnecessarily created a new reference at each render and we can better memoize the Shadow.
+
+-->
 
 ## 🐛 Notes / Known Issues
 
