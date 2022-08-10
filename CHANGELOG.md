@@ -11,11 +11,8 @@
 * Renamed `viewStyle` to `style`.
 * Renamed `containerViewStyle` to `containerStyle`.
 * Renamed `finalColor` to `endColor`, to follow the `start/end` pattern of the following change.
-* `left`/`right` in `sides` and `corners` were changed to `start`/`end` for [RTL friendliness](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
 * `sides` and `corners` properties are now objects instead of arrays.
-  > `sides` new type: `Record<'start' | 'end' | 'top' | 'bottom', boolean>`
-
-  > `corners` new type: `Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>`.
+* `left` / `right` in `sides` and `corners` were changed to `start` / `end` for [RTL friendliness](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
 
   > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
 
