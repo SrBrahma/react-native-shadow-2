@@ -150,7 +150,12 @@ function ShadowInner(props: ShadowProps): JSX.Element {
 
   /** Child's style. */
   const cStyle: ViewStyle = useMemo(() => {
-    return StyleSheet.flatten<ViewStyle>([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
+    const cStyle = StyleSheet.flatten<ViewStyle>([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
+    if (typeof cStyle.width === 'number')
+      cStyle.width = R(cStyle.width);
+    if (typeof cStyle.height === 'number')
+      cStyle.height = R(cStyle.height);
+    return cStyle;
   }, [childSStr, childStyleStr]);
 
   /** Child's Radii. */
