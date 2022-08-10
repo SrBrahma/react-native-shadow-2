@@ -7,7 +7,7 @@ import { colord } from 'colord';
 import type { Corner, CornerRadius, CornerRadiusShadow, RadialGradientPropsOmited, Side } from './utils';
 import {
   additional, cornersArray, divDps, generateGradientIdSuffix, objFromKeys,
-  P, R, radialGradient, rtlScaleX, scale, sidesArray, sumDps,
+  P, R, radialGradient, rtlScaleX, scale, sumDps,
 } from './utils';
 
 
@@ -28,13 +28,17 @@ export interface ShadowProps {
   distance?: number;
   /** The sides that have the shadows drawn. Doesn't include corners.
    *
-   * @default ['start', 'end', 'top', 'bottom'] */
+   * Undefined sides fallbacks to true.
+   *
+   * @default undefined */
   // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users, won't be just `Side`.
-  sides?: ('start' | 'end' | 'top' | 'bottom')[];
+  sides?: Record<'start' | 'end' | 'top' | 'bottom', boolean>;
   /** The corners that have the shadows drawn.
    *
-   * @default ['topStart', 'topEnd', 'bottomStart', 'bottomEnd'] */
-  corners?: ('topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd')[];
+   * Undefined corners fallbacks to true.
+   *
+   * @default undefined */
+  corners?: Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>;
   /** Moves the shadow. Negative x moves it to the left, negative y moves it up.
    *
    * Accepts `'x%'` values, in relation to the child's size.
@@ -94,7 +98,6 @@ export interface ShadowProps {
 
 // For better memoization and performance.
 const emptyObj: Record<string, unknown> = {};
-const emptyArray: any[] = [];
 const defaultOffset = [0, 0] as [x: number | string, y: number | string];
 
 export function Shadow(props: ShadowProps): JSX.Element {
@@ -129,28 +132,16 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     containerViewProps,
   } = props;
 
-  /** Which sides will have shadow. */
-  const activeSides: Record<Side, boolean> = useMemo(() => objFromKeys(sidesArray, (k) => sides?.includes(k) ?? true),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    (sides ?? emptyArray).slice(4),
-  );
-
-  /** Which corners will have shadow. */
-  const activeCorners: Record<Corner, boolean> = useMemo(() => objFromKeys(cornersArray, (k) => corners?.includes(k) ?? true),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    (corners ?? emptyArray).slice(4),
-  );
-
   /** `s` is a shortcut for `style` I am using in another lib of mine (react-native-gev). While currently no one uses it besides me,
    * I believe it may come to be a popular pattern eventually :) */
   const childProps: {style?: ViewStyle; s?: ViewStyle} = (Children.count(children) === 1) ? (Children.only(children) as JSX.Element).props ?? emptyObj : emptyObj;
 
-  const childStyleStr = useMemo(() => (childProps.style ? JSON.stringify(childProps.style) : '{}'), [childProps.style]);
-  const childSStr = useMemo(() => (childProps.s ? JSON.stringify(childProps.s) : '{}'), [childProps.s]);
+  const childStyleStr: string | null = useMemo(() => (childProps.style ? JSON.stringify(childProps.style) : null), [childProps.style]);
+  const childSStr: string | null = useMemo(() => (childProps.s ? JSON.stringify(childProps.s) : null), [childProps.s]);
 
   /** Child's style. */
   const cStyle: ViewStyle = useMemo(() => {
-    const cStyle = StyleSheet.flatten<ViewStyle>([JSON.parse(childStyleStr), JSON.parse(childSStr)]);
+    const cStyle = StyleSheet.flatten<ViewStyle>([childStyleStr && JSON.parse(childStyleStr), childSStr && JSON.parse(childSStr)]);
     if (typeof cStyle.width === 'number')
       cStyle.width = R(cStyle.width);
     if (typeof cStyle.height === 'number')
@@ -168,11 +159,11 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     };
   }, [cStyle]);
 
-  const styleStr: string = useMemo(() => (styleProp ? JSON.stringify(styleProp) : '{}'), [styleProp]);
+  const styleStr: string | null = useMemo(() => (styleProp ? JSON.stringify(styleProp) : null), [styleProp]);
 
   /** Flattened style. */
   const { style, sRadii }: { style: ViewStyle; sRadii: Record<Corner, number | undefined> } = useMemo(() => {
-    const style = StyleSheet.flatten<ViewStyle>(JSON.parse(styleStr));
+    const style = StyleSheet.flatten<ViewStyle>(styleStr && JSON.parse(styleStr));
     if (typeof style.width === 'number')
       style.width = R(style.width);
     if (typeof style.height === 'number')
@@ -211,8 +202,28 @@ function ShadowInner(props: ShadowProps): JSX.Element {
   const shadow = useMemo(() => getShadow({
     topStart, topEnd, bottomStart, bottomEnd, width, height,
     isRTL, distanceProp, startColorProp, endColorProp, paintInside,
-    safeRender, activeSides, activeCorners, idSuffix,
-  }), [topStart, topEnd, bottomStart, bottomEnd, width, height, isRTL, distanceProp, startColorProp, endColorProp, paintInside, safeRender, activeSides, activeCorners, idSuffix]);
+    safeRender,
+    activeSides: {
+      bottom: sides?.bottom ?? true,
+      top: sides?.top ?? true,
+      start: sides?.start ?? true,
+      end: sides?.end ?? true,
+    }, activeCorners: {
+      topStart: corners?.topStart ?? true,
+      topEnd: corners?.topEnd ?? true,
+      bottomStart: corners?.bottomStart ?? true,
+      bottomEnd: corners?.bottomEnd ?? true,
+    },
+    idSuffix,
+  }), [
+    width, height, distanceProp,
+    startColorProp, endColorProp,
+    topStart, topEnd, bottomStart, bottomEnd,
+    paintInside,
+    sides?.bottom, sides?.top, sides?.start, sides?.end,
+    corners?.topStart, corners?.topEnd, corners?.bottomStart, corners?.bottomEnd,
+    safeRender, isRTL, idSuffix,
+  ]);
 
   // Not yet sure if we should memo this.
   return getResult({
@@ -429,7 +440,7 @@ function getShadow({
               <Mask id={`maskInside.${idSuffix}`}>
                 {/* Paint all white, then black on border external areas to erase them */}
                 <Rect width={width} height={height} fill='#fff'/>
-                {/* Remove the corners, as squares. Could use <Path/>, but this way seems to be more maintainable. */}
+                {/* Remove the corners */}
                 <Rect width={topStart} height={topStart} fill='#000'/>
                 <Rect width={topEnd} height={topEnd} x={width} transform={`translate(${-topEnd}, 0)`} fill='#000'/>
                 <Rect width={bottomStart} height={bottomStart} y={height} transform={`translate(0, ${-bottomStart})`} fill='#000'/>

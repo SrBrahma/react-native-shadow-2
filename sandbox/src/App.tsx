@@ -15,7 +15,7 @@ const defaults = {
   borderRadius: 30,
   width: 200,
   height: 200,
-  startColor: tinycolor('#00000090').toHex8String(),
+  startColor: tinycolor('#00000020').toHex8String(),
   finalColor: tinycolor('#0000').toHex8String(),
   childColor: tinycolor('#fff').toHex8String(), // tinycolor('#fff').toHex8String(),
 };

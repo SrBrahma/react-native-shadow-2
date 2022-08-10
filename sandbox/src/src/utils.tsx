@@ -14,7 +14,6 @@ export type CornerRadiusShadow = Record<`${Corner}Shadow`, number>;
  * and somehow may be useful to you. */
 export const version = '7.0.0';
 
-export const sidesArray = ['start', 'end', 'top', 'bottom'] as const;
 export const cornersArray = ['topStart', 'topEnd', 'bottomStart', 'bottomEnd'] as const;
 
 const isWeb = Platform.OS === 'web';

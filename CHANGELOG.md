@@ -7,18 +7,19 @@
 * `containerViewProps` property.
 * `childrenViewProps` property.
 
-### Renamed
-* `viewStyle` to `style`.
-* `containerViewStyle` to `containerStyle`.
-* `finalColor` to `endColor`, to follow the `start/end` pattern of the RTL changes below.
-##### [RTL Related](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
-> Based on https://necolas.github.io/react-native-web/docs/styling/#non-standard-properties.
-* `sides` type: `('left' | 'right' | 'top' | 'bottom')[]` to `('start' | 'end' | 'top' | 'bottom')[]`.
-* `corners` type: `('topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight')[]` to `('topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd')[]`.
+### Changes
+* Renamed `viewStyle` to `style`.
+* Renamed `containerViewStyle` to `containerStyle`.
+* Renamed `finalColor` to `endColor`, to follow the `start/end` pattern of the following change.
+* `left`/`right` in `sides` and `corners` were changed to `start`/`end` for [RTL friendliness](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps)
+* `sides` and `corners` properties are now objects instead of arrays.
+  > `sides` new type: `Record<'start' | 'end' | 'top' | 'bottom', boolean>`
+
+  > `corners` new type: `Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>`.
 
   > Note that you may still use `borderTopLeftRadius` etc in `style` besides `borderTopStartRadius` if you want to.
 
-### Removed
+### Removals
 <ul>
 <li><code>size</code> property. The size now can only be defined in the Shadow's or child's <code>style</code>'s <code>width</code> and <code>height</code> properties.</li>
 <li><code>radius</code> property. The radii now can only be defined in the Shadow's or child's <code>style</code>'s <code>borderRadius</code> related properties, such as <code>borderTopStartRadius</code>/<code>borderTopLeftRadius</code> etc.</li>
@@ -30,16 +31,17 @@ Properties removed for the sake of simplicity of this package. Probably no one u
 </li>
 </ul>
 
-### Improved
-* Significant performance and RAM usage due to some general refactorings, simplified the SVGs' code (with the same appearence) and improved memoizations.
+### Improvements
+* Significant performance and RAM usage due to general refactorings, SVGs' simplification (with the same appearence), improved memoizations and micro performance improvements.
 * Now using `colord` package instead of `polished` to deal with colors' alpha.
 
-### Fixed
+### Fixes
 * [RTL in web](https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853).
 * Error when there is more than a child. [#38](https://github.com/SrBrahma/react-native-shadow-2/issues/38)
 * Error when there isn't a child. [#38 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/38#issuecomment-1059716569)
 * Situational 1-pixel overlap of corners.
-<hr/>
+
+<br/><hr/><br/>
 
 ## 6.0.3 - 2022-02-11
 * Fixed paintInside gaps on iOS. [#36](https://github.com/SrBrahma/react-native-shadow-2/issues/36). Thanks, [@walterholohan](https://github.com/walterholohan)!
