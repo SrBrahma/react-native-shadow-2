@@ -11,7 +11,7 @@ import {
 } from './utils';
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox). */
-export const version = '7.0.3';
+export const version = '7.0.4';
 
 export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.

@@ -90,8 +90,9 @@ export function radialGradient({
     r={shadowRadius}
     gradientUnits='userSpaceOnUse' // won't show if this isn't set
   >
-    {!paintInside && <Stop offset={radius / shadowRadius} stopOpacity={0}/>}
-    {/* Bad. There would be a tiny gap between the child and the corner shadow. */}
+    {/* On Android !paintInside && <Stop/> would throw [#56](https://github.com/SrBrahma/react-native-shadow-2/issues/56).
+    We must use this Fragment to avoid it. A better conditional child would be better. */}
+    {!paintInside ? <Stop offset={radius / shadowRadius} stopOpacity={0}/> : <></>}
     <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
     <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
   </RadialGradient>);
