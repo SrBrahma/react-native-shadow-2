@@ -1,3 +1,7 @@
+### 7.0.3 - 2022-08-14
+* Fixed `undefined is not an object (evaluating 'd.width')` error. [#56](https://github.com/SrBrahma/react-native-shadow-2/issues/56). Thanks, [alexco2](https://github.com/alexco2)!
+* Fixed `flex-start` not being the default `alignSelf` style as it was before.
+
 ### 7.0.2 - 2022-08-10
 * Fixed missing `version` const export in `index.tsx`.
 

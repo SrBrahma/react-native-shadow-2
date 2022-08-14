@@ -11,7 +11,7 @@ import {
 } from './utils';
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox). */
-export const version = '7.0.2';
+export const version = '7.0.3';
 
 export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.
@@ -165,7 +165,7 @@ function ShadowInner(props: ShadowProps): JSX.Element {
 
   /** Flattened style. */
   const { style, sRadii }: { style: ViewStyle; sRadii: Record<Corner, number | undefined> } = useMemo(() => {
-    const style = StyleSheet.flatten<ViewStyle>(styleStr && JSON.parse(styleStr));
+    const style = styleStr ? StyleSheet.flatten<ViewStyle>(JSON.parse(styleStr)) : {};
     if (typeof style.width === 'number')
       style.width = R(style.width);
     if (typeof style.height === 'number')
@@ -503,6 +503,7 @@ function getResult({
             borderTopRightRadius: radii.topEnd,
             borderBottomLeftRadius: radii.bottomStart,
             borderBottomRightRadius: radii.bottomEnd,
+            alignSelf: 'flex-start', // Default to 'flex-start' instead of 'stretch'.
           },
           style,
           // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
