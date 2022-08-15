@@ -80,22 +80,53 @@ type RadialGradientProps = {
 };
 export type RadialGradientPropsOmited = Omit<RadialGradientProps, `${'start' | 'end' | 'paintInside'}${string}`>;
 
+// For iOS this is the last value before rounding to 1.
+// We do this because react-native-svg in iOS won't consider Stops after the one with offset=1.
+// This doesn't seem to affect the look of the corners on iOS.
+// If it does, we will need to go back to the previous (<v7) path solution.
+const finalStopOffset = Platform.OS === 'ios' ? 0.9999999999999999 : 1;
+
 export function radialGradient({
   id, left, radius, shadowRadius, top, startColorWoOpacity, startColorOpacity, endColorWoOpacity, endColorOpacity, paintInside,
 }: RadialGradientProps): JSX.Element {
-  return (<RadialGradient
-    id={id}
-    cx={left ? shadowRadius : 0}
-    cy={top ? shadowRadius : 0}
-    r={shadowRadius}
-    gradientUnits='userSpaceOnUse' // won't show if this isn't set
-  >
-    {/* On Android !paintInside && <Stop/> would throw [#56](https://github.com/SrBrahma/react-native-shadow-2/issues/56).
-    We must use this Fragment to avoid it. A better conditional child would be better. */}
-    {!paintInside ? <Stop offset={radius / shadowRadius} stopOpacity={0}/> : <></>}
-    <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
-    <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
-  </RadialGradient>);
+  /*
+    On Android !paintInside && <Stop/> would throw [#56](https://github.com/SrBrahma/react-native-shadow-2/issues/56).
+    I tried {paintInside ? <Stop/> : <></>}, but it caused the another reported bug in the same issue.
+    This if/else solution solves those react-native-svg strange limitations.
+    I could try to have a wrapper function / dynamic children but those bugs were very unexpected, so I chose the Will-Work solution.
+  */
+  if (paintInside)
+    return (
+      <RadialGradient
+        id={id}
+        cx={left ? shadowRadius : 0}
+        cy={top ? shadowRadius : 0}
+        r={shadowRadius}
+        gradientUnits='userSpaceOnUse' // won't show if this isn't set
+      >
+        <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
+        <Stop offset={finalStopOffset} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
+        {/* Ensure it stops painting after the radius if endColorOpacity isn't 0. */}
+        <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={0}/>
+      </RadialGradient>
+    );
+
+  else
+    return (
+      <RadialGradient
+        id={id}
+        cx={left ? shadowRadius : 0}
+        cy={top ? shadowRadius : 0}
+        r={shadowRadius}
+        gradientUnits='userSpaceOnUse' // won't show if this isn't set
+      >
+        {/* Don't paint the inner circle if not paintInside */}
+        <Stop offset={radius / shadowRadius} stopOpacity={0}/>
+        <Stop offset={radius / shadowRadius} stopColor={startColorWoOpacity} stopOpacity={startColorOpacity}/>
+        <Stop offset={finalStopOffset} stopColor={endColorWoOpacity} stopOpacity={endColorOpacity}/>
+        <Stop offset={1} stopColor={endColorWoOpacity} stopOpacity={0}/>
+      </RadialGradient>
+    );
 }
 
 /** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions.

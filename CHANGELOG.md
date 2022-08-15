@@ -1,3 +1,8 @@
+### 7.0.5 - 2022-08-15
+* Fixed inner circle of corners being black. [#56 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/56#issuecomment-1214805252).
+* Fixed the outer part of corners not being cropped. [#56 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/56#issuecomment-1214805252). Thanks once again, [alexco2](https://github.com/alexco2)!
+* setChildLayoutWidth/height will now only be called if the sizes **in pixels** changed, ignoring useless re-renders due to very small changes in the values that wouldn't change the result.
+
 ### 7.0.4 - 2022-08-14
 * Fixed Android's `The argument must be a React element, but you passed null.` error. [#56](https://github.com/SrBrahma/react-native-shadow-2/issues/56). Thanks again, [alexco2](https://github.com/alexco2)!
 
