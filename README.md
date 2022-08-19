@@ -21,10 +21,10 @@ Compatible with Android, iOS and Web. **And Expo!**
 
 Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps).
 
-<div align="center">
+<!--<div align="center">
   <h3>📣 I AM AVAILABLE FOR HIRE! 📣</h3>
   <a href="https://www.linkedin.com/in/henrique-bfa">Contact me</a> if you need a remote mid-level React Native developer!
-</div>
+</div>-->
 
 ## [🍟 Demo - Expo Snack Sandbox](https://snack.expo.io/@srbrahma/react-native-shadow-2-sandbox)
 > Give this library a quick try!
