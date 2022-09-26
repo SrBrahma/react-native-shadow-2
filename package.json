@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "7.0.5",
+  "version": "7.0.6",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -59,6 +59,6 @@
   },
   "peerDependencies": {
     "react-native": "*",
-    "react-native-svg": "^13.1.0"
+    "react-native-svg": ">12.1.0"
   }
 }
