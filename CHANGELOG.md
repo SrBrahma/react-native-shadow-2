@@ -1,3 +1,6 @@
+### 7.0.6 - 2022-09-26
+* Add react-native-svg v13 support
+
 ### 7.0.5 - 2022-08-15
 * Fixed inner circle of corners being black. [#56 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/56#issuecomment-1214805252).
 * Fixed the outer part of corners not being cropped. [#56 (comment)](https://github.com/SrBrahma/react-native-shadow-2/issues/56#issuecomment-1214805252). Thanks once again, [alexco2](https://github.com/alexco2)!
