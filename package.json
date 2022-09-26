@@ -53,12 +53,12 @@
     "eslint-config-gev": "^2.36.2",
     "react": "*",
     "react-native": "*",
-    "react-native-svg": ">12.1.0",
+    "react-native-svg": ">=12.1.0",
     "rimraf": "^3.0.0",
     "typescript": "^4.0.0"
   },
   "peerDependencies": {
     "react-native": "*",
-    "react-native-svg": ">12.1.0"
+    "react-native-svg": ">=12.1.0"
   }
 }
