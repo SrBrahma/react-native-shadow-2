@@ -375,14 +375,14 @@ function getShadow({
         </Svg>}
         {activeSides.top && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: -distance, start: topStart, ...(isRTL && rtlScaleX) }}
+          style={{ position: 'absolute', top: -distance, ...(isRTL ? { end: topStart - 1 } : { start: topStart }) }}
         >
           <Defs><LinearGradient id={`top.${idSuffix}`} x1='0' y1='1' x2='0' y2='0'>{linearGradient}</LinearGradient></Defs>
           <Rect width={width} height={distance} fill={`url(#top.${idSuffix})`} x={-sumDps(topStart, topEnd)}/>
         </Svg>}
         {activeSides.bottom && <Svg
           width={widthWithAdditional} height={distanceWithAdditional}
-          style={{ position: 'absolute', top: height, start: bottomStart, ...(isRTL && rtlScaleX) }}
+          style={{ position: 'absolute', top: height, ...(isRTL ? { end: bottomStart - 1 } : { start: bottomStart }) }}
         >
           <Defs><LinearGradient id={`bottom.${idSuffix}`} x1='0' y1='0' x2='0' y2='1'>{linearGradient}</LinearGradient></Defs>
           <Rect width={width} height={distance} fill={`url(#bottom.${idSuffix})`} x={-sumDps(bottomStart, bottomEnd)}/>
