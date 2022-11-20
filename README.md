@@ -9,7 +9,7 @@
 
 </div>
 
-### ⚠️ NOT CURRENTLY COMPATIBLE WITH react-native-svg@13.5.0. use <=13.4.0 while the hotfix isn't released.
+### ⚠️ react-native-svg@13.5.0 HAS ISSUES WITH THIS. Use >=13.6.0 or <=13.4.0.
 
 # react-native-shadow-2
 
