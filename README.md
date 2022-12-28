@@ -9,8 +9,6 @@
 
 </div>
 
-### ⚠️ react-native-svg@13.5.0 HAS ISSUES WITH THIS. Use >=13.6.0 or <=13.4.0.
-
 # react-native-shadow-2
 
 [react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This is an improved version with more functionalities, Typescript support and written from scratch. It's not required to define its size: the shadow is smartly applied on the first render and then precisely reapplied on the following ones.
