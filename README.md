@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
 [![TypeScript](https://badgen.net/npm/types/env-var)](http://www.typescriptlang.org/)
-[![npm](https://img.shields.io/npm/dm/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
+[![npm](https://img.shields.io/npm/dt/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 </div>
