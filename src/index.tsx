@@ -492,7 +492,13 @@ function getResult({
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
     <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
       <View pointerEvents='none' {...shadowViewProps} style={[
-        StyleSheet.absoluteFillObject,
+         {
+          position: "absolute",
+          start: 0,
+          end: 0,
+          top: 0,
+          bottom: 0,
+          },,
         shadowViewProps?.style,
         { start: offset[0], top: offset[1] },
       ]}
