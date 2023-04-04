@@ -2,38 +2,29 @@
 require('@rushstack/eslint-patch/modern-module-resolution');
 
 module.exports = {
+  root: true,
   env: {
     es2021: true,
     node: true,
-    'react-native/react-native': true // *2
+    'react-native/react-native': true, // *1
   },
-  extends: [
-    'eslint-config-gev/js' // https://github.com/SrBrahma/eslint-config-gev
-  ],
-  parser: '@typescript-eslint/parser',
-  overrides: [ //* 3
+  extends: ['eslint-config-gev/react-native-js'],
+  overrides: [
     {
       files: ['*.ts', '*.tsx'],
-      extends: [
-        'plugin:@typescript-eslint/recommended-requiring-type-checking', // *1
-        'eslint-config-gev/react-native' // https://github.com/SrBrahma/eslint-config-gev
-      ],
+      extends: ['eslint-config-gev/react-native'],
+      parser: '@typescript-eslint/parser',
       parserOptions: {
-        tsconfigRootDir: __dirname, // *1
-        project: ['./tsconfig.lint.json'], // *1
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
         ecmaVersion: 12,
         sourceType: 'module',
-        ecmaFeatures: { // *2
-          jsx: true
-        }
+        ecmaFeatures: {
+          jsx: true, // *1
+        },
       },
-    }
+    },
   ],
   ignorePatterns: ['**/lib/**/*', '**/dist/**/*', '**/node_modules/**/*', '.eslintrc.js'],
-  rules: {
-  }
+  rules: {},
 };
-
-// [*1] - https://github.com/typescript-eslint/typescript-eslint/blob/master/docs/getting-started/linting/TYPED_LINTING.md#getting-started---linting-with-type-information
-// [*2] - https://github.com/Intellicode/eslint-plugin-react-native#configuration
-// [*3] - https://stackoverflow.com/a/64488474
