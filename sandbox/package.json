@@ -10,7 +10,7 @@
     "@sharcoux/slider": "^6.1.1",
     "colord": "2.9.2",
     "expo": "^48.0.0",
-    "pagescrollview": "*",
+    "pagescrollview": "^2.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.71.3",
