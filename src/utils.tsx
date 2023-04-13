@@ -5,6 +5,7 @@ import { RadialGradient, Stop } from 'react-native-svg';
 
 export type Side = 'start' | 'end' | 'top' | 'bottom';
 export type Corner = 'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd';
+export type Size = { width: number | undefined; height: number | undefined };
 export type CornerRadius = Record<Corner, number>;
 
 // Add Shadow to the corner names

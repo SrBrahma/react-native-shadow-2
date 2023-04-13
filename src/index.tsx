@@ -10,6 +10,7 @@ import type {
   CornerRadiusShadow,
   RadialGradientPropsOmited,
   Side,
+  Size,
 } from './utils';
 import {
   additional,
@@ -124,8 +125,7 @@ export function Shadow(props: ShadowProps): JSX.Element {
 function ShadowInner(props: ShadowProps): JSX.Element {
   /** getConstants().isRTL instead of just isRTL due to Web https://github.com/necolas/react-native-web/issues/2350#issuecomment-1193642853 */
   const isRTL = I18nManager.getConstants().isRTL;
-  const [childLayoutWidth, setChildLayoutWidth] = useState<number | undefined>();
-  const [childLayoutHeight, setChildLayoutHeight] = useState<number | undefined>();
+  const [childLayout, setChildLayout] = useState<Size | undefined>();
   const [idSuffix] = useState<string>(generateGradientIdSuffix);
 
   const {
@@ -211,9 +211,9 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     }, [styleStr]);
 
   const styleWidth = style.width ?? cStyle.width;
-  const width = styleWidth ?? childLayoutWidth ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
+  const width = styleWidth ?? childLayout?.width ?? '100%'; // '100%' sometimes will lead to gaps. Child's size don't lie.
   const styleHeight = style.height ?? cStyle.height;
-  const height = styleHeight ?? childLayoutHeight ?? '100%';
+  const height = styleHeight ?? childLayout?.height ?? '100%';
 
   const radii: CornerRadius = useMemo(
     () =>
@@ -307,14 +307,12 @@ function ShadowInner(props: ShadowProps): JSX.Element {
     containerStyle,
     style,
     shadowViewProps,
-    setChildLayoutWidth,
-    setChildLayoutHeight,
     childrenViewProps,
     containerViewProps,
     styleWidth,
     styleHeight,
-    layoutWidth: childLayoutWidth,
-    layoutHeight: childLayoutHeight,
+    childLayout,
+    setChildLayout,
   });
 }
 
@@ -736,8 +734,6 @@ function getShadow({
 function getResult({
   shadow,
   stretch,
-  setChildLayoutWidth,
-  setChildLayoutHeight,
   containerStyle,
   children,
   style,
@@ -748,8 +744,8 @@ function getResult({
   childrenViewProps,
   styleWidth,
   styleHeight,
-  layoutWidth,
-  layoutHeight,
+  childLayout,
+  setChildLayout,
 }: {
   radii: CornerRadius;
   containerStyle: StyleProp<ViewStyle>;
@@ -757,8 +753,6 @@ function getResult({
   children: any;
   style: ViewStyle; // Already flattened
   stretch: boolean | undefined;
-  setChildLayoutWidth: React.Dispatch<React.SetStateAction<number | undefined>>;
-  setChildLayoutHeight: React.Dispatch<React.SetStateAction<number | undefined>>;
   offset: [x: number | string, y: number | string];
   containerViewProps: ViewProps | undefined;
   shadowViewProps: ViewProps | undefined;
@@ -767,8 +761,8 @@ function getResult({
   styleWidth: string | number | undefined;
   /** The style height. Tries to use the style prop then the child's style. */
   styleHeight: string | number | undefined;
-  layoutWidth: number | undefined;
-  layoutHeight: number | undefined;
+  childLayout: Size | undefined;
+  setChildLayout: React.Dispatch<React.SetStateAction<Size | undefined>>;
 }): JSX.Element {
   // const isWidthPrecise = styleWidth;
 
@@ -804,22 +798,24 @@ function getResult({
           { ...(stretch && { alignSelf: 'stretch' }) },
         ]}
         onLayout={(e) => {
-          // For some strange reason, attaching conditionally the onLayout wasn't working on condition change,
-          // so we do the check before the state change.
+          // For some reason, conditionally setting the onLayout wasn't working on condition change.
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
-          const { width, height } = e.nativeEvent.layout;
+          const eventLayout = e.nativeEvent.layout;
+          let newLayout: Size | undefined;
           // Change layout state if the style width/height is undefined or 'x%', or the sizes in pixels are different.
           if (
             typeof styleWidth !== 'number' &&
-            (layoutWidth === undefined || P(width) !== P(layoutWidth))
+            (childLayout?.width === undefined || P(childLayout.width) !== P(eventLayout.width))
           )
-            setChildLayoutWidth(width);
+            newLayout = { width: eventLayout.width, height: undefined };
           if (
             typeof styleHeight !== 'number' &&
-            (layoutHeight === undefined || P(height) !== P(layoutHeight))
+            (childLayout?.height === undefined || P(childLayout.height) !== P(eventLayout.height))
           )
-            setChildLayoutHeight(height);
+            newLayout = { width: newLayout?.width, height: eventLayout.height };
+
+          if (newLayout) setChildLayout(newLayout);
         }}
         {...childrenViewProps}
       >
