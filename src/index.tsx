@@ -806,12 +806,12 @@ function getResult({
           // Change layout state if the style width/height is undefined or 'x%', or the sizes in pixels are different.
           if (
             typeof styleWidth !== 'number' &&
-            (childLayout?.width === undefined || P(childLayout.width) !== P(eventLayout.width))
+            (childLayout?.width === undefined || P(eventLayout.width) !== P(childLayout.width))
           )
             newLayout = { width: eventLayout.width, height: undefined };
           if (
             typeof styleHeight !== 'number' &&
-            (childLayout?.height === undefined || P(childLayout.height) !== P(eventLayout.height))
+            (childLayout?.height === undefined || P(eventLayout.height) !== P(childLayout.height))
           )
             newLayout = { width: newLayout?.width, height: eventLayout.height };
 
