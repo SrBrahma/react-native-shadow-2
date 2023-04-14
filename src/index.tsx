@@ -21,6 +21,7 @@ import {
   P,
   R,
   radialGradient,
+  rtlAbsoluteFillObject,
   rtlScaleX,
   scale,
   sumDps,
@@ -773,7 +774,7 @@ function getResult({
         pointerEvents='none'
         {...shadowViewProps}
         style={[
-          StyleSheet.absoluteFillObject,
+          rtlAbsoluteFillObject,
           shadowViewProps?.style,
           { start: offset[0], top: offset[1] },
         ]}

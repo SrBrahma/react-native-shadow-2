@@ -40,12 +40,14 @@ export const divDps: (a: number, b: number) => number = isWeb
   ? (a, b) => a / b
   : (a, b) => P(a) / P(b);
 
-/** [Android/ios?] [*4] A small safe margin for the svg sizes.
+/**
+ * [Android/ios?] [*4] A small safe margin for the svg sizes.
  *
  * It fixes some gaps that we had, as even that the svg size and the svg rect for example size were the same, this rect
  * would still strangely be cropped/clipped. We give this additional size to the svg so our rect/etc won't be unintendedly clipped.
  *
- * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number. */
+ * It doesn't mean 1 pixel, as RN uses dp sizing, it's just an arbitrary and big enough number.
+ * */
 export const additional = isWeb ? 0 : 1;
 
 /** Auxilary function to shorten code */
@@ -82,10 +84,12 @@ export type RadialGradientPropsOmited = Omit<
   `${'start' | 'end' | 'paintInside'}${string}`
 >;
 
-// For iOS this is the last value before rounding to 1.
-// We do this because react-native-svg in iOS won't consider Stops after the one with offset=1.
-// This doesn't seem to affect the look of the corners on iOS.
-// If it does, we will need to go back to the previous (<v7) path solution.
+/**
+  For iOS this is the last value before rounding to 1.
+  We do this because react-native-svg in iOS won't consider Stops after the one with offset=1.
+  This doesn't seem to affect the look of the corners on iOS.
+  If it does, we will need to go back to the previous (<v7) path solution.
+ */
 const finalStopOffset = Platform.OS === 'ios' ? 0.9999999999999999 : 1;
 
 export function radialGradient({
@@ -155,12 +159,25 @@ export function radialGradient({
     );
 }
 
-/** Generates a sufficiently unique suffix to add to gradient ids and prevent collisions.
+/**
+ * Generates a sufficiently unique suffix to add to gradient ids and prevent collisions.
  *
- * https://github.com/SrBrahma/react-native-shadow-2/pull/54 */
+ * https://github.com/SrBrahma/react-native-shadow-2/pull/54
+ */
 export const generateGradientIdSuffix = (() => {
   let shadowGradientIdCounter = 0;
   return () => String(shadowGradientIdCounter++);
 })();
 
 export const rtlScaleX = { transform: [{ scaleX: -1 }] };
+
+/**
+ * https://github.com/SrBrahma/react-native-shadow-2/issues/67
+ */
+export const rtlAbsoluteFillObject = {
+  position: 'absolute',
+  start: 0,
+  end: 0,
+  top: 0,
+  bottom: 0,
+} as const;
