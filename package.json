@@ -1,6 +1,6 @@
 {
   "name": "react-native-shadow-2",
-  "version": "7.0.6",
+  "version": "7.0.7",
   "description": "Cross-platform shadow for React Native. Improved version of the abandoned react-native-shadow package",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -13,8 +13,6 @@
     "build": "npm run clean && tsc",
     "prepare": "npm run build",
     "prepublishOnly": "npm run test",
-    "docs": "typedoc",
-    "docsWatch": "typedoc --watch",
     "sandbox": "npm run --prefix ./sandbox web"
   },
   "repository": {
@@ -50,7 +48,9 @@
   },
   "devDependencies": {
     "@types/react-native": "*",
-    "eslint-config-gev": "^2.36.2",
+    "eslint-config-gev": "^3.2.0",
+    "prettier": "^2.8.6",
+    "prettier-config-gev": "^1.1.2",
     "react": "*",
     "react-native": "*",
     "react-native-svg": ">=12.1.0",
@@ -60,5 +60,6 @@
   "peerDependencies": {
     "react-native": "*",
     "react-native-svg": ">=12.1.0"
-  }
+  },
+  "prettier": "prettier-config-gev"
 }
