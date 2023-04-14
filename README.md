@@ -104,6 +104,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 * [Having a radius greater than its side will mess the shadow if the sizes aren't defined](https://github.com/SrBrahma/react-native-shadow-2/issues/15). **You can use the `safeRender` property** to only show the shadow on the 2nd render and beyond, when we have the exact component size and the radii are properly limited.
 
+* [Radii greater than 2000 (Tailwind's `rounded-full` is 9999) may crash Android](https://github.com/SrBrahma/react-native-shadow-2/issues/46).
 <!-- Seems hard to understand. Will leave it undoc'ed until I improve it. -->
 <!-- * We automatically set the radii in the `style` property, so it contains the Child's Android Ripple if you are using it. We already get those values, so it isn't an effort to set them. -->
 
