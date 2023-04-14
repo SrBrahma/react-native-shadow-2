@@ -498,7 +498,7 @@ function getResult({
           end: 0,
           top: 0,
           bottom: 0,
-          },,
+          },
         shadowViewProps?.style,
         { start: offset[0], top: offset[1] },
       ]}
