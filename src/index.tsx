@@ -513,7 +513,7 @@ function getShadow({
               style={{
                 position: 'absolute',
                 top: -distance,
-                start: topStart,
+                start: topStart+ (isRTL ? 1 : 0),
                 ...(isRTL && rtlScaleX),
               }}
             >
@@ -537,7 +537,7 @@ function getShadow({
               style={{
                 position: 'absolute',
                 top: height,
-                start: bottomStart,
+                start: bottomStart+ (isRTL ? 1 : 0),
                 ...(isRTL && rtlScaleX),
               }}
             >
