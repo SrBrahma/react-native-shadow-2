@@ -803,20 +803,16 @@ function getResult({
           // [web] [*3]: the width/height we get here is already rounded by RN, even if the real size according to the browser
           // inspector is decimal. It will round up if (>= .5), else, down.
           const eventLayout = e.nativeEvent.layout;
-          let newLayout: Size | undefined;
           // Change layout state if the style width/height is undefined or 'x%', or the sizes in pixels are different.
           if (
-            typeof styleWidth !== 'number' &&
-            (childLayout?.width === undefined || P(eventLayout.width) !== P(childLayout.width))
+            (typeof styleWidth !== 'number' &&
+              (childLayout?.width === undefined ||
+                P(eventLayout.width) !== P(childLayout.width))) ||
+            (typeof styleHeight !== 'number' &&
+              (childLayout?.height === undefined ||
+                P(eventLayout.height) !== P(childLayout.height)))
           )
-            newLayout = { width: eventLayout.width, height: undefined };
-          if (
-            typeof styleHeight !== 'number' &&
-            (childLayout?.height === undefined || P(eventLayout.height) !== P(childLayout.height))
-          )
-            newLayout = { width: newLayout?.width, height: eventLayout.height };
-
-          if (newLayout) setChildLayout(newLayout);
+            setChildLayout({ width: eventLayout.width, height: eventLayout.height });
         }}
         {...childrenViewProps}
       >
