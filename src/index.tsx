@@ -326,12 +326,7 @@ function sanitizeRadii({
   width: string | number;
   height: string | number;
   /** Not yet treated. May be negative / undefined */
-  radii: {
-    topStart: number | undefined;
-    topEnd: number | undefined;
-    bottomStart: number | undefined;
-    bottomEnd: number | undefined;
-  };
+  radii: Partial<CornerRadius>;
 }): CornerRadius {
   /** Round and zero negative radius values */
   let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(radii[k] ?? 0, 0)));
@@ -448,119 +443,120 @@ function getShadow({
 
   const { topStartShadow, topEndShadow, bottomStartShadow, bottomEndShadow } = cornerShadowRadius;
 
-  return (
+  /* Skip sides if we don't have a distance. */
+  const sides = distance > 0 && (
     <>
-      {/* Skip sides if we don't have a distance. */}
-      {distance > 0 && (
-        <>
-          {/* Sides */}
-          {activeSides.start && (
-            <Svg
-              width={distanceWithAdditional}
-              height={heightWithAdditional}
-              style={{ position: 'absolute', start: -distance, top: topStart }}
+      {/* Skip side if adjacents corners use its size already */}
+      {activeSides.start &&
+        (typeof height === 'number' ? height > topStart + bottomStart : true) && (
+          <Svg
+            width={distanceWithAdditional}
+            height={heightWithAdditional}
+            style={{ position: 'absolute', start: -distance, top: topStart }}
+          >
+            <Defs>
+              <LinearGradient
+                id={`start.${idSuffix}`}
+                x1={isRTL ? '0' : '1'}
+                y1='0'
+                x2={isRTL ? '1' : '0'}
+                y2='0'
+              >
+                {linearGradient}
+              </LinearGradient>
+            </Defs>
+            {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
+              just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
+            <Rect
+              width={distance}
+              height={height}
+              fill={`url(#start.${idSuffix})`}
+              y={-sumDps(topStart, bottomStart)}
+            />
+          </Svg>
+        )}
+      {activeSides.end && (typeof height === 'number' ? height > topEnd + bottomEnd : true) && (
+        <Svg
+          width={distanceWithAdditional}
+          height={heightWithAdditional}
+          style={{ position: 'absolute', start: width, top: topEnd }}
+        >
+          <Defs>
+            <LinearGradient
+              id={`end.${idSuffix}`}
+              x1={isRTL ? '1' : '0'}
+              y1='0'
+              x2={isRTL ? '0' : '1'}
+              y2='0'
             >
-              <Defs>
-                <LinearGradient
-                  id={`start.${idSuffix}`}
-                  x1={isRTL ? '0' : '1'}
-                  y1='0'
-                  x2={isRTL ? '1' : '0'}
-                  y2='0'
-                >
-                  {linearGradient}
-                </LinearGradient>
-              </Defs>
-              {/* I was using a Mask here to remove part of each side (same size as now, sum of related corners), but,
-                  just moving the rectangle outside its viewbox is already a mask!! -> svg overflow is cutten away. <- */}
-              <Rect
-                width={distance}
-                height={height}
-                fill={`url(#start.${idSuffix})`}
-                y={-sumDps(topStart, bottomStart)}
-              />
-            </Svg>
-          )}
-          {activeSides.end && (
-            <Svg
-              width={distanceWithAdditional}
-              height={heightWithAdditional}
-              style={{ position: 'absolute', start: width, top: topEnd }}
-            >
-              <Defs>
-                <LinearGradient
-                  id={`end.${idSuffix}`}
-                  x1={isRTL ? '1' : '0'}
-                  y1='0'
-                  x2={isRTL ? '0' : '1'}
-                  y2='0'
-                >
-                  {linearGradient}
-                </LinearGradient>
-              </Defs>
-              <Rect
-                width={distance}
-                height={height}
-                fill={`url(#end.${idSuffix})`}
-                y={-sumDps(topEnd, bottomEnd)}
-              />
-            </Svg>
-          )}
-          {activeSides.top && (
-            <Svg
-              width={widthWithAdditional}
-              height={distanceWithAdditional}
-              style={{
-                position: 'absolute',
-                top: -distance,
-                start: topStart,
-                ...(isRTL && rtlScaleX),
-              }}
-            >
-              <Defs>
-                <LinearGradient id={`top.${idSuffix}`} x1='0' y1='1' x2='0' y2='0'>
-                  {linearGradient}
-                </LinearGradient>
-              </Defs>
-              <Rect
-                width={width}
-                height={distance}
-                fill={`url(#top.${idSuffix})`}
-                x={-sumDps(topStart, topEnd)}
-              />
-            </Svg>
-          )}
-          {activeSides.bottom && (
-            <Svg
-              width={widthWithAdditional}
-              height={distanceWithAdditional}
-              style={{
-                position: 'absolute',
-                top: height,
-                start: bottomStart,
-                ...(isRTL && rtlScaleX),
-              }}
-            >
-              <Defs>
-                <LinearGradient id={`bottom.${idSuffix}`} x1='0' y1='0' x2='0' y2='1'>
-                  {linearGradient}
-                </LinearGradient>
-              </Defs>
-              <Rect
-                width={width}
-                height={distance}
-                fill={`url(#bottom.${idSuffix})`}
-                x={-sumDps(bottomStart, bottomEnd)}
-              />
-            </Svg>
-          )}
-        </>
+              {linearGradient}
+            </LinearGradient>
+          </Defs>
+          <Rect
+            width={distance}
+            height={height}
+            fill={`url(#end.${idSuffix})`}
+            y={-sumDps(topEnd, bottomEnd)}
+          />
+        </Svg>
       )}
+      {activeSides.top && (typeof width === 'number' ? width > topStart + topEnd : true) && (
+        <Svg
+          width={widthWithAdditional}
+          height={distanceWithAdditional}
+          style={{
+            position: 'absolute',
+            top: -distance,
+            start: topStart,
+            ...(isRTL && rtlScaleX),
+          }}
+        >
+          <Defs>
+            <LinearGradient id={`top.${idSuffix}`} x1='0' y1='1' x2='0' y2='0'>
+              {linearGradient}
+            </LinearGradient>
+          </Defs>
+          <Rect
+            width={width}
+            height={distance}
+            fill={`url(#top.${idSuffix})`}
+            x={-sumDps(topStart, topEnd)}
+          />
+        </Svg>
+      )}
+      {activeSides.bottom &&
+        (typeof width === 'number' ? width > bottomStart + bottomEnd : true) && (
+          <Svg
+            width={widthWithAdditional}
+            height={distanceWithAdditional}
+            style={{
+              position: 'absolute',
+              top: height,
+              start: bottomStart,
+              ...(isRTL && rtlScaleX),
+            }}
+          >
+            <Defs>
+              <LinearGradient id={`bottom.${idSuffix}`} x1='0' y1='0' x2='0' y2='1'>
+                {linearGradient}
+              </LinearGradient>
+            </Defs>
+            <Rect
+              width={width}
+              height={distance}
+              fill={`url(#bottom.${idSuffix})`}
+              x={-sumDps(bottomStart, bottomEnd)}
+            />
+          </Svg>
+        )}
+    </>
+  );
 
-      {/* Corners */}
-      {/* The anchor for the svgs path is the top left point in the corner square.
-              The starting point is the clockwise external arc init point. */}
-      {/* Checking topLeftShadowEtc > 0 due to https://github.com/SrBrahma/react-native-shadow-2/issues/47. */}
+  /* The anchor for the svgs path is the top left point in the corner square.
+              The starting point is the clockwise external arc init point. */
+  /* Checking topLeftShadowEtc > 0 due to https://github.com/SrBrahma/react-native-shadow-2/issues/47. */
+  const corners = (
+    <>
       {activeCorners.topStart && topStartShadow > 0 && (
         <Svg
           width={topStartShadow + additional}
@@ -660,74 +656,82 @@ function getShadow({
           />
         </Svg>
       )}
+    </>
+  );
 
-      {/* Paint the inner area, so we can offset it.
-      [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
-      and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
-      paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner. */}
-      {paintInside && (
-        <Svg
-          width={widthWithAdditional}
-          height={heightWithAdditional}
-          style={{ position: 'absolute', ...(isRTL && rtlScaleX) }}
-        >
-          {typeof width === 'number' && typeof height === 'number' ? (
-            // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
-            // We use Path as workaround to it.
-            <Path
-              fill={startColorWoOpacity}
-              fillOpacity={startColorOpacity}
-              d={`M0,${topStart} v${
-                height - bottomStart - topStart
-              } h${bottomStart} v${bottomStart} h${
-                width - bottomStart - bottomEnd
-              } v${-bottomEnd} h${bottomEnd} v${
-                -height + bottomEnd + topEnd
-              } h${-topEnd} v${-topEnd} h${-width + topStart + topEnd} v${topStart} Z`}
-            />
-          ) : (
-            <>
-              <Defs>
-                <Mask id={`maskInside.${idSuffix}`}>
-                  {/* Paint all white, then black on border external areas to erase them */}
-                  <Rect width={width} height={height} fill='#fff' />
-                  {/* Remove the corners */}
-                  <Rect width={topStart} height={topStart} fill='#000' />
-                  <Rect
-                    width={topEnd}
-                    height={topEnd}
-                    x={width}
-                    transform={`translate(${-topEnd}, 0)`}
-                    fill='#000'
-                  />
-                  <Rect
-                    width={bottomStart}
-                    height={bottomStart}
-                    y={height}
-                    transform={`translate(0, ${-bottomStart})`}
-                    fill='#000'
-                  />
-                  <Rect
-                    width={bottomEnd}
-                    height={bottomEnd}
-                    x={width}
-                    y={height}
-                    transform={`translate(${-bottomEnd}, ${-bottomEnd})`}
-                    fill='#000'
-                  />
-                </Mask>
-              </Defs>
+  /**
+   * Paint the inner area, so we can offset it.
+   * [*2]: I tried redrawing the inner corner arc, but there would always be a small gap between the external shadows
+   * and this internal shadow along the curve. So, instead we dont specify the inner arc on the corners when
+   * paintBelow, but just use a square inner corner. And here we will just mask those squares in each corner.
+   */
+  const inner = paintInside && (
+    <Svg
+      width={widthWithAdditional}
+      height={heightWithAdditional}
+      style={{ position: 'absolute', ...(isRTL && rtlScaleX) }}
+    >
+      {typeof width === 'number' && typeof height === 'number' ? (
+        // Maybe due to how react-native-svg handles masks in iOS, the paintInside would have gaps: https://github.com/SrBrahma/react-native-shadow-2/issues/36
+        // We use Path as workaround to it.
+        <Path
+          fill={startColorWoOpacity}
+          fillOpacity={startColorOpacity}
+          d={`M0,${topStart} v${height - bottomStart - topStart} h${bottomStart} v${bottomStart} h${
+            width - bottomStart - bottomEnd
+          } v${-bottomEnd} h${bottomEnd} v${
+            -height + bottomEnd + topEnd
+          } h${-topEnd} v${-topEnd} h${-width + topStart + topEnd} v${topStart} Z`}
+        />
+      ) : (
+        <>
+          <Defs>
+            <Mask id={`maskInside.${idSuffix}`}>
+              {/* Paint all white, then black on border external areas to erase them */}
+              <Rect width={width} height={height} fill='#fff' />
+              {/* Remove the corners */}
+              <Rect width={topStart} height={topStart} fill='#000' />
               <Rect
-                width={width}
-                height={height}
-                mask={`url(#maskInside.${idSuffix})`}
-                fill={startColorWoOpacity}
-                fillOpacity={startColorOpacity}
+                width={topEnd}
+                height={topEnd}
+                x={width}
+                transform={`translate(${-topEnd}, 0)`}
+                fill='#000'
               />
-            </>
-          )}
-        </Svg>
+              <Rect
+                width={bottomStart}
+                height={bottomStart}
+                y={height}
+                transform={`translate(0, ${-bottomStart})`}
+                fill='#000'
+              />
+              <Rect
+                width={bottomEnd}
+                height={bottomEnd}
+                x={width}
+                y={height}
+                transform={`translate(${-bottomEnd}, ${-bottomEnd})`}
+                fill='#000'
+              />
+            </Mask>
+          </Defs>
+          <Rect
+            width={width}
+            height={height}
+            mask={`url(#maskInside.${idSuffix})`}
+            fill={startColorWoOpacity}
+            fillOpacity={startColorOpacity}
+          />
+        </>
       )}
+    </Svg>
+  );
+
+  return (
+    <>
+      {sides}
+      {corners}
+      {inner}
     </>
   );
 }

@@ -1,3 +1,8 @@
+### 7.0.8 - 2023-05-15
+
+- Fixed issue when the child size would change only one of its axis. [#72](https://github.com/SrBrahma/react-native-shadow-2/issues/72).
+- As a minor performance improvement, now sides will only be rendered if they are known to be visible. Before, if your height was X and the topStart and bottomStart radii were each X/2, the left side would still be rendered even it having the size 0.
+
 ### 7.0.7 - 2023-04-14
 
 - Fixed X offset not working in iOS. [#65](https://github.com/SrBrahma/react-native-shadow-2/issues/65), [#67](https://github.com/SrBrahma/react-native-shadow-2/issues/67). Many thanks, [dmdmd](https://github.com/dmdmd) and [Youssef Henna](https://github.com/YoussefHenna)!
