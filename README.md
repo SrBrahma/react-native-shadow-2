@@ -80,12 +80,12 @@ import { Shadow } from 'react-native-shadow-2';
 | Property | Description | Type | Default
 | --- | --- | --- | ---
 | **startColor** | The initial gradient color of the shadow. | `string` | `'#00000020'`
-| **endColor** | The final gradient color of the shadow. | `string` | Transparent startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972)
+| **endColor** | The final gradient color of the shadow. | `string` | Transparent startColor. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/31#issuecomment-985578972).
 | **distance** | How far the shadow goes. | `number` | `10`
 | **offset** | Moves the shadow. Negative `x` moves it left/start, negative `y` moves it up.<br/><br/>Accepts `'x%'` values.<br/><br/>Defining this will default `paintInside` to **true**, as it's the usual desired behaviour. | `[x: string \| number, y: string \| number]` | `[0, 0]`
 | **paintInside** | Apply the shadow below/inside the content. `startColor` is used as fill color, without a gradient.<br/><br/>Useful when using `offset` or if your child has some transparency. | `boolean` | `false`, but `true` if `offset` is defined
-| **sides** | The sides that will have their shadows drawn. Doesn't include corners. Undefined sides fallbacks to **true**. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/76#issuecomment-1563276588) | `Record<'start' \| 'end' \| 'top' \| 'bottom', boolean>` | `undefined`
-| **corners** | The corners that will have their shadows drawn. Undefined corners fallbacks to **true**. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/76#issuecomment-1563276588) | `Record<'topStart' \| 'topEnd' \| 'bottomStart' \| 'bottomEnd', boolean>` | `undefined`
+| **sides** | The sides that will have their shadows drawn. Doesn't include corners. Undefined sides fallbacks to **true**. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/76#issuecomment-1563276588). | `Record<'start' \| 'end' \| 'top' \| 'bottom', boolean>` | `undefined`
+| **corners** | The corners that will have their shadows drawn. Undefined corners fallbacks to **true**. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/76#issuecomment-1563276588). | `Record<'topStart' \| 'topEnd' \| 'bottomStart' \| 'bottomEnd', boolean>` | `undefined`
 | **style** | The style of the View that wraps your children. Read the [Notes](https://github.com/SrBrahma/react-native-shadow-2/edit/main/README.md#notes) below. | `StyleProp<ViewStyle>` | `undefined`
 | **containerStyle** | The style of the View that wraps the Shadow and your children. Useful for margins. | `StyleProp<ViewStyle>` | `undefined`
 | **stretch** | Make your children ocuppy all available horizontal space. [Explanation](https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899784537). | `boolean` | `false`
