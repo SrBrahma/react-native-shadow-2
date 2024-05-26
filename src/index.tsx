@@ -318,27 +318,23 @@ function ShadowInner(props: ShadowProps): JSX.Element {
 }
 
 /** We make some effort for this to be likely memoized */
-function sanitizeRadii({
-  width,
-  height,
-  radii,
-}: {
+function sanitizeRadii(props: {
   width: string | number;
   height: string | number;
   /** Not yet treated. May be negative / undefined */
   radii: Partial<CornerRadius>;
 }): CornerRadius {
   /** Round and zero negative radius values */
-  let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(radii[k] ?? 0, 0)));
+  let radiiSanitized = objFromKeys(cornersArray, (k) => R(Math.max(props.radii[k] ?? 0, 0)));
 
-  if (typeof width === 'number' && typeof height === 'number') {
+  if (typeof props.width === 'number' && typeof props.height === 'number') {
     // https://css-tricks.com/what-happens-when-border-radii-overlap/
     // Note that the tutorial above doesn't mention the specification of minRatio < 1 but it's required as said on spec and will malfunction without it.
     const minRatio = Math.min(
-      divDps(width, sumDps(radiiSanitized.topStart, radiiSanitized.topEnd)),
-      divDps(height, sumDps(radiiSanitized.topEnd, radiiSanitized.bottomEnd)),
-      divDps(width, sumDps(radiiSanitized.bottomStart, radiiSanitized.bottomEnd)),
-      divDps(height, sumDps(radiiSanitized.topStart, radiiSanitized.bottomStart)),
+      divDps(props.width, sumDps(radiiSanitized.topStart, radiiSanitized.topEnd)),
+      divDps(props.height, sumDps(radiiSanitized.topEnd, radiiSanitized.bottomEnd)),
+      divDps(props.width, sumDps(radiiSanitized.bottomStart, radiiSanitized.bottomEnd)),
+      divDps(props.height, sumDps(radiiSanitized.topStart, radiiSanitized.bottomStart)),
     );
 
     if (minRatio < 1)
@@ -363,7 +359,7 @@ function getShadow({
   isRTL,
   distanceProp = 10,
   startColorProp = '#00000020',
-  endColorProp = colord(startColorProp).alpha(0).toHex(),
+  endColorProp,
   topStart,
   topEnd,
   bottomStart,
@@ -405,7 +401,7 @@ function getShadow({
   const heightWithAdditional = typeof height === 'string' ? height : height + additional;
 
   const startColord = colord(startColorProp);
-  const endColord = colord(endColorProp);
+  const endColord = endColorProp ? colord(endColorProp) : startColord.alpha(0);
 
   // [*1]: Seems that SVG in web accepts opacity in hex color, but in mobile gradient doesn't.
   // So we remove the opacity from the color, and only apply the opacity in stopOpacity, so in web
@@ -507,7 +503,7 @@ function getShadow({
           style={{
             position: 'absolute',
             top: -distance,
-            start: topStart,
+            start: topStart + (isRTL ? 1 : 0),
             ...(isRTL && rtlScaleX),
           }}
         >
@@ -532,7 +528,7 @@ function getShadow({
             style={{
               position: 'absolute',
               top: height,
-              start: bottomStart,
+              start: bottomStart + (isRTL ? 1 : 0),
               ...(isRTL && rtlScaleX),
             }}
           >
@@ -677,11 +673,9 @@ function getShadow({
         <Path
           fill={startColorWoOpacity}
           fillOpacity={startColorOpacity}
-          d={`M0,${topStart} v${height - bottomStart - topStart} h${bottomStart} v${bottomStart} h${
-            width - bottomStart - bottomEnd
-          } v${-bottomEnd} h${bottomEnd} v${
-            -height + bottomEnd + topEnd
-          } h${-topEnd} v${-topEnd} h${-width + topStart + topEnd} v${topStart} Z`}
+          d={`M0,${topStart} v${height - bottomStart - topStart} h${bottomStart} v${bottomStart} h${width - bottomStart - bottomEnd
+            } v${-bottomEnd} h${bottomEnd} v${-height + bottomEnd + topEnd
+            } h${-topEnd} v${-topEnd} h${-width + topStart + topEnd} v${topStart} Z`}
         />
       ) : (
         <>
@@ -736,22 +730,7 @@ function getShadow({
   );
 }
 
-function getResult({
-  shadow,
-  stretch,
-  containerStyle,
-  children,
-  style,
-  radii,
-  offset,
-  containerViewProps,
-  shadowViewProps,
-  childrenViewProps,
-  styleWidth,
-  styleHeight,
-  childLayout,
-  setChildLayout,
-}: {
+function getResult(props: {
   radii: CornerRadius;
   containerStyle: StyleProp<ViewStyle>;
   shadow: JSX.Element | null;
@@ -773,17 +752,17 @@ function getResult({
 
   return (
     // pointerEvents: https://github.com/SrBrahma/react-native-shadow-2/issues/24
-    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
+    <View style={props.containerStyle} pointerEvents='box-none' {...props.containerViewProps}>
       <View
         pointerEvents='none'
-        {...shadowViewProps}
+        {...props.shadowViewProps}
         style={[
           rtlAbsoluteFillObject,
-          shadowViewProps?.style,
-          { start: offset[0], top: offset[1] },
+          props.shadowViewProps?.style,
+          { start: props.offset[0], top: props.offset[1] },
         ]}
       >
-        {shadow}
+        {props.shadow}
       </View>
       <View
         pointerEvents='box-none'
@@ -791,16 +770,16 @@ function getResult({
           {
             // We are defining here the radii so when using radius props it also affects the backgroundColor and Pressable ripples are properly contained.
             // Note that topStart/etc has priority over topLeft/etc. We use topLeft so the user may overwrite it with topLeft or topStart styles.
-            borderTopLeftRadius: radii.topStart,
-            borderTopRightRadius: radii.topEnd,
-            borderBottomLeftRadius: radii.bottomStart,
-            borderBottomRightRadius: radii.bottomEnd,
+            borderTopLeftRadius: props.radii.topStart,
+            borderTopRightRadius: props.radii.topEnd,
+            borderBottomLeftRadius: props.radii.bottomStart,
+            borderBottomRightRadius: props.radii.bottomEnd,
             alignSelf: 'flex-start', // Default to 'flex-start' instead of 'stretch'.
           },
-          style,
+          props.style,
           // Without alignSelf: 'flex-start', if your Shadow component had a sibling under the same View, the shadow would try to have the same size of the sibling,
           // being it for example a text below the shadowed component. https://imgur.com/a/V6ZV0lI, https://github.com/SrBrahma/react-native-shadow-2/issues/7#issuecomment-899764882
-          { ...(stretch && { alignSelf: 'stretch' }) },
+          { ...(props.stretch && { alignSelf: 'stretch' }) },
         ]}
         onLayout={(e) => {
           // For some reason, conditionally setting the onLayout wasn't working on condition change.
@@ -809,31 +788,24 @@ function getResult({
           const eventLayout = e.nativeEvent.layout;
           // Change layout state if the style width/height is undefined or 'x%', or the sizes in pixels are different.
           if (
-            (typeof styleWidth !== 'number' &&
-              (childLayout?.width === undefined ||
-                P(eventLayout.width) !== P(childLayout.width))) ||
-            (typeof styleHeight !== 'number' &&
-              (childLayout?.height === undefined ||
-                P(eventLayout.height) !== P(childLayout.height)))
+            (typeof props.styleWidth !== 'number' &&
+              (props.childLayout?.width === undefined ||
+                P(eventLayout.width) !== P(props.childLayout.width))) ||
+            (typeof props.styleHeight !== 'number' &&
+              (props.childLayout?.height === undefined ||
+                P(eventLayout.height) !== P(props.childLayout.height)))
           )
-            setChildLayout({ width: eventLayout.width, height: eventLayout.height });
+            props.setChildLayout({ width: eventLayout.width, height: eventLayout.height });
         }}
-        {...childrenViewProps}
+        {...props.childrenViewProps}
       >
-        {children}
+        {props.children}
       </View>
     </View>
   );
 }
 
-function DisabledShadow({
-  stretch,
-  containerStyle,
-  children,
-  style,
-  childrenViewProps,
-  containerViewProps,
-}: {
+function DisabledShadow(props: {
   containerStyle?: StyleProp<ViewStyle>;
   children?: any;
   style?: StyleProp<ViewStyle>;
@@ -842,13 +814,13 @@ function DisabledShadow({
   childrenViewProps?: ViewProps;
 }): JSX.Element {
   return (
-    <View style={containerStyle} pointerEvents='box-none' {...containerViewProps}>
+    <View style={props.containerStyle} pointerEvents='box-none' {...props.containerViewProps}>
       <View
         pointerEvents='box-none'
-        {...childrenViewProps}
-        style={[style, { ...(stretch && { alignSelf: 'stretch' }) }]}
+        {...props.childrenViewProps}
+        style={[props.style, { ...(props.stretch && { alignSelf: 'stretch' }) }]}
       >
-        {children}
+        {props.children}
       </View>
     </View>
   );
