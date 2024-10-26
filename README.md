@@ -37,10 +37,6 @@ Supports [RTL](https://reactnative.dev/blog/2016/08/19/right-to-left-support-for
 > Give this library a quick try!
 
 ## [📰 v7 Changelog - 2022-08-08](./CHANGELOG.md)
-> **There are important breaking changes! Read it if upgrading!**
-
-### [↪️ Pre v7 Readme](https://github.com/SrBrahma/react-native-shadow-2/blob/36d123db4cf816d15ac5e3f9c9df8cff3e96bd2e/README.md)
-> Old Readme, if you are still using previous versions.
 
 ### [❗ Read the FAQ below!](#️-faq)
 
