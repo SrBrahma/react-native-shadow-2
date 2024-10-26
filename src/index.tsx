@@ -28,7 +28,7 @@ import {
 } from './utils';
 
 /** Package Semver. Used on the [Snack](https://snack.expo.dev/@srbrahma/react-native-shadow-2-sandbox). */
-export const version = '7.0.7';
+export const version = '7.1.1';
 
 export interface ShadowProps {
   /** The color of the shadow when it's right next to the given content, leaving it.
@@ -51,13 +51,13 @@ export interface ShadowProps {
    *
    * @default undefined */
   // We are using the raw type here instead of Side/Corner so TypeDoc/Readme output is better for the users, won't be just `Side`.
-  sides?: Record<'start' | 'end' | 'top' | 'bottom', boolean>;
+  sides?: Partial<Record<'start' | 'end' | 'top' | 'bottom', boolean>>;
   /** The corners that have the shadows drawn.
    *
    * Undefined corners fallbacks to true.
    *
    * @default undefined */
-  corners?: Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>;
+  corners?: Partial<Record<'topStart' | 'topEnd' | 'bottomStart' | 'bottomEnd', boolean>>;
   /** Moves the shadow. Negative x moves it to the left, negative y moves it up.
    *
    * Accepts `'x%'` values, in relation to the child's size.
