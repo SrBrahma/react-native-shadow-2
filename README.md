@@ -1,3 +1,12 @@
+> [!IMPORTANT]  
+> The new React Native **0.76**, released on **Oct 23, 2024**, [finally supports a cross-platform shadow](https://reactnative.dev/blog/2024/10/23/release-0.76-new-architecture#box-shadow-and-filter-style-props)!
+>
+> This new feature should be preferred over this library.
+>
+> I can only wholeheartedly appreciate everyone's support and kindness over the past almost 4 years and celebrate having reached 35k weekly and 2M total downloads 🤗
+>
+> For professional inquiries regarding senior-level expertise in TypeScript, React, and React Native, contact me at henrique.bruno.fa@gmail.com.
+
 <div align="center">
 
 [![npm](https://img.shields.io/npm/v/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
