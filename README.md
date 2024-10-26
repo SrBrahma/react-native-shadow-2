@@ -7,6 +7,8 @@
 >
 > For professional inquiries regarding senior-level expertise in TypeScript, React, and React Native, contact me at henrique.bruno.fa@gmail.com.
 
+# react-native-shadow-2
+
 <div align="center">
 
 [![npm](https://img.shields.io/npm/v/react-native-shadow-2)](https://www.npmjs.com/package/react-native-shadow-2)
@@ -15,8 +17,6 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 </div>
-
-# react-native-shadow-2
 
 [react-native-shadow](https://github.com/879479119/react-native-shadow) is dead for years. This is an improved version with more functionalities, Typescript support and written from scratch. It's not required to define its size: the shadow is smartly applied on the first render and then precisely reapplied on the following ones.
 
