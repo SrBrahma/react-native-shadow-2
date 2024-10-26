@@ -1,6 +1,7 @@
 ### 7.1.1 - 2024-10-26
 
 - Fix `corners` and `sides` properties not being Partial. [#83](https://github.com/SrBrahma/react-native-shadow-2/issues/83).
+- Also, [read the README](https://github.com/SrBrahma/react-native-shadow-2) about React Native 0.76 brand new built-in shadow! ;)
 
 ### 7.1.0 - 2024-05-26
 
