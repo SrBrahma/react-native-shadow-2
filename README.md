@@ -3,7 +3,7 @@
 >
 > This new feature should be preferred over this library.
 >
-> **I can only wholeheartedly appreciate everyone's support and kindness over the past almost 4 years and celebrate having reached 35k weekly and 2M total downloads** 🤗
+> **I can only wholeheartedly appreciate everyone's support and kindness over the past almost 4 years and celebrate having reached 39k weekly and 2M total downloads** 🤗
 >
 > If you are looking for a passionate professional with 5 years of expertise in TypeScript, React, and React Native, contact me at henrique.bruno.fa@gmail.com!
 
